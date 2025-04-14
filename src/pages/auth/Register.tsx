@@ -7,7 +7,9 @@ import {
     AlertCircleIcon,
     ArrowRightIcon,
     KeyIcon,
-    ArrowLeftIcon
+    ArrowLeftIcon,
+    EyeIcon,
+    EyeOffIcon
 } from 'lucide-react';
 import MapRouteAnimation from '../../component/animation/MapRouteAnimation.tsx';
 
@@ -18,6 +20,8 @@ const Register: React.FC = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -38,6 +42,14 @@ const Register: React.FC = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
+    };
+
+    const toggleConfirmPasswordVisibility = () => {
+        setShowConfirmPassword(!showConfirmPassword);
     };
 
     return (
@@ -129,13 +141,21 @@ const Register: React.FC = () => {
                                 <input
                                     id="password"
                                     name="password"
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="pl-10 py-2.5 w-full bg-indigo-900/30 border border-indigo-800/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
+                                    className="pl-10 pr-10 py-2.5 w-full bg-indigo-900/30 border border-indigo-800/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
                                     placeholder="••••••••"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={togglePasswordVisibility}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-indigo-400 hover:text-indigo-300 transition-colors duration-300 focus:outline-none"
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                                </button>
                             </div>
                         </div>
 
@@ -149,13 +169,21 @@ const Register: React.FC = () => {
                                 <input
                                     id="confirmPassword"
                                     name="confirmPassword"
-                                    type="password"
+                                    type={showConfirmPassword ? "text" : "password"}
                                     required
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="pl-10 py-2.5 w-full bg-indigo-900/30 border border-indigo-800/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
+                                    className="pl-10 pr-10 py-2.5 w-full bg-indigo-900/30 border border-indigo-800/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
                                     placeholder="••••••••"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={toggleConfirmPasswordVisibility}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-indigo-400 hover:text-indigo-300 transition-colors duration-300 focus:outline-none"
+                                    aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                                >
+                                    {showConfirmPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                                </button>
                             </div>
                         </div>
 
