@@ -2,43 +2,29 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copier et installer les dépendances
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# Copy the rest of the application code
+# Copier le reste du code source
 COPY . .
 
-# Créer un fichier tsconfig temporaire qui désactive les contrôles stricts
-RUN cp tsconfig.json tsconfig.json.bak && \
-    cat tsconfig.json | sed 's/"noUnusedLocals": true/"noUnusedLocals": false/' | \
-    sed 's/"strict": true/"strict": false/' > tsconfig.temp && \
-    mv tsconfig.temp tsconfig.json
+# Build de l'application
+RUN npm run build
 
-# Build the app with TypeScript errors ignored
-RUN NODE_ENV=production npm run build || npm run build -- --skipLibCheck
+# Étape de production
+FROM nginx:alpine
 
-# Production stage
-FROM nginx:alpine AS production
-
-# Copy the built files from the build stage
+# Copier les fichiers buildés
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Create a simple health check endpoint for Railway
-RUN echo "location /health { return 200 'healthy'; }" > /etc/nginx/conf.d/health.conf
+# Copier la configuration nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Create a custom nginx config to handle SPA routing
-RUN echo 'server { \
-    listen 80; \
-    root /usr/share/nginx/html; \
-    index index.html; \
-    location / { \
-        try_files $uri $uri/ /index.html; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+# Créer un endpoint de health check pour Railway
+RUN echo "healthy" > /usr/share/nginx/html/health.html
 
-# Expose port 80
+# Exposer le port 80
 EXPOSE 80
 
-# Command to run the server
 CMD ["nginx", "-g", "daemon off;"]
