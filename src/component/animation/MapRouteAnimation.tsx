@@ -205,7 +205,7 @@ const MapRouteAnimation: React.FC = () => {
                 <div className="absolute top-2/5 right-1/6 w-2 h-2 rounded-full bg-indigo-400/30 animate-ping"></div>
             </div>
 
-            <style jsx>{`
+            <style>{`
               .map-animation-container {
                 position: absolute;
                 width: 100%;
