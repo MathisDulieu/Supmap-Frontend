@@ -101,11 +101,8 @@ const FeaturesSection: React.FC = () => {
                                        rounded-xl p-6 hover:shadow-xl hover:shadow-indigo-900/10 transition-all duration-300
                                        hover:-translate-y-1 overflow-hidden"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-300
-                                           pointer-events-none rounded-xl"
-                                 style={{background: `linear-gradient(to bottom right, var(--tw-gradient-stops))`,
-                                     "--tw-gradient-from": feature.color.split(" ")[0].split("-")[1],
-                                     "--tw-gradient-to": feature.color.split(" ")[1].split("-")[1]}}>
+                            <div className={`absolute inset-0 bg-gradient-to-br from-${feature.color.split(" ")[0].split("-")[1]} to-${feature.color.split(" ")[1].split("-")[1]} opacity-0 group-hover:opacity-10 transition-opacity duration-300 
+                                           pointer-events-none rounded-xl`}>
                             </div>
 
                             <div className="relative z-10">
