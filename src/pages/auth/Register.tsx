@@ -91,7 +91,6 @@ const Register: React.FC = () => {
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-5">
-                        {/* Username Field */}
                         <div>
                             <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">Username</label>
                             <div className="relative">
@@ -111,7 +110,6 @@ const Register: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Email Field */}
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
                             <div className="relative">
@@ -131,7 +129,6 @@ const Register: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Password Field */}
                         <div>
                             <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">Password</label>
                             <div className="relative">
@@ -159,7 +156,6 @@ const Register: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Confirm Password Field */}
                         <div>
                             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
                             <div className="relative">
@@ -187,7 +183,6 @@ const Register: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Register Button */}
                         <div>
                             <button
                                 type="submit"

@@ -9,7 +9,6 @@ const PhoneMockups: React.FC<PhoneMockupsProps> = ({ activeTab }) => {
     return (
         <div className="flex justify-center items-center">
             <div className="relative">
-                {/* Android Phone Mockup */}
                 <div
                     className={`transform transition-all duration-500 ${
                         activeTab === 'android'
@@ -21,7 +20,6 @@ const PhoneMockups: React.FC<PhoneMockupsProps> = ({ activeTab }) => {
                     <AndroidPhoneMockup />
                 </div>
 
-                {/* iOS Phone Mockup */}
                 <div
                     className={`absolute top-0 left-0 transform transition-all duration-500 ${
                         activeTab === 'ios'

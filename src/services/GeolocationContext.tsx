@@ -29,7 +29,6 @@ export const GeolocationProvider: React.FC<GeolocationProviderProps> = ({ childr
     const [error, setError] = useState<GeolocationPositionError | null>(null);
 
     useEffect(() => {
-        // Check if geolocation is available in the browser
         if ('geolocation' in navigator) {
             setIsGeolocationAvailable(true);
         }

@@ -34,7 +34,7 @@ const teamMembers: TeamMember[] = [
         name: "Emma Dupont",
         role: "Frontend Developer & UI/UX Designer",
         bio: "Emma specializes in frontend development with React. She designed Supmap's user interface, focusing on accessibility and user experience to create an intuitive and modern design.",
-        photoUrl: "/team/team-member-1.jpg", // Replace with your image
+        photoUrl: "/team/team-member-1.jpg",
         skills: ["React", "TypeScript", "Tailwind CSS", "UI/UX Design"],
         socialLinks: {
             github: "https://github.com/emmadupont",
@@ -48,7 +48,7 @@ const teamMembers: TeamMember[] = [
         name: "Thomas Martin",
         role: "Backend Developer & API Architect",
         bio: "Thomas developed Supmap's backend architecture, building robust and performant APIs to handle real-time traffic data and optimized route calculations.",
-        photoUrl: "/team/team-member-2.jpg", // Replace with your image
+        photoUrl: "/team/team-member-2.jpg",
         skills: ["Node.js", "Express", "MongoDB", "REST API", "GraphQL"],
         socialLinks: {
             github: "https://github.com/thomasmartin",
@@ -62,7 +62,7 @@ const teamMembers: TeamMember[] = [
         name: "Lucas Bernard",
         role: "Mobile Developer & Data Engineer",
         bio: "Lucas led the mobile application development, enabling smooth navigation and real-time alerts. He also worked on the data architecture for traffic predictions.",
-        photoUrl: "/team/team-member-3.jpg", // Replace with your image
+        photoUrl: "/team/team-member-3.jpg",
         skills: ["React Native", "Firebase", "Data Analysis", "Geolocation APIs"],
         socialLinks: {
             github: "https://github.com/lucasbernard",
@@ -76,7 +76,7 @@ const teamMembers: TeamMember[] = [
         name: "Sophie Moreau",
         role: "DevOps & Security Specialist",
         bio: "Sophie handled Supmap's infrastructure and deployment, implementing a secure and scalable microservices architecture with Docker and Kubernetes.",
-        photoUrl: "/team/team-member-4.jpg", // Replace with your image
+        photoUrl: "/team/team-member-4.jpg",
         skills: ["Docker", "Kubernetes", "CI/CD", "AWS", "Security"],
         socialLinks: {
             github: "https://github.com/sophiemoreau",
@@ -218,11 +218,10 @@ const About: React.FC = () => {
                                 <div className="relative mb-6 w-full aspect-square overflow-hidden rounded-xl">
                                     <div className={`absolute inset-0 ${getBgClass(member.primaryColor)} animate-pulse`}></div>
 
-                                    {/* Image placeholder - Replace with your own images */}
                                     <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
                                         <span className="text-6xl text-white/50">{member.name.charAt(0)}</span>
                                     </div>
-                                    {/* If you have real images:
+                                    {/*
                                     <img
                                         src={member.photoUrl}
                                         alt={member.name}
@@ -296,7 +295,7 @@ const About: React.FC = () => {
                                             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
                                                 <span className="text-8xl text-white/50">{selectedMember.name.charAt(0)}</span>
                                             </div>
-                                            {/* If you have real images:
+                                            {/*
                                             <img
                                                 src={selectedMember.photoUrl}
                                                 alt={selectedMember.name}

@@ -21,7 +21,6 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
                 </h2>
 
                 <div className="mb-8">
-                    {/* Tab Selector */}
                     <div className="flex border-b border-indigo-900/30">
                         <button
                             onClick={() => setActiveTab('android')}
@@ -48,7 +47,6 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
                         </button>
                     </div>
 
-                    {/* Tab Content */}
                     <div className="py-6">
                         {activeTab === 'android' ? (
                             <div className="space-y-2">
@@ -99,7 +97,6 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
                         )}
                     </div>
 
-                    {/* Download Buttons */}
                     <div className="flex flex-col sm:flex-row gap-4">
                         {activeTab === 'android' ? (
                             <a
