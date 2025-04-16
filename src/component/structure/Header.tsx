@@ -5,7 +5,6 @@ import {
     Navigation,
     User,
     LogIn,
-    Settings,
     Download,
     Menu,
     X,
@@ -47,10 +46,6 @@ const Header: React.FC = () => {
     }, [menuOpen]);
 
     const isActive = (path: string) => {
-        if (path === '/settings' && location.pathname.startsWith('/profile')) {
-            return false;
-        }
-
         if (path === '/') {
             return location.pathname === '/';
         }
@@ -127,12 +122,6 @@ const Header: React.FC = () => {
 
                     <div className="flex items-center space-x-3 ml-3">
                         <ActionButton
-                            to="/settings"
-                            icon={<Settings className="w-4 h-4" />}
-                            label="Settings"
-                        />
-
-                        <ActionButton
                             to="/mobile/app"
                             icon={<Download className="w-4 h-4" />}
                             label="Get App"
@@ -182,12 +171,6 @@ const Header: React.FC = () => {
                     </ul>
 
                     <div className="mt-6 flex flex-col gap-3">
-                        <ActionButton
-                            to="/settings"
-                            icon={<Settings className="w-4 h-4" />}
-                            label="Settings"
-                        />
-
                         <ActionButton
                             to="/mobile/app"
                             icon={<Download className="w-4 h-4" />}

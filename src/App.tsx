@@ -11,7 +11,6 @@ import CookiesPopUp from './component/notification/CookiesPopUp.tsx';
 
 import Home from './pages/common/Home.tsx';
 import Navigation from './pages/common/Navigation.tsx';
-import Settings from './pages/common/Settings.tsx';
 import Support from './pages/common/Support.tsx';
 import MobileApp from './pages/common/MobileApp.tsx';
 import TermsOfUse from './pages/legal/TermsOfUse.tsx';
@@ -72,7 +71,6 @@ const App: React.FC = () => {
                             <Routes>
                                 <Route path="/" element={<Home />} />
                                 <Route path="/navigation" element={<Navigation />} />
-                                <Route path="/settings" element={<Settings />} />
                                 <Route path="/support" element={<Support />} />
                                 <Route path="/mobile/app" element={<MobileApp />} />
                                 <Route path="/terms-of-use" element={<TermsOfUse />} />

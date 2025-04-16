@@ -32,7 +32,6 @@ const Footer: React.FC = () => {
                 <div className="absolute bottom-[40%] right-[30%] w-1 h-1 rounded-full bg-indigo-400/30 animate-ping"></div>
                 <div className="absolute bottom-[20%] left-[80%] w-1 h-1 rounded-full bg-indigo-400/30 animate-pulse"></div>
 
-                {/* Suppression de l'élément qui créait l'espace en haut */}
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
@@ -76,7 +75,6 @@ const Footer: React.FC = () => {
                             <FooterLink to="/terms-of-use" icon={<FileTextIcon size={16} />} label="Terms of Use" />
                             <FooterLink to="/privacy-policy" icon={<ShieldIcon size={16} />} label="Privacy Policy" />
                             <FooterLink to="/cookies-policy" icon={<FileTextIcon size={16} />} label="Cookies Policy" />
-                            <FooterLink to="/settings" icon={<HelpCircleIcon size={16} />} label="Settings" />
                         </ul>
                     </div>
 
