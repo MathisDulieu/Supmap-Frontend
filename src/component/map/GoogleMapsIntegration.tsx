@@ -68,7 +68,7 @@ const GoogleMapsIntegration: React.FC<GoogleMapsProps> = ({
                                                               travelMode
                                                           }) => {
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
-    const [mapInstance, setMapInstance] = useState<any | null>(null);
+    const [setMapInstance] = useState<any | null>(null);
     const [directionsService, setDirectionsService] = useState<any | null>(null);
     const [directionsRenderer, setDirectionsRenderer] = useState<any | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);

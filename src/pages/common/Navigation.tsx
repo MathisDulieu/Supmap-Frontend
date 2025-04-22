@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { MapPinIcon, PlusIcon, XIcon, MenuIcon, NavigationIcon, TrashIcon, Car, Bike, PersonStanding, Train } from 'lucide-react';
 import GoogleMapsIntegration from '../../component/map/GoogleMapsIntegration';
 import RouteInfo from '../../component/map/RouteInfo';

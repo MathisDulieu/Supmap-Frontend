@@ -65,16 +65,6 @@ const RouteInfo: React.FC<RouteInfoProps> = ({ routeDetails, onClose, travelMode
         }
     };
 
-    const getTransportColor = () => {
-        switch (travelMode) {
-            case 'DRIVING': return 'bg-blue-100 text-blue-700';
-            case 'BICYCLING': return 'bg-green-100 text-green-700';
-            case 'WALKING': return 'bg-orange-100 text-orange-700';
-            case 'TRANSIT': return 'bg-purple-100 text-purple-700';
-            default: return 'bg-blue-100 text-blue-700';
-        }
-    };
-
     const stripHtml = (html: string) => {
         const temp = document.createElement('div');
         temp.innerHTML = html;
