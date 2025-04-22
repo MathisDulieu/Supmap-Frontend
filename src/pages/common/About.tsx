@@ -31,57 +31,57 @@ interface TeamMember {
 const teamMembers: TeamMember[] = [
     {
         id: 1,
-        name: "Emma Dupont",
-        role: "Frontend Developer & UI/UX Designer",
-        bio: "Emma specializes in frontend development with React. She designed Supmap's user interface, focusing on accessibility and user experience to create an intuitive and modern design.",
-        photoUrl: "/team/team-member-1.jpg",
-        skills: ["React", "TypeScript", "Tailwind CSS", "UI/UX Design"],
+        name: "Mathis DULIEU",
+        role: "Lead Backend Developer & DevOps Engineer",
+        bio: "Mathis led the backend development with Spring Boot and handled the deployment infrastructure using Docker and Railway. His full-stack expertise ensured seamless integration between the server and client applications, making him a cornerstone of the project's architecture.",
+        photoUrl: "https://i.ibb.co/bg5rWPtw/1678623297438.jpg",
+        skills: ["Java Spring Boot", "Docker", "React", "TypeScript", "Railway", "Git"],
         socialLinks: {
-            github: "https://github.com/emmadupont",
-            linkedin: "https://linkedin.com/in/emmadupont",
-            email: "emma.dupont@example.com"
+            github: "https://github.com/MathisDulieu",
+            linkedin: "https://www.linkedin.com/in/mathis-dulieu/",
+            email: "dulieu.mathis@gmail.com"
         },
         primaryColor: "indigo"
     },
     {
         id: 2,
-        name: "Thomas Martin",
-        role: "Backend Developer & API Architect",
-        bio: "Thomas developed Supmap's backend architecture, building robust and performant APIs to handle real-time traffic data and optimized route calculations.",
-        photoUrl: "/team/team-member-2.jpg",
-        skills: ["Node.js", "Express", "MongoDB", "REST API", "GraphQL"],
+        name: "Romain MICHAUX",
+        role: "Frontend & Mobile Developer",
+        bio: "Romain worked on both the web frontend and mobile application, bridging the gap between platforms to ensure a consistent user experience. His versatile development skills allowed the team to maintain unified code standards across multiple environments.",
+        photoUrl: "https://i.ibb.co/N23N5yfW/1710084179007.png",
+        skills: ["React", "TypeScript", "JavaScript", "React Native", "Docker", "Git"],
         socialLinks: {
-            github: "https://github.com/thomasmartin",
-            linkedin: "https://linkedin.com/in/thomasmartin",
-            email: "thomas.martin@example.com"
+            github: "https://github.com/Romain-18",
+            linkedin: "https://www.linkedin.com/in/romain-michaux/",
+            email: "romain.m935@gmail.com"
         },
         primaryColor: "blue"
     },
     {
         id: 3,
-        name: "Lucas Bernard",
-        role: "Mobile Developer & Data Engineer",
-        bio: "Lucas led the mobile application development, enabling smooth navigation and real-time alerts. He also worked on the data architecture for traffic predictions.",
-        photoUrl: "/team/team-member-3.jpg",
-        skills: ["React Native", "Firebase", "Data Analysis", "Geolocation APIs"],
+        name: "Louis CZERYBA--DUEZ",
+        role: "Mobile Application Developer",
+        bio: "Louis specialized in mobile development, focusing on creating an intuitive and responsive user interface for the application. His attention to detail and expertise in TypeScript helped deliver a smooth mobile experience with real-time functionality.",
+        photoUrl: "https://i.ibb.co/qLxxdZmb/LCD-background.png",
+        skills: ["TypeScript", "JavaScript", "React Native", "Docker", "Git", "Mobile UI/UX"],
         socialLinks: {
-            github: "https://github.com/lucasbernard",
-            linkedin: "https://linkedin.com/in/lucasbernard",
-            email: "lucas.bernard@example.com"
+            github: "https://github.com/Lcd789",
+            linkedin: "https://www.linkedin.com/in/louis-czeryba-duez/",
+            email: "czerybaduez.louis@gmail.com"
         },
         primaryColor: "green"
     },
     {
         id: 4,
-        name: "Sophie Moreau",
-        role: "DevOps & Security Specialist",
-        bio: "Sophie handled Supmap's infrastructure and deployment, implementing a secure and scalable microservices architecture with Docker and Kubernetes.",
-        photoUrl: "/team/team-member-4.jpg",
-        skills: ["Docker", "Kubernetes", "CI/CD", "AWS", "Security"],
+        name: "Titouan LEGRIS",
+        role: "Mobile Application Developer",
+        bio: "Titouan contributed to the mobile application development, implementing key features and ensuring compatibility across various devices. His collaborative approach and problem-solving skills were essential in overcoming technical challenges during the development process.",
+        photoUrl: "https://i.ibb.co/wh9G3xMr/1637168955167.jpg",
+        skills: ["TypeScript", "JavaScript", "React Native", "Docker", "Git", "Mobile Development"],
         socialLinks: {
-            github: "https://github.com/sophiemoreau",
-            linkedin: "https://linkedin.com/in/sophiemoreau",
-            email: "sophie.moreau@example.com"
+            github: "https://github.com/Titouan-L",
+            linkedin: "https://www.linkedin.com/in/titouan-legris-/",
+            email: "titouan.legris@supinfo.com"
         },
         primaryColor: "purple"
     }
@@ -217,16 +217,11 @@ const About: React.FC = () => {
                             <div className="p-6">
                                 <div className="relative mb-6 w-full aspect-square overflow-hidden rounded-xl">
                                     <div className={`absolute inset-0 ${getBgClass(member.primaryColor)} animate-pulse`}></div>
-
-                                    <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
-                                        <span className="text-6xl text-white/50">{member.name.charAt(0)}</span>
-                                    </div>
-                                    {/*
                                     <img
                                         src={member.photoUrl}
                                         alt={member.name}
                                         className="absolute inset-0 w-full h-full object-cover"
-                                    /> */}
+                                    />
                                 </div>
 
                                 <h3 className="text-xl font-bold text-white mb-1">{member.name}</h3>
@@ -291,16 +286,11 @@ const About: React.FC = () => {
                                     <div className="w-full md:w-1/3">
                                         <div className="relative aspect-square w-full overflow-hidden rounded-xl mb-4">
                                             <div className={`absolute inset-0 ${getBgClass(selectedMember.primaryColor)} animate-pulse`}></div>
-
-                                            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
-                                                <span className="text-8xl text-white/50">{selectedMember.name.charAt(0)}</span>
-                                            </div>
-                                            {/*
                                             <img
                                                 src={selectedMember.photoUrl}
                                                 alt={selectedMember.name}
                                                 className="absolute inset-0 w-full h-full object-cover"
-                                            /> */}
+                                            />
                                         </div>
 
                                         <div className="flex justify-center space-x-4 mb-6">
