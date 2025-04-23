@@ -46,8 +46,8 @@ const Register: React.FC = () => {
 
             setTimeout(() => {
                 window.location.href = '/login';
-            }, 2000);
-        } catch (err: unknown) {
+            }, 3000);
+        } catch (err: any) {
             console.error('Registration error:', err);
 
             setError(err.message);
