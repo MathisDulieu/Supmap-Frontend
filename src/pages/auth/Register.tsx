@@ -50,11 +50,7 @@ const Register: React.FC = () => {
         } catch (err: unknown) {
             console.error('Registration error:', err);
 
-            if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError('Registration failed. Please try again.');
-            }
+            setError(err.message);
         } finally {
             setLoading(false);
         }

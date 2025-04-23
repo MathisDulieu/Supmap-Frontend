@@ -26,7 +26,7 @@ export async function login(email: string, password: string): Promise<string> {
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return await response.text();
@@ -41,7 +41,7 @@ export async function confirmEmail(token: string): Promise<string> {
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return await response.text();
@@ -57,7 +57,7 @@ export async function resendRegisterConfirmationEmail(email: string): Promise<st
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return await response.text();
@@ -73,7 +73,7 @@ export async function forgotPassword(email: string): Promise<string> {
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return await response.text();
@@ -89,7 +89,7 @@ export async function resetPassword(token: string, newPassword: string): Promise
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return await response.text();
