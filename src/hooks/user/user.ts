@@ -1,13 +1,22 @@
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = window.env && window.env.API_BASE_URL ? window.env.API_BASE_URL : '';
+interface UserResponse {
+    [key: string]: any;
+}
 
-function getAuthToken() {
+interface Location {
+    latitude: number;
+    longitude: number;
+}
+
+const API_BASE_URL = (window as any).env && (window as any).env.API_BASE_URL ? (window as any).env.API_BASE_URL : '';
+
+function getAuthToken(): string | undefined {
     const cookiesAccepted = localStorage.getItem('cookiesAccepted') === 'true';
     return cookiesAccepted ? Cookies.get('authToken') : localStorage.getItem('authToken');
 }
 
-export async function getAuthenticatedUserDetails() {
+export async function getAuthenticatedUserDetails(): Promise<UserResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -29,7 +38,7 @@ export async function getAuthenticatedUserDetails() {
     return await response.json();
 }
 
-export async function deleteAuthenticatedUserAccount() {
+export async function deleteAuthenticatedUserAccount(): Promise<UserResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -52,7 +61,7 @@ export async function deleteAuthenticatedUserAccount() {
     return text ? JSON.parse(text) : {};
 }
 
-export async function setProfileImage(file) {
+export async function setProfileImage(file: File): Promise<UserResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -78,7 +87,12 @@ export async function setProfileImage(file) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function updateAuthenticatedUserDetails(username, email, oldPassword, newPassword) {
+export async function updateAuthenticatedUserDetails(
+    username: string,
+    email: string,
+    oldPassword: string | null,
+    newPassword: string | null
+): Promise<UserResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -107,7 +121,13 @@ export async function updateAuthenticatedUserDetails(username, email, oldPasswor
     return text ? JSON.parse(text) : {};
 }
 
-export async function createAdminAccount(username, email, password, profileImage, isValidEmail) {
+export async function createAdminAccount(
+    username: string,
+    email: string,
+    password: string,
+    profileImage: string | null,
+    isValidEmail: boolean
+): Promise<UserResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -137,7 +157,7 @@ export async function createAdminAccount(username, email, password, profileImage
     return text ? JSON.parse(text) : {};
 }
 
-export async function deleteAdminAccount(id) {
+export async function deleteAdminAccount(id: string): Promise<UserResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -160,7 +180,7 @@ export async function deleteAdminAccount(id) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function getAllUsers(keyword = '', page = 0) {
+export async function getAllUsers(keyword: string = '', page: number = 0): Promise<UserResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -182,7 +202,7 @@ export async function getAllUsers(keyword = '', page = 0) {
     return await response.json();
 }
 
-export async function getUserAdminDashboardData() {
+export async function getUserAdminDashboardData(): Promise<UserResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -204,7 +224,7 @@ export async function getUserAdminDashboardData() {
     return await response.json();
 }
 
-export async function rateApplication(rate) {
+export async function rateApplication(rate: number): Promise<UserResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -228,7 +248,7 @@ export async function rateApplication(rate) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function updateUserLocation(location) {
+export async function updateUserLocation(location: Location): Promise<UserResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {

@@ -1,13 +1,17 @@
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = window.env && window.env.API_BASE_URL ? window.env.API_BASE_URL : '';
+interface NotificationResponse {
+    [key: string]: any;
+}
 
-function getAuthToken() {
+const API_BASE_URL = (window as any).env && (window as any).env.API_BASE_URL ? (window as any).env.API_BASE_URL : '';
+
+function getAuthToken(): string | null {
     const cookiesAccepted = localStorage.getItem('cookiesAccepted') === 'true';
     return cookiesAccepted ? Cookies.get('authToken') : localStorage.getItem('authToken');
 }
 
-export async function updateAuthenticatedUserNotificationPreferences(email) {
+export async function updateAuthenticatedUserNotificationPreferences(email: string): Promise<NotificationResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {

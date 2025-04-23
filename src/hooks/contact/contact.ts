@@ -1,8 +1,12 @@
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = window.env && window.env.API_BASE_URL ? window.env.API_BASE_URL : '';
+interface ContactResponse {
+    [key: string]: any;
+}
 
-export async function sendSupportEmail(email, subject, content) {
+const API_BASE_URL = (window as any).env && (window as any).env.API_BASE_URL ? (window as any).env.API_BASE_URL : '';
+
+export async function sendSupportEmail(email: string, subject: string, content: string): Promise<ContactResponse> {
     const response = await fetch(`${API_BASE_URL}/contact/send-support-email`, {
         method: 'POST',
         headers: {
@@ -19,7 +23,7 @@ export async function sendSupportEmail(email, subject, content) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function subscribeToNewsletter(email) {
+export async function subscribeToNewsletter(email: string): Promise<ContactResponse> {
     const response = await fetch(`${API_BASE_URL}/contact/subscribe-newsletter`, {
         method: 'POST',
         headers: {
@@ -36,7 +40,7 @@ export async function subscribeToNewsletter(email) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function unsubscribeFromNewsletter(email) {
+export async function unsubscribeFromNewsletter(email: string): Promise<ContactResponse> {
     const response = await fetch(`${API_BASE_URL}/contact/unsubscribe-newsletter`, {
         method: 'POST',
         headers: {
@@ -53,7 +57,7 @@ export async function unsubscribeFromNewsletter(email) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function sendNewsletter(subject, content) {
+export async function sendNewsletter(subject: string, content: string): Promise<ContactResponse> {
     const cookiesAccepted = localStorage.getItem('cookiesAccepted') === 'true';
     const authToken = cookiesAccepted ? Cookies.get('authToken') : localStorage.getItem('authToken');
 

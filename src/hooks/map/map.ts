@@ -1,13 +1,27 @@
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = window.env && window.env.API_BASE_URL ? window.env.API_BASE_URL : '';
+interface MapResponse {
+    [key: string]: any;
+}
 
-function getAuthToken() {
+interface Coordinates {
+    lat: number;
+    lng: number;
+}
+
+interface RoutePoint {
+    latitude: number;
+    longitude: number;
+}
+
+const API_BASE_URL = (window as any).env && (window as any).env.API_BASE_URL ? (window as any).env.API_BASE_URL : '';
+
+function getAuthToken(): string | undefined {
     const cookiesAccepted = localStorage.getItem('cookiesAccepted') === 'true';
     return cookiesAccepted ? Cookies.get('authToken') : localStorage.getItem('authToken');
 }
 
-export async function getMapAdminDashboardData() {
+export async function getMapAdminDashboardData(): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -29,7 +43,7 @@ export async function getMapAdminDashboardData() {
     return await response.json();
 }
 
-export async function saveNewAlert(alertType, latitude, longitude) {
+export async function saveNewAlert(alertType: string, latitude: number, longitude: number): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -53,7 +67,7 @@ export async function saveNewAlert(alertType, latitude, longitude) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function getAllAlertsByPosition(latitude, longitude) {
+export async function getAllAlertsByPosition(latitude: number, longitude: number): Promise<MapResponse> {
     const response = await fetch(`${API_BASE_URL}/map/alerts/position`, {
         method: 'POST',
         headers: {
@@ -69,7 +83,7 @@ export async function getAllAlertsByPosition(latitude, longitude) {
     return await response.json();
 }
 
-export async function getAllAlertsByRoute(routePoints) {
+export async function getAllAlertsByRoute(routePoints: RoutePoint[]): Promise<MapResponse> {
     const response = await fetch(`${API_BASE_URL}/map/alerts/route`, {
         method: 'POST',
         headers: {
@@ -85,7 +99,7 @@ export async function getAllAlertsByRoute(routePoints) {
     return await response.json();
 }
 
-export async function getUserFavoriteLocations() {
+export async function getUserFavoriteLocations(): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -107,7 +121,16 @@ export async function getUserFavoriteLocations() {
     return await response.json();
 }
 
-export async function saveNewUserFavoriteLocation(name, formattedAddress, coordinates, street, city, postalCode, country, locationType) {
+export async function saveNewUserFavoriteLocation(
+    name: string,
+    formattedAddress: string,
+    coordinates: Coordinates,
+    street: string,
+    city: string,
+    postalCode: string,
+    country: string,
+    locationType: string
+): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -140,7 +163,7 @@ export async function saveNewUserFavoriteLocation(name, formattedAddress, coordi
     return text ? JSON.parse(text) : {};
 }
 
-export async function deleteUserFavoriteLocation(id) {
+export async function deleteUserFavoriteLocation(id: string): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -163,7 +186,17 @@ export async function deleteUserFavoriteLocation(id) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function updateUserFavoriteLocation(id, name, formattedAddress, coordinates, street, city, postalCode, country, locationType) {
+export async function updateUserFavoriteLocation(
+    id: string,
+    name: string,
+    formattedAddress: string,
+    coordinates: Coordinates,
+    street: string,
+    city: string,
+    postalCode: string,
+    country: string,
+    locationType: string
+): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -196,7 +229,7 @@ export async function updateUserFavoriteLocation(id, name, formattedAddress, coo
     return text ? JSON.parse(text) : {};
 }
 
-export async function validateUserAlert(id) {
+export async function validateUserAlert(id: string): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -219,7 +252,7 @@ export async function validateUserAlert(id) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function invalidateUserAlert(id) {
+export async function invalidateUserAlert(id: string): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -242,7 +275,14 @@ export async function invalidateUserAlert(id) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function saveUserRoute(startAddress, endAddress, startPoint, endPoint, kilometersDistance, estimatedDurationInSeconds) {
+export async function saveUserRoute(
+    startAddress: string,
+    endAddress: string,
+    startPoint: Coordinates,
+    endPoint: Coordinates,
+    kilometersDistance: number,
+    estimatedDurationInSeconds: number
+): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -273,7 +313,7 @@ export async function saveUserRoute(startAddress, endAddress, startPoint, endPoi
     return text ? JSON.parse(text) : {};
 }
 
-export async function getUserRouteHistory() {
+export async function getUserRouteHistory(): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -295,7 +335,14 @@ export async function getUserRouteHistory() {
     return await response.json();
 }
 
-export async function updateUserNavigationPreferences(avoidTolls, avoidHighways, avoidTraffic, showUsers, proximityAlertDistance, preferredTransportMode) {
+export async function updateUserNavigationPreferences(
+    avoidTolls: boolean,
+    avoidHighways: boolean,
+    avoidTraffic: boolean,
+    showUsers: boolean,
+    proximityAlertDistance: number,
+    preferredTransportMode: string
+): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -326,7 +373,7 @@ export async function updateUserNavigationPreferences(avoidTolls, avoidHighways,
     return text ? JSON.parse(text) : {};
 }
 
-export async function getNearbyUsers(latitude, longitude) {
+export async function getNearbyUsers(latitude: number, longitude: number): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -348,7 +395,7 @@ export async function getNearbyUsers(latitude, longitude) {
     return await response.json();
 }
 
-export async function shareLocation(latitude, longitude) {
+export async function shareLocation(latitude: number, longitude: number): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -372,7 +419,12 @@ export async function shareLocation(latitude, longitude) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function shareRoute(startLatitude, startLongitude, endLatitude, endLongitude) {
+export async function shareRoute(
+    startLatitude: number,
+    startLongitude: number,
+    endLatitude: number,
+    endLongitude: number
+): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -401,7 +453,7 @@ export async function shareRoute(startLatitude, startLongitude, endLatitude, end
     return text ? JSON.parse(text) : {};
 }
 
-export async function saveNewRouteRecalculation() {
+export async function saveNewRouteRecalculation(): Promise<MapResponse> {
     const authToken = getAuthToken();
 
     if (!authToken) {

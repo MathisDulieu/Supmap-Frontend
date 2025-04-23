@@ -17,8 +17,7 @@ export async function register(username: string, email: string, password: string
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function login(email: string, password: string): Promise<string> {
@@ -49,8 +48,7 @@ export async function confirmEmail(token: string): Promise<AuthResponse> {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function resendRegisterConfirmationEmail(email: string): Promise<AuthResponse> {
@@ -66,8 +64,7 @@ export async function resendRegisterConfirmationEmail(email: string): Promise<Au
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function forgotPassword(email: string): Promise<AuthResponse> {
@@ -83,8 +80,7 @@ export async function forgotPassword(email: string): Promise<AuthResponse> {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function resetPassword(token: string, newPassword: string): Promise<AuthResponse> {
@@ -100,8 +96,7 @@ export async function resetPassword(token: string, newPassword: string): Promise
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function googleLogin(): Promise<unknown> {

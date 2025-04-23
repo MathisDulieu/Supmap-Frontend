@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
     MailIcon,
     LockIcon,
@@ -9,18 +9,21 @@ import {
     KeyIcon,
     ArrowLeftIcon,
     EyeIcon,
-    EyeOffIcon
+    EyeOffIcon,
+    CheckCircleIcon
 } from 'lucide-react';
 import MapRouteAnimation from '../../component/animation/MapRouteAnimation.tsx';
-import { register } from '../../hooks/auth/auth.ts';
+import { register } from '../../hooks/auth/auth';
 
 const Register: React.FC = () => {
+    const navigate = useNavigate();
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -34,10 +37,17 @@ const Register: React.FC = () => {
 
         setLoading(true);
         setError('');
+        setSuccess('');
 
         try {
             const data = await register(username, email, password);
             console.log('Registration successful:', data);
+
+            setSuccess(data.toString);
+
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
         } catch (err) {
             console.error('Registration error:', err);
             setError('Registration failed. Please try again.');
@@ -89,6 +99,13 @@ const Register: React.FC = () => {
                         <div className="mb-6 bg-red-900/20 border border-red-800/30 text-red-200 px-4 py-3 rounded-lg flex items-center gap-2 text-sm">
                             <AlertCircleIcon size={18} className="text-red-400" />
                             <span>{error}</span>
+                        </div>
+                    )}
+
+                    {success && (
+                        <div className="mb-6 bg-green-900/20 border border-green-800/30 text-green-200 px-4 py-3 rounded-lg flex items-center gap-2 text-sm">
+                            <CheckCircleIcon size={18} className="text-green-400" />
+                            <span>{success}</span>
                         </div>
                     )}
 
