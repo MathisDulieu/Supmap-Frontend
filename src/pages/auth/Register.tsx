@@ -12,6 +12,7 @@ import {
     EyeOffIcon
 } from 'lucide-react';
 import MapRouteAnimation from '../../component/animation/MapRouteAnimation.tsx';
+import { register } from '../../hooks/auth/auth.js';
 
 const Register: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -35,9 +36,10 @@ const Register: React.FC = () => {
         setError('');
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            console.log('Register attempt with:', { username, email, password });
+            const data = await register(username, email, password);
+            console.log('Registration successful:', data);
         } catch (err) {
+            console.error('Registration error:', err);
             setError('Registration failed. Please try again.');
         } finally {
             setLoading(false);

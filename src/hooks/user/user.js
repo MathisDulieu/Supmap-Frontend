@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_BASE_URL = window.env && window.env.API_BASE_URL ? window.env.API_BASE_URL : '';
 
 function getAuthToken() {
     const cookiesAccepted = localStorage.getItem('cookiesAccepted') === 'true';

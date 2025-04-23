@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_BASE_URL = window.env && window.env.API_BASE_URL ? window.env.API_BASE_URL : '';
 
 export async function sendSupportEmail(email, subject, content) {
     const response = await fetch(`${API_BASE_URL}/contact/send-support-email`, {

@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = window.env && window.env.API_BASE_URL ? window.env.API_BASE_URL : '';
 
 export async function register(username, email, password) {
     const response = await fetch(`${API_BASE_URL}/auth/register`, {

@@ -35,8 +35,6 @@ if (!GOOGLE_API_KEY) {
     console.warn('Attention: GOOGLE_API_KEY n\'est pas définie');
 }
 
-console.log('GOOGLE_API_KEY utilisée:', GOOGLE_API_KEY);
-
 const loadGoogleMapsApi = (): Promise<void> => {
     return new Promise((resolve, reject) => {
         if (googleMapsLoaded) {
