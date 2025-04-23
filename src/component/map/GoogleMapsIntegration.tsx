@@ -23,8 +23,7 @@ interface GoogleMapsProps {
 let googleMapsLoaded = false;
 let googleMapsLoading = false;
 
-const GOOGLE_API_KEY = import.meta.env.REACT_APP_GOOGLE_API_KEY;
-
+const GOOGLE_API_KEY = (window as any).env?.GOOGLE_API_KEY || import.meta.env.VITE_GOOGLE_API_KEY || '';
 const loadGoogleMapsApi = (): Promise<void> => {
     return new Promise((resolve, reject) => {
         if (googleMapsLoaded) {
