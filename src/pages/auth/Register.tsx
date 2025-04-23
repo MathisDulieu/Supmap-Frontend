@@ -57,7 +57,7 @@ const Register: React.FC = () => {
                     if (statusCode === 400 && 'cause' in err) {
                         setError((err.cause as any)?.message || 'Registration failed. Please check your input and try again.');
                     } else {
-                        setError(`Registration failed (${statusCode}). Please try again.`);
+                        setError(`Registration failed (${err.message}). Please try again.`);
                     }
                 } else {
                     setError(err.message || 'Registration failed. Please try again.');
