@@ -10,7 +10,7 @@ export async function register(username: string, email: string, password: string
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(response.statusText);
     }
 
     return await response.text();
