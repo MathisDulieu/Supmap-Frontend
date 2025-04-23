@@ -4,6 +4,10 @@ declare global {
     interface Window {
         google: any;
         initMap: () => void;
+        env?: {
+            API_BASE_URL: string;
+            GOOGLE_API_KEY: string;
+        };
     }
 }
 
@@ -23,8 +27,14 @@ interface GoogleMapsProps {
 let googleMapsLoaded = false;
 let googleMapsLoading = false;
 
-console.log('window.env:', (window as any).env);
-const GOOGLE_API_KEY = (window as any).env?.GOOGLE_API_KEY || import.meta.env.VITE_GOOGLE_API_KEY || '';
+const GOOGLE_API_KEY = window.env && window.env.GOOGLE_API_KEY
+    ? window.env.GOOGLE_API_KEY
+    : '';
+
+if (!GOOGLE_API_KEY) {
+    console.warn('Attention: GOOGLE_API_KEY n\'est pas définie');
+}
+
 console.log('GOOGLE_API_KEY utilisée:', GOOGLE_API_KEY);
 
 const loadGoogleMapsApi = (): Promise<void> => {
