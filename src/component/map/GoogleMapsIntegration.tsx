@@ -56,20 +56,26 @@ const loadGoogleMapsApi = (): Promise<void> => {
 
         googleMapsLoading = true;
 
-        window.initMap = () => {
-            googleMapsLoaded = true;
-            googleMapsLoading = false;
-            resolve();
-        };
-
         try {
+            window.initMap = () => {
+                googleMapsLoaded = true;
+                googleMapsLoading = false;
+                resolve();
+            };
+
             const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&callback=initMap`;
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&callback=initMap&loading=async`;
             script.async = true;
             script.defer = true;
+            script.onerror = (error) => {
+                googleMapsLoading = false;
+                console.error('Erreur lors du chargement de Google Maps API:', error);
+                reject(new Error('Impossible de charger Google Maps API'));
+            };
             document.head.appendChild(script);
         } catch (error) {
             googleMapsLoading = false;
+            console.error('Exception lors du chargement de Google Maps:', error);
             reject(error);
         }
     });
@@ -82,7 +88,7 @@ const GoogleMapsIntegration: React.FC<GoogleMapsProps> = ({
                                                               travelMode
                                                           }) => {
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
-    const [setMapInstance] = useState<any | null>(null);
+    const [mapInstance, setMapInstance] = useState<any | null>(null);
     const [directionsService, setDirectionsService] = useState<any | null>(null);
     const [directionsRenderer, setDirectionsRenderer] = useState<any | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
@@ -99,7 +105,11 @@ const GoogleMapsIntegration: React.FC<GoogleMapsProps> = ({
 
                 if (!isMounted || !mapContainerRef.current) return;
 
-                const center = { lat: 48.8566, lng: 2.3522 }; // Paris
+                const center = { lat: 48.8566, lng: 2.3522 };
+
+                if (!window.google || !window.google.maps) {
+                    throw new Error('Google Maps n\'a pas été chargé correctement');
+                }
 
                 const map = new window.google.maps.Map(mapContainerRef.current, {
                     center,
@@ -147,11 +157,10 @@ const GoogleMapsIntegration: React.FC<GoogleMapsProps> = ({
     }, []);
 
     useEffect(() => {
-        if (!calculateRoute || !directionsService || !directionsRenderer || !isLoaded) {
+        if (!calculateRoute || !directionsService || !directionsRenderer || !isLoaded || !mapInstance) {
             return;
         }
 
-        // Clear previous error
         setError(null);
 
         const validWaypoints = waypoints.filter(wp => wp.value.trim() !== '');
@@ -193,7 +202,7 @@ const GoogleMapsIntegration: React.FC<GoogleMapsProps> = ({
             console.error('Error calculating route:', err);
             setError('An error occurred while calculating the route.');
         }
-    }, [calculateRoute, directionsService, directionsRenderer, waypoints, isLoaded, onRouteCalculated, travelMode]);
+    }, [calculateRoute, directionsService, directionsRenderer, mapInstance, waypoints, isLoaded, onRouteCalculated, travelMode]);
 
     return (
         <div className="w-full h-full rounded-lg relative">
