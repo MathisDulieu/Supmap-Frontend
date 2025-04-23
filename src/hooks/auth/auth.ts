@@ -1,6 +1,10 @@
-const API_BASE_URL = window.env && window.env.API_BASE_URL ? window.env.API_BASE_URL : '';
+const API_BASE_URL = (window as any).env && (window as any).env.API_BASE_URL ? (window as any).env.API_BASE_URL : '';
 
-export async function register(username, email, password) {
+interface AuthResponse {
+    [key: string]: any;
+}
+
+export async function register(username: string, email: string, password: string): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
@@ -17,7 +21,7 @@ export async function register(username, email, password) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function login(email, password) {
+export async function login(email: string, password: string): Promise<string> {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -33,7 +37,7 @@ export async function login(email, password) {
     return await response.text();
 }
 
-export async function confirmEmail(token) {
+export async function confirmEmail(token: string): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/confirm-email?token=${token}`, {
         method: 'POST',
         headers: {
@@ -49,7 +53,7 @@ export async function confirmEmail(token) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function resendRegisterConfirmationEmail(email) {
+export async function resendRegisterConfirmationEmail(email: string): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/resend/register-confirmation-email`, {
         method: 'POST',
         headers: {
@@ -66,7 +70,7 @@ export async function resendRegisterConfirmationEmail(email) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function forgotPassword(email) {
+export async function forgotPassword(email: string): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
         method: 'POST',
         headers: {
@@ -83,7 +87,7 @@ export async function forgotPassword(email) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function resetPassword(token, newPassword) {
+export async function resetPassword(token: string, newPassword: string): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
         method: 'POST',
         headers: {
@@ -100,7 +104,7 @@ export async function resetPassword(token, newPassword) {
     return text ? JSON.parse(text) : {};
 }
 
-export async function googleLogin() {
+export async function googleLogin(): Promise<unknown> {
     window.location.href = `${API_BASE_URL}/oauth/google-login`;
 
     return new Promise(resolve => {

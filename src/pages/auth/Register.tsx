@@ -12,7 +12,7 @@ import {
     EyeOffIcon
 } from 'lucide-react';
 import MapRouteAnimation from '../../component/animation/MapRouteAnimation.tsx';
-import { register } from '../../hooks/auth/auth.js';
+import { register } from '../../hooks/auth/auth.ts';
 
 const Register: React.FC = () => {
     const [username, setUsername] = useState('');
