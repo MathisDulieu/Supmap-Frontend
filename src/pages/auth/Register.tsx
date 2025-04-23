@@ -39,17 +39,32 @@ const Register: React.FC = () => {
         setSuccess('');
 
         try {
-            const data = await register(username, email, password);
-            console.log('Registration successful:', data);
+            const message = await register(username, email, password);
+            console.log('Registration successful:', message);
 
-            setSuccess(data.toString);
+            setSuccess(message);
 
             setTimeout(() => {
                 window.location.href = '/login';
-            }, 2000);
+            });
         } catch (err) {
             console.error('Registration error:', err);
-            setError('Registration failed. Please try again.');
+
+            if (err instanceof Error) {
+                const match = err.message.match(/HTTP error! status: (\d+)/);
+                if (match && match[1]) {
+                    const statusCode = parseInt(match[1]);
+                    if (statusCode === 400 && 'cause' in err) {
+                        setError((err.cause as any)?.message || 'Registration failed. Please check your input and try again.');
+                    } else {
+                        setError(`Registration failed (${statusCode}). Please try again.`);
+                    }
+                } else {
+                    setError(err.message || 'Registration failed. Please try again.');
+                }
+            } else {
+                setError('Registration failed. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
