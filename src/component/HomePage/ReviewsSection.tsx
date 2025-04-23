@@ -6,7 +6,7 @@ const reviews = [
         id: 1,
         name: "Emma Johnson",
         role: "Daily Commuter",
-        avatar: "/api/placeholder/100/100",
+        avatar: "https://i.ibb.co/bnDJZRF/t-l-chargement-3.jpg",
         rating: 5,
         comment: "Supmap has completely transformed my daily commute. The real-time traffic updates and rerouting have saved me countless hours stuck in traffic. The community alerts about police checks are incredibly accurate!",
         date: "2 weeks ago"
@@ -15,7 +15,7 @@ const reviews = [
         id: 2,
         name: "David Chen",
         role: "Delivery Driver",
-        avatar: "/api/placeholder/100/100",
+        avatar: "https://i.ibb.co/FbnmQmCZ/t-l-chargement-4.jpg",
         rating: 5,
         comment: "As a delivery driver, efficiency is everything. Supmap helps me avoid traffic jams and construction zones that other navigation apps miss. The hazard reporting feature is a game-changer for my job.",
         date: "1 month ago"
@@ -24,7 +24,7 @@ const reviews = [
         id: 3,
         name: "Sophie Martinez",
         role: "Sales Representative",
-        avatar: "/api/placeholder/100/100",
+        avatar: "https://i.ibb.co/N6gyS4sc/t-l-chargement-5.jpg",
         rating: 4,
         comment: "I drive to different client locations daily, and Supmap has been invaluable. The ability to save favorite locations and quick rerouting when traffic builds up has made my job so much easier.",
         date: "3 weeks ago"
@@ -33,7 +33,7 @@ const reviews = [
         id: 4,
         name: "Thomas Wright",
         role: "Rideshare Driver",
-        avatar: "/api/placeholder/100/100",
+        avatar: "https://i.ibb.co/0psJJVVc/t-l-chargement-1.jpg",
         rating: 5,
         comment: "The community-verified traffic alerts are what set Supmap apart. I can trust the information because it's verified by multiple users. As a rideshare driver, accurate ETAs are crucial for my ratings.",
         date: "2 months ago"
@@ -42,7 +42,7 @@ const reviews = [
         id: 5,
         name: "Olivia Parker",
         role: "Parent",
-        avatar: "/api/placeholder/100/100",
+        avatar: "https://i.ibb.co/q3ZhGTXc/t-l-chargement-2.jpg",
         rating: 5,
         comment: "School runs used to be stressful until I found Supmap. Now I know exactly when to leave to avoid traffic, and the alerts about accidents near schools have been so helpful for planning alternate routes.",
         date: "1 week ago"
@@ -51,7 +51,7 @@ const reviews = [
         id: 6,
         name: "Michael Dawson",
         role: "Business Traveler",
-        avatar: "/api/placeholder/100/100",
+        avatar: "https://i.ibb.co/35dSgYJp/t-l-chargement-6.jpg",
         rating: 4,
         comment: "I travel to unfamiliar cities for work, and Supmap has made navigating new places so much easier. The traffic predictions feature helps me plan meeting times with confidence.",
         date: "1 month ago"
@@ -189,29 +189,6 @@ const ReviewsSection: React.FC = () => {
                             aria-label={`Go to slide ${i + 1}`}
                         />
                     ))}
-                </div>
-
-                <div className="mt-12 text-center">
-                    <a
-                        href="/reviews"
-                        className="inline-flex items-center text-indigo-400 hover:text-indigo-300 transition-colors duration-300 group"
-                    >
-                        <span className="mr-2">See all reviews</span>
-                        <svg
-                            className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M14 5l7 7m0 0l-7 7m7-7H3"
-                            />
-                        </svg>
-                    </a>
                 </div>
             </div>
         </section>

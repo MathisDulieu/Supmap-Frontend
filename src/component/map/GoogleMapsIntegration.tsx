@@ -23,6 +23,8 @@ interface GoogleMapsProps {
 let googleMapsLoaded = false;
 let googleMapsLoading = false;
 
+const GOOGLE_API_KEY = import.meta.env.REACT_APP_GOOGLE_API_KEY;
+
 const loadGoogleMapsApi = (): Promise<void> => {
     return new Promise((resolve, reject) => {
         if (googleMapsLoaded) {
@@ -50,7 +52,7 @@ const loadGoogleMapsApi = (): Promise<void> => {
 
         try {
             const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCek6TkGjdsdtf097bO4-zLHqOrh45yY58&libraries=places&callback=initMap`;
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&callback=initMap`;
             script.async = true;
             script.defer = true;
             document.head.appendChild(script);

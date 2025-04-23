@@ -97,8 +97,16 @@ const Footer: React.FC = () => {
                             </div>
                         </form>
                         <div className="mt-4">
-                            <ContactItem icon={<MailIcon size={16} />} label="supmap.application@gmail.com" />
-                            <ContactItem icon={<PhoneIcon size={16} />} label="0614129625" />
+                            <ContactItem
+                                icon={<MailIcon size={16} />}
+                                label="supmap.application@gmail.com"
+                                href="mailto:supmap.application@gmail.com"
+                            />
+                            <ContactItem
+                                icon={<PhoneIcon size={16} />}
+                                label="0614129625"
+                                href="tel:+33614129625"
+                            />
                         </div>
                     </div>
                 </div>
@@ -163,14 +171,18 @@ const SocialLink: React.FC<SocialLinkProps> = ({ href, label, icon }) => {
 interface ContactItemProps {
     icon: React.ReactNode;
     label: string;
+    href: string;
 }
 
-const ContactItem: React.FC<ContactItemProps> = ({ icon, label }) => {
+const ContactItem: React.FC<ContactItemProps> = ({ icon, label, href }) => {
     return (
-        <div className="flex items-center gap-2 text-gray-400 text-sm mt-1">
-            <span className="text-indigo-500/70">{icon}</span>
+        <a
+            href={href}
+            className="flex items-center gap-2 text-gray-400 hover:text-indigo-400 text-sm mt-1 transition-colors duration-300 group"
+        >
+            <span className="text-indigo-500/70 group-hover:scale-110 group-hover:-translate-y-0.5 transition-transform duration-300">{icon}</span>
             <span>{label}</span>
-        </div>
+        </a>
     );
 };
 

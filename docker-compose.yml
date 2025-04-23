@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    environment:
+      - API_BASE_URL=${{ shared.API_BASE_URL }}
+      - GOOGLE_API_KEY=${{ shared.GOOGLE_API_KEY }}
+    restart: always

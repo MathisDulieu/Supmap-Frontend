@@ -139,7 +139,7 @@ const Header: React.FC = () => {
                 <div
                     className={`
                         lg:hidden
-                        fixed top-0 right-0 w-64
+                        fixed top-0 right-0 w-64 h-screen
                         bg-[rgba(10,12,20,0.95)] backdrop-blur-xl 
                         flex flex-col justify-start p-6 pt-24 
                         shadow-xl shadow-black/20
