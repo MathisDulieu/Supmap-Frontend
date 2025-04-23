@@ -50,20 +50,10 @@ const Register: React.FC = () => {
         } catch (err) {
             console.error('Registration error:', err);
 
-            if (err instanceof Error) {
-                const match = err.message.match(/HTTP error! status: (\d+)/);
-                if (match && match[1]) {
-                    const statusCode = parseInt(match[1]);
-                    if (statusCode === 400 && 'cause' in err) {
-                        setError((err.cause as any)?.message || 'Registration failed. Please check your input and try again.');
-                    } else {
-                        setError(`Registration failed (${err.message}). Please try again.`);
-                    }
-                } else {
-                    setError(err.message || 'Registration failed. Please try again.');
-                }
+            if (err == undefined) {
+                setError('Registration failed. Please try again.')
             } else {
-                setError('Registration failed. Please try again.');
+                setError(err.message);
             }
         } finally {
             setLoading(false);
