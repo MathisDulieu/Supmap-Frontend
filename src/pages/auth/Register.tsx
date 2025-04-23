@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
     MailIcon,
     LockIcon,
@@ -16,7 +16,6 @@ import MapRouteAnimation from '../../component/animation/MapRouteAnimation.tsx';
 import { register } from '../../hooks/auth/auth';
 
 const Register: React.FC = () => {
-    const navigate = useNavigate();
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -46,7 +45,7 @@ const Register: React.FC = () => {
             setSuccess(data.toString);
 
             setTimeout(() => {
-                navigate('/login');
+                window.location.href = '/login';
             }, 2000);
         } catch (err) {
             console.error('Registration error:', err);
