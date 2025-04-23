@@ -11,9 +11,12 @@ interface Location {
 
 const API_BASE_URL = (window as any).env && (window as any).env.API_BASE_URL ? (window as any).env.API_BASE_URL : '';
 
-function getAuthToken(): string | undefined {
+function getAuthToken(): string | null {
     const cookiesAccepted = localStorage.getItem('cookiesAccepted') === 'true';
-    return cookiesAccepted ? Cookies.get('authToken') : localStorage.getItem('authToken');
+    const cookieToken = Cookies.get('authToken');
+    const localToken = localStorage.getItem('authToken');
+
+    return cookiesAccepted ? (cookieToken || null) : localToken;
 }
 
 export async function getAuthenticatedUserDetails(): Promise<UserResponse> {

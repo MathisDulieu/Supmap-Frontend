@@ -1,10 +1,6 @@
 const API_BASE_URL = (window as any).env && (window as any).env.API_BASE_URL ? (window as any).env.API_BASE_URL : '';
 
-interface AuthResponse {
-    [key: string]: any;
-}
-
-export async function register(username: string, email: string, password: string): Promise<AuthResponse> {
+export async function register(username: string, email: string, password: string): Promise<string> {
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
@@ -36,7 +32,7 @@ export async function login(email: string, password: string): Promise<string> {
     return await response.text();
 }
 
-export async function confirmEmail(token: string): Promise<AuthResponse> {
+export async function confirmEmail(token: string): Promise<string> {
     const response = await fetch(`${API_BASE_URL}/auth/confirm-email?token=${token}`, {
         method: 'POST',
         headers: {
@@ -51,7 +47,7 @@ export async function confirmEmail(token: string): Promise<AuthResponse> {
     return await response.text();
 }
 
-export async function resendRegisterConfirmationEmail(email: string): Promise<AuthResponse> {
+export async function resendRegisterConfirmationEmail(email: string): Promise<string> {
     const response = await fetch(`${API_BASE_URL}/auth/resend/register-confirmation-email`, {
         method: 'POST',
         headers: {
@@ -67,7 +63,7 @@ export async function resendRegisterConfirmationEmail(email: string): Promise<Au
     return await response.text();
 }
 
-export async function forgotPassword(email: string): Promise<AuthResponse> {
+export async function forgotPassword(email: string): Promise<string> {
     const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
         method: 'POST',
         headers: {
@@ -83,7 +79,7 @@ export async function forgotPassword(email: string): Promise<AuthResponse> {
     return await response.text();
 }
 
-export async function resetPassword(token: string, newPassword: string): Promise<AuthResponse> {
+export async function resetPassword(token: string, newPassword: string): Promise<string> {
     const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
         method: 'POST',
         headers: {
