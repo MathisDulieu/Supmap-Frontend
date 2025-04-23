@@ -46,14 +46,14 @@ const Register: React.FC = () => {
 
             setTimeout(() => {
                 window.location.href = '/login';
-            });
-        } catch (err) {
+            }, 2000);
+        } catch (err: unknown) {
             console.error('Registration error:', err);
 
-            if (err == undefined) {
-                setError('Registration failed. Please try again.')
-            } else {
+            if (err instanceof Error) {
                 setError(err.message);
+            } else {
+                setError('Registration failed. Please try again.');
             }
         } finally {
             setLoading(false);

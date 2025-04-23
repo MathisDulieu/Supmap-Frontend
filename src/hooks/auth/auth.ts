@@ -10,7 +10,7 @@ export async function register(username: string, email: string, password: string
     });
 
     if (!response.ok) {
-        throw new Error(response.statusText);
+        throw new Error(await response.text());
     }
 
     return await response.text();
