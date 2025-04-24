@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { MailIcon, ArrowLeftIcon, AlertCircleIcon, CheckCircleIcon } from 'lucide-react';
 import MapRouteAnimation from '../../component/animation/MapRouteAnimation.tsx';
+import { resendRegisterConfirmationEmail } from '../../hooks/auth/auth';
 
 const RegisterEmail: React.FC = () => {
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState('');
+    const [message, setMessage] = useState('');
     const [cooldown, setCooldown] = useState(0);
     const isActive = useRef(true);
     const [lastRequestTime, setLastRequestTime] = useState(() => {
@@ -72,9 +74,10 @@ const RegisterEmail: React.FC = () => {
 
         setLoading(true);
         setError('');
+        setMessage('');
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            const responseMessage = await resendRegisterConfirmationEmail(email);
 
             const now = Date.now();
             localStorage.setItem('emailValidationLastRequest', now.toString());
@@ -83,8 +86,10 @@ const RegisterEmail: React.FC = () => {
             startCooldownTimer(300);
 
             setSuccess(true);
-        } catch (err) {
-            setError('Failed to send validation email. Please try again later.');
+            setMessage(responseMessage);
+        } catch (err: any) {
+            console.error('Failed to send validation email:', err);
+            setError(err.message || 'Failed to send validation email. Please try again later.');
         } finally {
             setLoading(false);
         }
@@ -138,7 +143,7 @@ const RegisterEmail: React.FC = () => {
                             <CheckCircleIcon size={20} className="text-green-400 mt-0.5" />
                             <div>
                                 <h3 className="font-semibold text-green-300 mb-1">Validation Email Sent</h3>
-                                <p>We've sent a verification link to <span className="font-medium">{email}</span>. Please check your inbox and click the link to verify your email address.</p>
+                                <p>{message || `We've sent a verification link to ${email}. Please check your inbox and click the link to verify your email address.`}</p>
                                 <p className="mt-2">Don't see it? Check your spam folder or request another validation email in {formatTimeRemaining(cooldown)}.</p>
                             </div>
                         </div>

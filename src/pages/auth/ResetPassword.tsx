@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { LockIcon, EyeIcon, EyeOffIcon, AlertCircleIcon, CheckCircleIcon, ArrowLeftIcon, XIcon, CheckIcon } from 'lucide-react';
 import MapRouteAnimation from '../../component/animation/MapRouteAnimation.tsx';
+import { resetPassword } from '../../hooks/auth/auth';
 
 const ResetPassword: React.FC = () => {
     const { token } = useParams<{ token: string }>();
@@ -13,8 +14,7 @@ const ResetPassword: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
-    const [tokenValid, setTokenValid] = useState(true);
-    const [tokenChecked, setTokenChecked] = useState(false);
+    const [message, setMessage] = useState('');
 
     const [hasMinLength, setHasMinLength] = useState(false);
     const [hasUppercase, setHasUppercase] = useState(false);
@@ -29,23 +29,6 @@ const ResetPassword: React.FC = () => {
     const specialCharRegex = /[!@#$%^&*()_+\-={}';:",.<>?|`~]/;
 
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-={}';:",.<>?|`~])[A-Za-z\d!@#$%^&*()_+\-={}';:",.<>?|`~]{8,}$/;
-
-    useEffect(() => {
-        const validateToken = async () => {
-            try {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                setTokenValid(true);
-                setTokenChecked(true);
-            } catch (err) {
-                setTokenValid(false);
-                setTokenChecked(true);
-                setError('Invalid or expired password reset link. Please request a new one.');
-            }
-        };
-
-        validateToken();
-    }, [token]);
 
     useEffect(() => {
         setHasMinLength(minLengthRegex.test(password));
@@ -70,6 +53,11 @@ const ResetPassword: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (!token) {
+            setError('No reset token provided.');
+            return;
+        }
+
         if (!isPasswordValid()) {
             setError('Password does not meet all requirements');
             return;
@@ -82,17 +70,20 @@ const ResetPassword: React.FC = () => {
 
         setLoading(true);
         setError('');
+        setMessage('');
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            const responseMessage = await resetPassword(token, password);
 
             setSuccess(true);
+            setMessage(responseMessage);
 
             setTimeout(() => {
                 navigate('/login');
             }, 3000);
-        } catch (err) {
-            setError('Failed to reset password. Please try again or request a new reset link.');
+        } catch (err: any) {
+            console.error('Password reset error:', err);
+            setError(err.message || 'Failed to reset password. Please try again or request a new reset link.');
         } finally {
             setLoading(false);
         }
@@ -140,33 +131,12 @@ const ResetPassword: React.FC = () => {
                         </p>
                     </div>
 
-                    {!tokenChecked ? (
-                        <div className="flex justify-center py-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
-                        </div>
-                    ) : !tokenValid ? (
-                        <div className="mb-6 bg-red-900/20 border border-red-800/30 text-red-200 px-4 py-4 rounded-lg flex items-start gap-3 text-sm">
-                            <AlertCircleIcon size={20} className="text-red-400 mt-0.5" />
-                            <div>
-                                <h3 className="font-semibold text-red-300 mb-1">Invalid Reset Link</h3>
-                                <p>This password reset link is invalid or has expired. Please request a new link.</p>
-                                <div className="mt-4">
-                                    <Link
-                                        to="/forgot-password"
-                                        className="inline-flex items-center justify-center py-2 px-4 text-sm font-medium rounded-lg
-                                            bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
-                                    >
-                                        Request New Link
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    ) : success ? (
+                    {success ? (
                         <div className="mb-6 bg-green-900/20 border border-green-800/30 text-green-200 px-4 py-4 rounded-lg flex items-start gap-3 text-sm">
                             <CheckCircleIcon size={20} className="text-green-400 mt-0.5" />
                             <div>
                                 <h3 className="font-semibold text-green-300 mb-1">Password Reset Successfully</h3>
-                                <p>Your password has been successfully reset. You can now use your new password to log in.</p>
+                                <p>{message || "Your password has been successfully reset. You can now use your new password to log in."}</p>
                                 <p className="mt-2">Redirecting to login page...</p>
                             </div>
                         </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { CheckCircleIcon, AlertCircleIcon, ArrowLeftIcon, RefreshCwIcon } from 'lucide-react';
 import MapRouteAnimation from '../../component/animation/MapRouteAnimation.tsx';
+import { confirmEmail } from '../../hooks/auth/auth';
 
 const EmailValidation: React.FC = () => {
     const { token } = useParams<{ token: string }>();
@@ -9,17 +10,26 @@ const EmailValidation: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [message, setMessage] = useState('');
 
     useEffect(() => {
         const validateEmail = async () => {
+            if (!token) {
+                setError('No validation token provided.');
+                setLoading(false);
+                return;
+            }
+
             try {
                 setLoading(true);
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                const responseMessage = await confirmEmail(token);
 
                 setSuccess(true);
+                setMessage(responseMessage);
                 setLoading(false);
-            } catch (err) {
-                setError('Invalid or expired validation link. Please request a new one.');
+            } catch (err: any) {
+                console.error('Email validation error:', err);
+                setError(err.message || 'Invalid or expired validation link. Please request a new one.');
                 setLoading(false);
                 setSuccess(false);
             }
@@ -82,7 +92,7 @@ const EmailValidation: React.FC = () => {
                             <CheckCircleIcon size={20} className="text-green-400 mt-0.5" />
                             <div>
                                 <h3 className="font-semibold text-green-300 mb-1">Email Validated Successfully</h3>
-                                <p>Your email has been successfully verified. Your account is now active.</p>
+                                <p>{message || "Your email has been successfully verified. Your account is now active."}</p>
                                 <div className="mt-4">
                                     <Link
                                         to="/login"

@@ -1,25 +1,35 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MailIcon, LockIcon, UserPlusIcon, AlertCircleIcon, ArrowRightIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
+import { MailIcon, LockIcon, UserPlusIcon, AlertCircleIcon, ArrowRightIcon, EyeIcon, EyeOffIcon, CheckCircleIcon } from 'lucide-react';
 import MapRouteAnimation from '../../component/animation/MapRouteAnimation.tsx';
+import { login } from '../../hooks/auth/auth';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError('');
+        setSuccess('');
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            console.log('Login attempt with:', { email, password });
-        } catch (err) {
-            setError('Authentication failed. Please check your credentials.');
+            const message = await login(email, password);
+            console.log('Login successful:', message);
+
+            setSuccess('Login successful! Redirecting to dashboard...');
+
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 3000);
+        } catch (err: any) {
+            console.error('Login error:', err);
+            setError(err.message);
         } finally {
             setLoading(false);
         }
@@ -64,6 +74,13 @@ const Login: React.FC = () => {
                         <div className="mb-6 bg-red-900/20 border border-red-800/30 text-red-200 px-4 py-3 rounded-lg flex items-center gap-2 text-sm">
                             <AlertCircleIcon size={18} className="text-red-400" />
                             <span>{error}</span>
+                        </div>
+                    )}
+
+                    {success && (
+                        <div className="mb-6 bg-green-900/20 border border-green-800/30 text-green-200 px-4 py-3 rounded-lg flex items-center gap-2 text-sm">
+                            <CheckCircleIcon size={18} className="text-green-400" />
+                            <span>{success}</span>
                         </div>
                     )}
 
