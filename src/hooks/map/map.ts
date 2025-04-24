@@ -40,34 +40,10 @@ export async function getMapAdminDashboardData(): Promise<MapResponse> {
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return await response.json();
-}
-
-export async function saveNewAlert(alertType: string, latitude: number, longitude: number): Promise<MapResponse> {
-    const authToken = getAuthToken();
-
-    if (!authToken) {
-        throw new Error('Authentication token not found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/private/map/alert`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify({ alertType, latitude, longitude })
-    });
-
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
 }
 
 export async function getAllAlertsByPosition(latitude: number, longitude: number): Promise<MapResponse> {
@@ -80,7 +56,7 @@ export async function getAllAlertsByPosition(latitude: number, longitude: number
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return await response.json();
@@ -96,7 +72,7 @@ export async function getAllAlertsByRoute(routePoints: RoutePoint[]): Promise<Ma
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return await response.json();
@@ -118,7 +94,7 @@ export async function getUserFavoriteLocations(): Promise<MapResponse> {
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return await response.json();
@@ -133,7 +109,7 @@ export async function saveNewUserFavoriteLocation(
     postalCode: string,
     country: string,
     locationType: string
-): Promise<MapResponse> {
+): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -159,14 +135,13 @@ export async function saveNewUserFavoriteLocation(
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
-export async function deleteUserFavoriteLocation(id: string): Promise<MapResponse> {
+export async function deleteUserFavoriteLocation(id: string): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -182,11 +157,10 @@ export async function deleteUserFavoriteLocation(id: string): Promise<MapRespons
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function updateUserFavoriteLocation(
@@ -199,7 +173,7 @@ export async function updateUserFavoriteLocation(
     postalCode: string,
     country: string,
     locationType: string
-): Promise<MapResponse> {
+): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -225,57 +199,10 @@ export async function updateUserFavoriteLocation(
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
-}
-
-export async function validateUserAlert(id: string): Promise<MapResponse> {
-    const authToken = getAuthToken();
-
-    if (!authToken) {
-        throw new Error('Authentication token not found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/private/map/alert/validate/${id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
-}
-
-export async function invalidateUserAlert(id: string): Promise<MapResponse> {
-    const authToken = getAuthToken();
-
-    if (!authToken) {
-        throw new Error('Authentication token not found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/private/map/alert/invalidate/${id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function saveUserRoute(
@@ -285,7 +212,7 @@ export async function saveUserRoute(
     endPoint: Coordinates,
     kilometersDistance: number,
     estimatedDurationInSeconds: number
-): Promise<MapResponse> {
+): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -309,14 +236,13 @@ export async function saveUserRoute(
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
-export async function getUserRouteHistory(): Promise<MapResponse> {
+export async function getUserRouteHistory(): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -332,7 +258,7 @@ export async function getUserRouteHistory(): Promise<MapResponse> {
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return await response.json();
@@ -345,7 +271,7 @@ export async function updateUserNavigationPreferences(
     showUsers: boolean,
     proximityAlertDistance: number,
     preferredTransportMode: string
-): Promise<MapResponse> {
+): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -369,11 +295,10 @@ export async function updateUserNavigationPreferences(
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function getNearbyUsers(latitude: number, longitude: number): Promise<MapResponse> {
@@ -392,13 +317,13 @@ export async function getNearbyUsers(latitude: number, longitude: number): Promi
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return await response.json();
 }
 
-export async function shareLocation(latitude: number, longitude: number): Promise<MapResponse> {
+export async function shareLocation(latitude: number, longitude: number): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -415,11 +340,10 @@ export async function shareLocation(latitude: number, longitude: number): Promis
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function shareRoute(
@@ -427,7 +351,7 @@ export async function shareRoute(
     startLongitude: number,
     endLatitude: number,
     endLongitude: number
-): Promise<MapResponse> {
+): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -449,14 +373,13 @@ export async function shareRoute(
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
-export async function saveNewRouteRecalculation(): Promise<MapResponse> {
+export async function saveNewRouteRecalculation(): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -472,9 +395,8 @@ export async function saveNewRouteRecalculation(): Promise<MapResponse> {
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }

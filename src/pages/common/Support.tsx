@@ -11,6 +11,7 @@ import {
     ClockIcon,
     HelpCircleIcon
 } from 'lucide-react';
+import { sendSupportEmail } from '../../hooks/contact/contact.ts';
 
 const Support: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -19,6 +20,7 @@ const Support: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
 
     const MAX_CHAR_COUNT = 500;
 
@@ -87,17 +89,20 @@ const Support: React.FC = () => {
 
         setIsSubmitting(true);
         setSubmitStatus('idle');
+        setErrorMessage('');
+        setSuccessMessage('');
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            const response = await sendSupportEmail(email, subject, content);
 
             setSubmitStatus('success');
+            setSuccessMessage(response);
             setEmail('');
             setSubject('');
             setContent('');
-        } catch (error) {
+        } catch (error: any) {
             setSubmitStatus('error');
-            setErrorMessage('Failed to send message. Please try again later.');
+            setErrorMessage(error.message || 'Failed to send message. Please try again later.');
         } finally {
             setIsSubmitting(false);
         }
@@ -138,7 +143,7 @@ const Support: React.FC = () => {
                                         <CheckCircleIcon size={24} className="text-green-400 mt-0.5" />
                                         <div>
                                             <h3 className="font-semibold text-white mb-1">Message Sent Successfully!</h3>
-                                            <p>Thank you for contacting us. Our support team will review your message and get back to you as soon as possible.</p>
+                                            <p>{successMessage || "Thank you for contacting us. Our support team will review your message and get back to you as soon as possible."}</p>
                                             <button
                                                 onClick={() => setSubmitStatus('idle')}
                                                 className="mt-4 text-indigo-400 hover:text-indigo-300 transition-colors duration-300"

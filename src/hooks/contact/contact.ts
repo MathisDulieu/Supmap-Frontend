@@ -1,12 +1,8 @@
 import Cookies from 'js-cookie';
 
-interface ContactResponse {
-    [key: string]: any;
-}
-
 const API_BASE_URL = (window as any).env && (window as any).env.API_BASE_URL ? (window as any).env.API_BASE_URL : '';
 
-export async function sendSupportEmail(email: string, subject: string, content: string): Promise<ContactResponse> {
+export async function sendSupportEmail(email: string, subject: string, content: string): Promise<string> {
     const response = await fetch(`${API_BASE_URL}/contact/send-support-email`, {
         method: 'POST',
         headers: {
@@ -16,14 +12,13 @@ export async function sendSupportEmail(email: string, subject: string, content: 
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
-export async function subscribeToNewsletter(email: string): Promise<ContactResponse> {
+export async function subscribeToNewsletter(email: string): Promise<string> {
     const response = await fetch(`${API_BASE_URL}/contact/subscribe-newsletter`, {
         method: 'POST',
         headers: {
@@ -33,14 +28,13 @@ export async function subscribeToNewsletter(email: string): Promise<ContactRespo
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
-export async function unsubscribeFromNewsletter(email: string): Promise<ContactResponse> {
+export async function unsubscribeFromNewsletter(email: string): Promise<string> {
     const response = await fetch(`${API_BASE_URL}/contact/unsubscribe-newsletter`, {
         method: 'POST',
         headers: {
@@ -50,14 +44,13 @@ export async function unsubscribeFromNewsletter(email: string): Promise<ContactR
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
-export async function sendNewsletter(subject: string, content: string): Promise<ContactResponse> {
+export async function sendNewsletter(subject: string, content: string): Promise<string> {
     const cookiesAccepted = localStorage.getItem('cookiesAccepted') === 'true';
     const authToken = cookiesAccepted ? Cookies.get('authToken') : localStorage.getItem('authToken');
 
@@ -75,9 +68,8 @@ export async function sendNewsletter(subject: string, content: string): Promise<
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }

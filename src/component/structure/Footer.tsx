@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     MailIcon,
@@ -14,11 +14,44 @@ import {
     GithubIcon,
     TwitterIcon,
     LinkedinIcon,
-    InstagramIcon
+    InstagramIcon,
+    CheckCircleIcon,
+    AlertCircleIcon
 } from 'lucide-react';
+import { subscribeToNewsletter } from '../../hooks/contact/contact.ts';
 
 const Footer: React.FC = () => {
     const currentYear = new Date().getFullYear();
+    const [email, setEmail] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [message, setMessage] = useState('');
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
+            setStatus('error');
+            setMessage('Please enter a valid email address.');
+            return;
+        }
+
+        setIsSubmitting(true);
+        setStatus('idle');
+        setMessage('');
+
+        try {
+            const response = await subscribeToNewsletter(email);
+            setStatus('success');
+            setMessage(response);
+            setEmail('');
+        } catch (error: any) {
+            setStatus('error');
+            setMessage(error.message || 'Failed to subscribe. Please try again later.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
         <footer className="relative bg-[rgba(10,12,20,0.97)] text-white pt-10 overflow-hidden mt-auto">
@@ -81,20 +114,41 @@ const Footer: React.FC = () => {
                     <div>
                         <h3 className="text-white font-medium mb-4 text-sm uppercase tracking-wider">Stay Updated</h3>
                         <p className="text-gray-400 text-sm mb-3">Subscribe to our newsletter to receive our latest updates</p>
-                        <form className="flex flex-col space-y-2">
+                        <form onSubmit={handleSubmit} className="flex flex-col space-y-2">
                             <div className="relative">
                                 <input
                                     type="email"
                                     placeholder="Your email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     className="py-2 px-4 pr-10 w-full bg-indigo-900/30 border border-indigo-800/50 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300 placeholder-gray-500"
                                 />
                                 <button
                                     type="submit"
-                                    className="absolute right-1 top-1 bottom-1 px-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors duration-300"
+                                    disabled={isSubmitting}
+                                    className="absolute right-1 top-1 bottom-1 px-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors duration-300 disabled:opacity-50 disabled:bg-indigo-800"
                                 >
-                                    <RocketIcon size={16} />
+                                    {isSubmitting ? (
+                                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                                    ) : (
+                                        <RocketIcon size={16} />
+                                    )}
                                 </button>
                             </div>
+
+                            {status === 'success' && (
+                                <div className="flex items-center gap-1 text-green-400 text-xs">
+                                    <CheckCircleIcon size={12} />
+                                    <span>{message || 'Successfully subscribed!'}</span>
+                                </div>
+                            )}
+
+                            {status === 'error' && (
+                                <div className="flex items-center gap-1 text-red-400 text-xs">
+                                    <AlertCircleIcon size={12} />
+                                    <span>{message}</span>
+                                </div>
+                            )}
                         </form>
                         <div className="mt-4">
                             <ContactItem
