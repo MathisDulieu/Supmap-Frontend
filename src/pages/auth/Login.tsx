@@ -19,10 +19,18 @@ const Login: React.FC = () => {
         setSuccess('');
 
         try {
-            const message = await login(email, password);
-            console.log('Login successful:', message);
+            const token = await login(email, password);
+            console.log('Login successful:', token);
 
-            setSuccess('Login successful! Redirecting to dashboard...');
+            const cookiesAccepted = localStorage.getItem('cookiesAccepted');
+
+            if (cookiesAccepted === 'true') {
+                document.cookie = `authToken=${token}; path=/; max-age=86400; secure; samesite=strict`;
+            } else {
+                localStorage.setItem('authToken', token);
+            }
+
+            setSuccess('Login successful! Redirecting to home page...');
 
             setTimeout(() => {
                 window.location.href = '/';
