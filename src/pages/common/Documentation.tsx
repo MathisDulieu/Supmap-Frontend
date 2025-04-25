@@ -7,7 +7,6 @@ import NavigationGuide from '../../component/documentation/NavigationGuide.tsx';
 import AlertsReporting from '../../component/documentation/AlertsReporting.tsx';
 import AccountManagement from '../../component/documentation/AccountManagement.tsx';
 import MobileApp from '../../component/documentation/MobileApp.tsx';
-import API from '../../component/documentation/API.tsx';
 import MapRouteAnimation from '../../component/animation/MapRouteAnimation.tsx';
 
 const Documentation: React.FC = () => {
@@ -48,8 +47,6 @@ const Documentation: React.FC = () => {
                 return <AccountManagement />;
             case 'mobile-app':
                 return <MobileApp />;
-            case 'api':
-                return <API />;
             default:
                 return <GettingStarted />;
         }
