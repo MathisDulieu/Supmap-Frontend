@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Shield, Bell, Database, Smartphone } from 'lucide-react';
+import { User, Shield, Database, Smartphone } from 'lucide-react';
 
 const AccountManagement: React.FC = () => {
     return (
@@ -46,9 +46,7 @@ const AccountManagement: React.FC = () => {
                             <div>
                                 <h5 className="text-white font-medium mb-2">Mobile App</h5>
                                 <ol className="text-gray-300 space-y-2 text-sm list-decimal list-inside ml-1">
-                                    <li>Tap the menu icon (≡) in the top left corner</li>
-                                    <li>Tap your profile name/picture at the top</li>
-                                    <li>Or select "Settings" and then "Profile"</li>
+                                    <li>Tap the profile icon at the center of the tabs at the bottom</li>
                                 </ol>
                             </div>
                         </div>
@@ -92,34 +90,28 @@ const AccountManagement: React.FC = () => {
                     </div>
 
                     <div className="bg-[rgba(15,18,30,0.6)] p-5 rounded-lg border border-indigo-900/30">
-                        <h4 className="font-medium text-white mb-3">Linked Accounts</h4>
+                        <h4 className="font-medium text-white mb-3">Specific Information</h4>
                         <p className="text-gray-300 mb-3 text-sm">
-                            Manage third-party account connections:
+                            Manage your preferences and rank in the community:
                         </p>
                         <ul className="text-gray-300 space-y-2 text-sm">
                             <li className="flex items-start">
                                 <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Connect/disconnect Google account
+                                Favorite locations
                             </li>
                             <li className="flex items-start">
                                 <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Connect/disconnect Facebook account
+                                Rank of trust
                             </li>
                             <li className="flex items-start">
                                 <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Connect/disconnect Apple ID
-                            </li>
-                            <li className="flex items-start">
-                                <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Set primary login method
+                                Your stats
                             </li>
                         </ul>
                     </div>
@@ -260,161 +252,6 @@ const AccountManagement: React.FC = () => {
                         Disabling location access may limit app functionality. Supmap never shares your precise
                         location with other users without your explicit permission.
                     </p>
-                </div>
-            </div>
-
-            <div id="account-management#notifications" className="mb-12">
-                <h2 className="text-2xl font-bold text-white mb-4 border-b border-indigo-900/30 pb-2">
-                    Notification Settings
-                </h2>
-
-                <p className="text-gray-300 mb-6">
-                    Control the types of notifications you receive and how they're delivered.
-                </p>
-
-                <div className="bg-[rgba(15,18,30,0.6)] rounded-lg border border-indigo-900/30 overflow-hidden mb-6">
-                    <div className="p-4 bg-indigo-900/20 border-b border-indigo-900/30">
-                        <h4 className="font-medium text-white flex items-center">
-                            <Bell className="w-5 h-5 mr-2 text-yellow-400" />
-                            Notification Categories
-                        </h4>
-                    </div>
-                    <div className="p-5">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h5 className="text-white font-medium mb-3">Navigation Notifications</h5>
-                                <ul className="text-gray-300 space-y-3 text-sm">
-                                    <li className="flex items-start">
-                                        <svg className="w-5 h-5 text-yellow-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        <div>
-                                            <span className="font-medium">Route Updates</span>
-                                            <p className="text-gray-400">Notifications about better routes or delays</p>
-                                        </div>
-                                    </li>
-                                    <li className="flex items-start">
-                                        <svg className="w-5 h-5 text-yellow-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        <div>
-                                            <span className="font-medium">Departure Reminders</span>
-                                            <p className="text-gray-400">Alerts about when to leave for planned trips</p>
-                                        </div>
-                                    </li>
-                                    <li className="flex items-start">
-                                        <svg className="w-5 h-5 text-yellow-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        <div>
-                                            <span className="font-medium">ETA Updates</span>
-                                            <p className="text-gray-400">Changes to estimated arrival time</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <div>
-                                <h5 className="text-white font-medium mb-3">Community & Account</h5>
-                                <ul className="text-gray-300 space-y-3 text-sm">
-                                    <li className="flex items-start">
-                                        <svg className="w-5 h-5 text-yellow-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        <div>
-                                            <span className="font-medium">Report Feedback</span>
-                                            <p className="text-gray-400">Updates when others verify your reports</p>
-                                        </div>
-                                    </li>
-                                    <li className="flex items-start">
-                                        <svg className="w-5 h-5 text-yellow-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        <div>
-                                            <span className="font-medium">Account Activity</span>
-                                            <p className="text-gray-400">Login alerts and security notifications</p>
-                                        </div>
-                                    </li>
-                                    <li className="flex items-start">
-                                        <svg className="w-5 h-5 text-yellow-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        <div>
-                                            <span className="font-medium">App Updates</span>
-                                            <p className="text-gray-400">New features and version releases</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <h3 className="text-xl font-medium text-white mb-4">Notification Delivery</h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div className="bg-[rgba(15,18,30,0.6)] p-5 rounded-lg border border-indigo-900/30">
-                        <h4 className="font-medium text-white mb-3">Delivery Methods</h4>
-                        <ul className="text-gray-300 space-y-2 text-sm">
-                            <li className="flex items-start">
-                                <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Push Notifications (mobile devices)
-                            </li>
-                            <li className="flex items-start">
-                                <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                In-app Notifications
-                            </li>
-                            <li className="flex items-start">
-                                <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Email Notifications
-                            </li>
-                            <li className="flex items-start">
-                                <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                SMS Notifications (selected regions)
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div className="bg-[rgba(15,18,30,0.6)] p-5 rounded-lg border border-indigo-900/30">
-                        <h4 className="font-medium text-white mb-3">Quiet Hours</h4>
-                        <p className="text-gray-300 mb-3 text-sm">
-                            Set times when you don't want to receive notifications:
-                        </p>
-                        <ul className="text-gray-300 space-y-2 text-sm">
-                            <li className="flex items-start">
-                                <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Enable/disable quiet hours
-                            </li>
-                            <li className="flex items-start">
-                                <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Set start and end times
-                            </li>
-                            <li className="flex items-start">
-                                <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Choose days of the week
-                            </li>
-                            <li className="flex items-start">
-                                <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Allow priority notifications to bypass quiet hours
-                            </li>
-                        </ul>
-                    </div>
                 </div>
             </div>
 

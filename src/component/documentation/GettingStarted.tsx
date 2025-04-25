@@ -1,5 +1,5 @@
-import React from 'react';
-import { Smartphone, Monitor, MapPin, Route, Shield } from 'lucide-react';
+import React from "react";
+import { Smartphone, Monitor, MapPin, Route, Shield } from "lucide-react";
 
 const GettingStarted: React.FC = () => {
     return (
@@ -9,8 +9,9 @@ const GettingStarted: React.FC = () => {
             </h1>
 
             <p className="text-gray-300 mb-8 text-lg">
-                Welcome to Supmap! This guide will help you get started with our real-time navigation platform
-                and show you how to make the most of its features.
+                Welcome to Supmap! This guide will help you get started with our
+                real-time navigation platform and show you how to make the most
+                of its features.
             </p>
 
             <div id="getting-started#overview" className="mb-12">
@@ -19,9 +20,11 @@ const GettingStarted: React.FC = () => {
                 </h2>
 
                 <p className="text-gray-300 mb-4">
-                    Supmap is a community-powered navigation platform that provides real-time traffic updates,
-                    optimal routing, and incident reporting. Our platform combines advanced navigation tools with
-                    community-verified data to help you reach your destination faster and safer.
+                    Supmap is a community-powered navigation platform that
+                    provides real-time traffic updates, optimal routing, and
+                    incident reporting. Our platform combines advanced
+                    navigation tools with community-verified data to help you
+                    reach your destination faster and safer.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -30,8 +33,13 @@ const GettingStarted: React.FC = () => {
                             <Monitor size={20} />
                         </div>
                         <div>
-                            <h3 className="font-medium text-white mb-1">Web Application</h3>
-                            <p className="text-gray-400 text-sm">Plan routes, explore traffic patterns, and manage your account</p>
+                            <h3 className="font-medium text-white mb-1">
+                                Web Application
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                                Plan routes, explore traffic patterns, and
+                                manage your account
+                            </p>
                         </div>
                     </div>
 
@@ -40,8 +48,13 @@ const GettingStarted: React.FC = () => {
                             <Smartphone size={20} />
                         </div>
                         <div>
-                            <h3 className="font-medium text-white mb-1">Mobile Apps</h3>
-                            <p className="text-gray-400 text-sm">Navigate on-the-go with iOS and Android applications</p>
+                            <h3 className="font-medium text-white mb-1">
+                                Mobile Apps
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                                Navigate on-the-go with iOS and Android
+                                applications
+                            </p>
                         </div>
                     </div>
 
@@ -50,8 +63,13 @@ const GettingStarted: React.FC = () => {
                             <Route size={20} />
                         </div>
                         <div>
-                            <h3 className="font-medium text-white mb-1">Real-time Navigation</h3>
-                            <p className="text-gray-400 text-sm">Get traffic-aware directions with automatic rerouting</p>
+                            <h3 className="font-medium text-white mb-1">
+                                Real-time Navigation
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                                Get traffic-aware directions with automatic
+                                rerouting
+                            </p>
                         </div>
                     </div>
 
@@ -60,22 +78,37 @@ const GettingStarted: React.FC = () => {
                             <MapPin size={20} />
                         </div>
                         <div>
-                            <h3 className="font-medium text-white mb-1">Community Reports</h3>
-                            <p className="text-gray-400 text-sm">Report and verify traffic incidents to help other users</p>
+                            <h3 className="font-medium text-white mb-1">
+                                Community Reports
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                                Report and verify traffic incidents to help
+                                other users
+                            </p>
                         </div>
                     </div>
                 </div>
 
                 <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
                     <h4 className="text-blue-400 font-medium flex items-center mb-2">
-                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
+                        <svg
+                            className="w-5 h-5 mr-2"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                clipRule="evenodd"
+                            ></path>
                         </svg>
                         Did you know?
                     </h4>
                     <p className="text-gray-300 text-sm">
-                        Supmap users report over 10,000 incidents daily, helping fellow drivers save an average of
-                        15 minutes on their commutes.
+                        Supmap users report over 10,000 incidents daily, helping
+                        fellow drivers save an average of 15 minutes on their
+                        commutes.
                     </p>
                 </div>
             </div>
@@ -85,14 +118,25 @@ const GettingStarted: React.FC = () => {
                     Installation
                 </h2>
 
-                <h3 className="text-xl font-medium text-white mb-4">Web Application</h3>
+                <h3 className="text-xl font-medium text-white mb-4">
+                    Web Application
+                </h3>
 
                 <p className="text-gray-300 mb-4">
-                    The Supmap web application is accessible directly through your browser. No installation
-                    is required – simply visit <span className="text-indigo-400">app.supmap.com</span> to get started.
+                    The Supmap web application is accessible directly through
+                    your browser. No installation is required – simply visit
+                    <a
+                        href="/navigation"
+                        className="text-indigo-400 hover:text-indigo-300 transition-colors duration-300"
+                    >
+                        {" "}app.supmap.com{" "}
+                    </a>
+                    to get started.
                 </p>
 
-                <h3 className="text-xl font-medium text-white mb-4 mt-6">Mobile Applications</h3>
+                <h3 className="text-xl font-medium text-white mb-4 mt-6">
+                    Mobile Applications
+                </h3>
 
                 <p className="text-gray-300 mb-4">
                     Download the Supmap mobile app from your device's app store:
@@ -104,13 +148,22 @@ const GettingStarted: React.FC = () => {
                         className="bg-[rgba(15,18,30,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(20,25,40,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-blue-500/10 rounded-lg text-blue-400">
-                            <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <svg
+                                className="w-8 h-8"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
                                 <path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.1 22C7.79 22.05 6.8 20.68 5.96 19.47C4.25 17 2.94 12.45 4.7 9.39C5.57 7.87 7.13 6.91 8.82 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.09 16.67C20.06 16.74 19.67 18.11 18.71 19.5ZM13 3.5C13.73 2.67 14.94 2.04 15.94 2C16.07 3.17 15.6 4.35 14.9 5.19C14.21 6.04 13.07 6.7 11.95 6.61C11.8 5.46 12.36 4.26 13 3.5Z" />
                             </svg>
                         </div>
                         <div>
-                            <p className="text-white font-medium">Download on the</p>
-                            <p className="text-xl text-white font-semibold">App Store</p>
+                            <p className="text-white font-medium">
+                                Download on the
+                            </p>
+                            <p className="text-xl text-white font-semibold">
+                                App Store
+                            </p>
                         </div>
                     </a>
 
@@ -119,28 +172,46 @@ const GettingStarted: React.FC = () => {
                         className="bg-[rgba(15,18,30,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(20,25,40,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-green-500/10 rounded-lg text-green-400">
-                            <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <svg
+                                className="w-8 h-8"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
                                 <path d="M3.18 20.82C3.49 21.13 3.91 21.34 4.4 21.34C4.67 21.34 4.95 21.28 5.22 21.15L12 17.3L18.78 21.15C19.05 21.28 19.33 21.34 19.59 21.34C20.1 21.34 20.51 21.13 20.82 20.82C21.18 20.46 21.34 20 21.34 19.41V4.59C21.34 4 21.18 3.54 20.82 3.18C20.45 2.82 20 2.66 19.41 2.66H4.59C4 2.66 3.54 2.82 3.18 3.18C2.82 3.54 2.66 4 2.66 4.59V19.41C2.66 20 2.82 20.46 3.18 20.82Z" />
                             </svg>
                         </div>
                         <div>
                             <p className="text-white font-medium">Get it on</p>
-                            <p className="text-xl text-white font-semibold">Google Play</p>
+                            <p className="text-xl text-white font-semibold">
+                                Google Play
+                            </p>
                         </div>
                     </a>
                 </div>
 
                 <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-4 mb-6">
                     <h4 className="text-yellow-500 font-medium flex items-center mb-2">
-                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                        <svg
+                            className="w-5 h-5 mr-2"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                clipRule="evenodd"
+                            ></path>
                         </svg>
                         System Requirements
                     </h4>
                     <ul className="text-gray-300 text-sm list-disc list-inside ml-2 space-y-1">
                         <li>iOS 13.0 or later</li>
                         <li>Android 8.0 or later</li>
-                        <li>Modern web browser (Chrome, Firefox, Safari, Edge)</li>
+                        <li>
+                            Modern web browser (Chrome, Firefox, Safari, Edge)
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -151,44 +222,95 @@ const GettingStarted: React.FC = () => {
                 </h2>
 
                 <p className="text-gray-300 mb-4">
-                    While Supmap offers basic navigation features without registration, creating an account unlocks
-                    the full potential of the platform, including:
+                    While Supmap offers basic navigation features without
+                    registration, creating an account unlocks the full potential
+                    of the platform, including:
                 </p>
 
                 <ul className="text-gray-300 mb-6 space-y-2">
                     <li className="flex items-start">
-                        <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <svg
+                            className="w-5 h-5 text-indigo-400 mr-2 mt-0.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M5 13l4 4L19 7"
+                            ></path>
                         </svg>
                         Saving favorite locations and routes
                     </li>
                     <li className="flex items-start">
-                        <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <svg
+                            className="w-5 h-5 text-indigo-400 mr-2 mt-0.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M5 13l4 4L19 7"
+                            ></path>
                         </svg>
                         Syncing data across multiple devices
                     </li>
                     <li className="flex items-start">
-                        <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <svg
+                            className="w-5 h-5 text-indigo-400 mr-2 mt-0.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M5 13l4 4L19 7"
+                            ></path>
                         </svg>
-                        Contributing to the community by reporting and verifying incidents
+                        Contributing to the community by reporting and verifying
+                        incidents
                     </li>
                     <li className="flex items-start">
-                        <svg className="w-5 h-5 text-indigo-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        <svg
+                            className="w-5 h-5 text-indigo-400 mr-2 mt-0.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M5 13l4 4L19 7"
+                            ></path>
                         </svg>
                         Accessing your travel history and statistics
                     </li>
                 </ul>
 
-                <h3 className="text-xl font-medium text-white mb-4">Sign-up Options</h3>
+                <h3 className="text-xl font-medium text-white mb-4">
+                    Sign-up Options
+                </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="bg-[rgba(15,18,30,0.6)] p-5 rounded-lg border border-indigo-900/30">
-                        <h4 className="font-medium text-white mb-3">Email Registration</h4>
+                        <h4 className="font-medium text-white mb-3">
+                            Email Registration
+                        </h4>
                         <p className="text-gray-400 text-sm mb-4">
-                            Create an account using your email address and a secure password.
+                            Create an account using your email address and a
+                            secure password.
                         </p>
                         <ol className="text-gray-300 text-sm space-y-2 list-decimal list-inside ml-1">
                             <li>Click "Sign Up" in the top-right corner</li>
@@ -199,19 +321,16 @@ const GettingStarted: React.FC = () => {
                     </div>
 
                     <div className="bg-[rgba(15,18,30,0.6)] p-5 rounded-lg border border-indigo-900/30">
-                        <h4 className="font-medium text-white mb-3">Social Login</h4>
+                        <h4 className="font-medium text-white mb-3">
+                            Social Login
+                        </h4>
                         <p className="text-gray-400 text-sm mb-4">
-                            Use your existing social accounts for quicker registration.
+                            Use your existing social accounts for quicker
+                            registration.
                         </p>
                         <div className="space-y-3">
-                            <button className="w-full py-2 px-4 bg-blue-600 text-white text-sm font-medium rounded flex items-center justify-center">
-                                Continue with Facebook
-                            </button>
                             <button className="w-full py-2 px-4 bg-white text-gray-800 text-sm font-medium rounded flex items-center justify-center">
                                 Continue with Google
-                            </button>
-                            <button className="w-full py-2 px-4 bg-black text-white text-sm font-medium rounded flex items-center justify-center">
-                                Continue with Apple
                             </button>
                         </div>
                     </div>
@@ -224,8 +343,8 @@ const GettingStarted: React.FC = () => {
                 </h2>
 
                 <p className="text-gray-300 mb-6">
-                    Now that you have Supmap installed and your account set up, let's explore some basic
-                    features to get you started:
+                    Now that you have Supmap installed and your account set up,
+                    let's explore some basic features to get you started:
                 </p>
 
                 <div className="space-y-6">
@@ -234,18 +353,24 @@ const GettingStarted: React.FC = () => {
                             <div className="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 mb-2">
                                 <span className="text-2xl font-bold">1</span>
                             </div>
-                            <h3 className="text-xl font-medium text-white text-center">Set Your Home & Work</h3>
+                            <h3 className="text-xl font-medium text-white text-center">
+                                Set Your Home & Work
+                            </h3>
                         </div>
                         <div className="p-5 md:w-2/3 border-t md:border-t-0 md:border-l border-indigo-900/30">
                             <p className="text-gray-300 mb-4">
-                                Adding your home and work locations helps Supmap provide quicker navigation and
-                                relevant traffic updates for your daily commute.
+                                Adding your home and work locations helps Supmap
+                                provide quicker navigation and relevant traffic
+                                updates for your daily commute.
                             </p>
                             <ol className="text-gray-300 space-y-2 list-decimal list-inside ml-1">
                                 <li>Go to your profile settings</li>
                                 <li>Select "Saved Places"</li>
                                 <li>Add your Home and Work addresses</li>
-                                <li>You can now quickly navigate to these locations from the main screen</li>
+                                <li>
+                                    You can now quickly navigate to these
+                                    locations from the main screen
+                                </li>
                             </ol>
                         </div>
                     </div>
@@ -255,18 +380,40 @@ const GettingStarted: React.FC = () => {
                             <div className="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 mb-2">
                                 <span className="text-2xl font-bold">2</span>
                             </div>
-                            <h3 className="text-xl font-medium text-white text-center">Explore the Map</h3>
+                            <h3 className="text-xl font-medium text-white text-center">
+                                Explore the Map
+                            </h3>
                         </div>
                         <div className="p-5 md:w-2/3 border-t md:border-t-0 md:border-l border-indigo-900/30">
                             <p className="text-gray-300 mb-4">
-                                Familiarize yourself with the map interface to understand traffic conditions
-                                at a glance.
+                                Familiarize yourself with the map interface to
+                                understand traffic conditions at a glance.
                             </p>
                             <ul className="text-gray-300 space-y-2">
-                                <li><span className="text-green-400 font-medium">Green roads:</span> Free-flowing traffic</li>
-                                <li><span className="text-yellow-400 font-medium">Yellow roads:</span> Moderate congestion</li>
-                                <li><span className="text-red-400 font-medium">Red roads:</span> Heavy traffic</li>
-                                <li><span className="text-purple-400 font-medium">Icons:</span> Incidents reported by the community</li>
+                                <li>
+                                    <span className="text-green-400 font-medium">
+                                        Green roads:
+                                    </span>{" "}
+                                    Free-flowing traffic
+                                </li>
+                                <li>
+                                    <span className="text-yellow-400 font-medium">
+                                        Yellow roads:
+                                    </span>{" "}
+                                    Moderate congestion
+                                </li>
+                                <li>
+                                    <span className="text-red-400 font-medium">
+                                        Red roads:
+                                    </span>{" "}
+                                    Heavy traffic
+                                </li>
+                                <li>
+                                    <span className="text-purple-400 font-medium">
+                                        Icons:
+                                    </span>{" "}
+                                    Incidents reported by the community
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -276,17 +423,29 @@ const GettingStarted: React.FC = () => {
                             <div className="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 mb-2">
                                 <span className="text-2xl font-bold">3</span>
                             </div>
-                            <h3 className="text-xl font-medium text-white text-center">Start Navigating</h3>
+                            <h3 className="text-xl font-medium text-white text-center">
+                                Start Navigating
+                            </h3>
                         </div>
                         <div className="p-5 md:w-2/3 border-t md:border-t-0 md:border-l border-indigo-900/30">
                             <p className="text-gray-300 mb-4">
                                 Begin your first journey with Supmap:
                             </p>
                             <ol className="text-gray-300 space-y-2 list-decimal list-inside ml-1">
-                                <li>Tap the search bar at the top of the screen</li>
-                                <li>Enter your destination or select from saved places</li>
-                                <li>Review the suggested routes and select one</li>
-                                <li>Tap "Start Navigation" to begin turn-by-turn directions</li>
+                                <li>
+                                    Tap the search bar at the top of the screen
+                                </li>
+                                <li>
+                                    Enter your destination or select from saved
+                                    places
+                                </li>
+                                <li>
+                                    Review the suggested routes and select one
+                                </li>
+                                <li>
+                                    Tap "Start Navigation" to begin turn-by-turn
+                                    directions
+                                </li>
                             </ol>
                         </div>
                     </div>
@@ -294,61 +453,101 @@ const GettingStarted: React.FC = () => {
 
                 <div className="bg-indigo-900/20 border border-indigo-500/30 rounded-lg p-4 mt-6">
                     <h4 className="text-indigo-400 font-medium flex items-center mb-2">
-                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
+                        <svg
+                            className="w-5 h-5 mr-2"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                clipRule="evenodd"
+                            ></path>
                         </svg>
                         Pro Tip
                     </h4>
                     <p className="text-gray-300 text-sm">
-                        Enable voice guidance in the settings menu for safer, hands-free navigation. You can
-                        customize the voice, language, and volume to suit your preferences.
+                        Enable voice guidance in the settings menu for safer,
+                        hands-free navigation.
                     </p>
                 </div>
             </div>
 
             <div className="bg-[rgba(15,18,30,0.8)] backdrop-blur-md shadow-lg border border-indigo-900/30 rounded-lg p-6 mb-6">
-                <h2 className="text-xl font-bold text-white mb-4">Next Steps</h2>
+                <h2 className="text-xl font-bold text-white mb-4">
+                    Next Steps
+                </h2>
                 <p className="text-gray-300 mb-4">
-                    Now that you're familiar with the basics, explore these guides to get more out of Supmap:
+                    Now that you're familiar with the basics, explore these
+                    guides to get more out of Supmap:
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <a href="#navigation-guide" className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors">
+                    <a
+                        href="#navigation-guide"
+                        className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
+                    >
                         <div className="mr-4 p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
                             <Route size={20} />
                         </div>
                         <div>
-                            <h3 className="font-medium text-white">Navigation Guide</h3>
-                            <p className="text-gray-400 text-sm">Master route planning and preferences</p>
+                            <h3 className="font-medium text-white">
+                                Navigation Guide
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                                Master route planning and preferences
+                            </p>
                         </div>
                     </a>
 
-                    <a href="#alerts-reporting" className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors">
+                    <a
+                        href="#alerts-reporting"
+                        className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
+                    >
                         <div className="mr-4 p-2 bg-yellow-500/10 rounded-lg text-yellow-400">
                             <MapPin size={20} />
                         </div>
                         <div>
-                            <h3 className="font-medium text-white">Alerts & Reporting</h3>
-                            <p className="text-gray-400 text-sm">Report and verify traffic incidents</p>
+                            <h3 className="font-medium text-white">
+                                Alerts & Reporting
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                                Report and verify traffic incidents
+                            </p>
                         </div>
                     </a>
 
-                    <a href="#account-management" className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors">
+                    <a
+                        href="#account-management"
+                        className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
+                    >
                         <div className="mr-4 p-2 bg-purple-500/10 rounded-lg text-purple-400">
                             <Shield size={20} />
                         </div>
                         <div>
-                            <h3 className="font-medium text-white">Account Management</h3>
-                            <p className="text-gray-400 text-sm">Privacy and profile settings</p>
+                            <h3 className="font-medium text-white">
+                                Account Management
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                                Privacy and profile settings
+                            </p>
                         </div>
                     </a>
 
-                    <a href="#mobile-app" className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors">
+                    <a
+                        href="#mobile-app"
+                        className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
+                    >
                         <div className="mr-4 p-2 bg-blue-500/10 rounded-lg text-blue-400">
                             <Smartphone size={20} />
                         </div>
                         <div>
-                            <h3 className="font-medium text-white">Mobile App</h3>
-                            <p className="text-gray-400 text-sm">Get the most from the mobile experience</p>
+                            <h3 className="font-medium text-white">
+                                Mobile App
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                                Get the most from the mobile experience
+                            </p>
                         </div>
                     </a>
                 </div>

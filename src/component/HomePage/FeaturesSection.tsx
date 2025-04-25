@@ -44,7 +44,7 @@ const features = [
     {
         icon: <ThumbsUpIcon size={24} className="text-emerald-400" />,
         title: "Route Preferences",
-        description: "Customize your routes based on preferences like avoiding tolls, highways, or ferries.",
+        description: "Customize your routes based on preferences like avoiding tolls, highways.",
         color: "from-emerald-500 to-green-500"
     },
     {
@@ -56,7 +56,7 @@ const features = [
     {
         icon: <ShareIcon size={24} className="text-pink-400" />,
         title: "Route Sharing",
-        description: "Share your route with friends or send it directly to your mobile device with a QR code.",
+        description: "Share your route with friends by sending it directly to your mobile device with a QR code.",
         color: "from-pink-500 to-rose-500"
     },
     {
