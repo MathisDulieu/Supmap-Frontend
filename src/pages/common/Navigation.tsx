@@ -43,8 +43,10 @@ const Navigation: React.FC = () => {
 
     const togglePanel = () => setIsPanelOpen(!isPanelOpen);
 
+
     const addWaypoint = () => {
         if (waypoints.length >= 7) return;
+
         const newWaypoints = [...waypoints];
         newWaypoints.splice(newWaypoints.length - 1, 0, {
             id: `waypoint-${Date.now()}`,
@@ -69,7 +71,9 @@ const Navigation: React.FC = () => {
     };
 
     const updateWaypoint = (id: string, value: string) => {
-        setWaypoints(prev => prev.map(wp => (wp.id === id ? { ...wp, value } : wp)));
+        setWaypoints(prev =>
+            prev.map(wp => (wp.id === id ? { ...wp, value } : wp))
+        );
         if (value.trim() !== '') {
             fetchAutocompleteResults(value);
         } else {
@@ -78,7 +82,10 @@ const Navigation: React.FC = () => {
     };
 
     const fetchAutocompleteResults = (input: string) => {
-        if (!window.google?.maps?.places) return;
+        if (!window.google?.maps?.places) {
+            console.error('Google Maps Places API not loaded');
+            return;
+        }
         const service = new window.google.maps.places.AutocompleteService();
         service.getPlacePredictions(
             {
@@ -89,7 +96,10 @@ const Navigation: React.FC = () => {
             (predictions: any, status: any) => {
                 if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
                     setAutocompleteResults(
-                        predictions.map((p: any) => ({ id: p.place_id, description: p.description }))
+                        predictions.map((p: any) => ({
+                            id: p.place_id,
+                            description: p.description
+                        }))
                     );
                 } else {
                     setAutocompleteResults([]);
@@ -101,7 +111,9 @@ const Navigation: React.FC = () => {
     const selectAutocompleteResult = (result: AutocompleteResult) => {
         if (activeInput) {
             setWaypoints(prev =>
-                prev.map(wp => (wp.id === activeInput ? { ...wp, value: result.description } : wp))
+                prev.map(wp =>
+                    wp.id === activeInput ? { ...wp, value: result.description } : wp
+                )
             );
             setAutocompleteResults([]);
             setActiveInput(null);
@@ -131,17 +143,12 @@ const Navigation: React.FC = () => {
         }
     };
 
-    const handleRouteCalculated = (r: any) => {
-        setRouteDetails(r);
-        setSelectedRouteIndex(0);
-        setCalculateRoute(false);
-    };
-
     const handleTravelModeChange = (mode: TravelMode) => {
         setTravelMode(mode);
         if (routeDetails) handleCalculateRoute();
     };
 
+    
     const headerHeight = 80;
     const showUserMarker = !isRouteInfoVisible;
 
@@ -151,7 +158,11 @@ const Navigation: React.FC = () => {
                 <GoogleMapsIntegration
                     waypoints={waypoints}
                     calculateRoute={calculateRoute}
-                    onRouteCalculated={handleRouteCalculated}
+                    onRouteCalculated={r => {
+                        setRouteDetails(r);
+                        setSelectedRouteIndex(0);
+                        setCalculateRoute(false);
+                    }}
                     travelMode={travelMode}
                     selectedRouteIndex={selectedRouteIndex}
                     showUserMarker={showUserMarker}
@@ -161,7 +172,7 @@ const Navigation: React.FC = () => {
             {!isPanelOpen && (
                 <button
                     onClick={togglePanel}
-                    className="absolute left-4 z-30 bg-white p-3 rounded-full shadow-lg hover:bg-gray-100"
+                    className="absolute left-4 z-30 bg-white p-3 rounded-full shadow-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105"
                     style={{ top: `${headerHeight + 16}px` }}
                 >
                     <MenuIcon size={20} className="text-indigo-600" />
@@ -186,6 +197,7 @@ const Navigation: React.FC = () => {
                             <button
                                 onClick={togglePanel}
                                 className="text-gray-500 hover:text-gray-700"
+                                aria-label="Close navigation panel"
                             >
                                 <XIcon size={20} />
                             </button>
@@ -224,7 +236,8 @@ const Navigation: React.FC = () => {
                                     <div className="flex items-center space-x-2">
                                         <div className="flex-shrink-0">
                                             <div
-                                                className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                                className={`w-8 h-8 rounded-full flex items-center justify-center 
+                                                ${
                                                     index === 0
                                                         ? 'bg-green-100 text-green-600'
                                                         : index === waypoints.length - 1
@@ -239,43 +252,49 @@ const Navigation: React.FC = () => {
                                             <input
                                                 type="text"
                                                 value={waypoint.value}
-                                                onChange={e => updateWaypoint(waypoint.id, e.target.value)}
+                                                onChange={e =>
+                                                    updateWaypoint(waypoint.id, e.target.value)
+                                                }
                                                 onFocus={() => handleInputFocus(waypoint.id)}
                                                 onBlur={handleInputBlur}
                                                 placeholder={waypoint.placeholder}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                                             />
                                         </div>
                                         {waypoint.id !== 'start' && waypoint.id !== 'end' && (
                                             <button
                                                 onClick={() => removeWaypoint(waypoint.id)}
                                                 className="text-gray-400 hover:text-red-500"
+                                                aria-label="Remove waypoint"
                                             >
                                                 <TrashIcon size={16} />
                                             </button>
                                         )}
                                     </div>
 
-                                    {activeInput === waypoint.id && autocompleteResults.length > 0 && (
-                                        <div className="absolute z-10 left-10 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                            {autocompleteResults.map(result => (
-                                                <div
-                                                    key={result.id}
-                                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 truncate"
-                                                    onClick={() => selectAutocompleteResult(result)}
-                                                >
-                                                    {result.description}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                    {activeInput === waypoint.id &&
+                                        autocompleteResults.length > 0 && (
+                                            <div className="absolute z-10 left-10 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                                {autocompleteResults.map(result => (
+                                                    <div
+                                                        key={result.id}
+                                                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 truncate"
+                                                        onClick={() =>
+                                                            selectAutocompleteResult(result)
+                                                        }
+                                                    >
+                                                        {result.description}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                 </div>
                             ))}
 
                             {waypoints.length < 7 && (
                                 <button
                                     onClick={addWaypoint}
-                                    className="flex items-center justify-center w-full py-2 border border-dashed border-indigo-300 rounded-lg text-indigo-500 hover:bg-indigo-50"
+                                    className="flex items-center justify-center w-full py-2 border border-dashed border-indigo-300 rounded-lg text-indigo-500 hover:bg-indigo-50 transition-colors"
                                 >
                                     <PlusIcon size={16} className="mr-1" />
                                     <span>Add Waypoint</span>
@@ -286,7 +305,7 @@ const Navigation: React.FC = () => {
                         <div className="mt-4">
                             <button
                                 onClick={handleCalculateRoute}
-                                className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-md flex items-center justify-center disabled:opacity-50"
+                                className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-md transition-colors duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                                 disabled={
                                     waypoints[0].value === '' ||
                                     waypoints[waypoints.length - 1].value === ''
