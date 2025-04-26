@@ -28,8 +28,7 @@ interface GoogleMapsProps {
 let googleMapsLoaded = false;
 let googleMapsLoading = false;
 
-const GOOGLE_API_KEY =
-    window.env && window.env.GOOGLE_API_KEY ? window.env.GOOGLE_API_KEY : '';
+const GOOGLE_API_KEY = window.env && window.env.GOOGLE_API_KEY ? window.env.GOOGLE_API_KEY : '';
 
 if (!GOOGLE_API_KEY) {
     console.warn("Attention : GOOGLE_API_KEY n'est pas définie");
@@ -37,7 +36,10 @@ if (!GOOGLE_API_KEY) {
 
 const loadGoogleMapsApi = (): Promise<void> =>
     new Promise((resolve, reject) => {
-        if (googleMapsLoaded) return resolve();
+        if (googleMapsLoaded) {
+            resolve();
+            return;
+        }
         if (googleMapsLoading) {
             const check = setInterval(() => {
                 if (googleMapsLoaded) {
@@ -85,9 +87,9 @@ const GoogleMapsIntegration: React.FC<GoogleMapsProps> = ({
             try {
                 await loadGoogleMapsApi();
                 if (!mounted || !mapRef.current) return;
-                const center = { lat: 48.8566, lng: 2.3522 };
+                const defaultCenter = { lat: 48.8566, lng: 2.3522 };
                 const m = new window.google.maps.Map(mapRef.current, {
-                    center,
+                    center: defaultCenter,
                     zoom: 12,
                     disableDefaultUI: false,
                     zoomControl: true,
@@ -97,6 +99,26 @@ const GoogleMapsIntegration: React.FC<GoogleMapsProps> = ({
                     rotateControl: true,
                     fullscreenControl: true
                 });
+                if ('geolocation' in navigator) {
+                    navigator.geolocation.getCurrentPosition(
+                        position => {
+                            if (!mounted) return;
+                            const userPos = {
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude
+                            };
+                            m.setCenter(userPos);
+                            m.setZoom(15);
+                            new window.google.maps.Marker({
+                                position: userPos,
+                                map: m,
+                                title: 'Votre position'
+                            });
+                        },
+                        () => {},
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    );
+                }
                 const ds = new window.google.maps.DirectionsService();
                 const dr = new window.google.maps.DirectionsRenderer({
                     map: m,
@@ -122,27 +144,16 @@ const GoogleMapsIntegration: React.FC<GoogleMapsProps> = ({
     }, []);
 
     useEffect(() => {
-        if (
-            !calculateRoute ||
-            !dirService ||
-            !dirRenderer ||
-            !isLoaded ||
-            !map
-        )
-            return;
-
+        if (!calculateRoute || !dirService || !dirRenderer || !isLoaded || !map) return;
         setError(null);
-
         const valid = waypoints.filter(w => w.value.trim());
         if (valid.length < 2) return;
-
         const origin = valid[0].value;
         const destination = valid[valid.length - 1].value;
         const middles = valid.slice(1, -1).map(w => ({
             location: w.value,
             stopover: true
         }));
-
         dirService.route(
             {
                 origin,
@@ -180,20 +191,20 @@ const GoogleMapsIntegration: React.FC<GoogleMapsProps> = ({
         try {
             dirRenderer?.setRouteIndex(selectedRouteIndex);
         } catch {
-            /* .. */
+
+            // Handle error if dirRenderer is not initialized or selectedRouteIndex is invalid
+            console.error('Error setting route index:', selectedRouteIndex);
         }
     }, [selectedRouteIndex, dirRenderer]);
 
     return (
         <div className="w-full h-full rounded-lg relative">
             <div ref={mapRef} className="w-full h-full" />
-
             {!isLoaded && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500" />
                 </div>
             )}
-
             {error && (
                 <div className="absolute bottom-4 left-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg">
                     {error}
