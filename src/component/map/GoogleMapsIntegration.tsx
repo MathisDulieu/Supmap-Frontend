@@ -22,94 +22,71 @@ interface GoogleMapsProps {
     calculateRoute: boolean;
     onRouteCalculated?: (routeDetails: any) => void;
     travelMode: 'DRIVING' | 'BICYCLING' | 'WALKING' | 'TRANSIT';
+    selectedRouteIndex: number;
 }
 
 let googleMapsLoaded = false;
 let googleMapsLoading = false;
 
-const GOOGLE_API_KEY = window.env && window.env.GOOGLE_API_KEY
-    ? window.env.GOOGLE_API_KEY
-    : '';
+const GOOGLE_API_KEY =
+    window.env && window.env.GOOGLE_API_KEY ? window.env.GOOGLE_API_KEY : '';
 
 if (!GOOGLE_API_KEY) {
-    console.warn('Attention: GOOGLE_API_KEY n\'est pas définie');
+    console.warn("Attention : GOOGLE_API_KEY n'est pas définie");
 }
 
-const loadGoogleMapsApi = (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        if (googleMapsLoaded) {
-            resolve();
-            return;
-        }
-
+const loadGoogleMapsApi = (): Promise<void> =>
+    new Promise((resolve, reject) => {
+        if (googleMapsLoaded) return resolve();
         if (googleMapsLoading) {
-            const checkLoaded = setInterval(() => {
+            const check = setInterval(() => {
                 if (googleMapsLoaded) {
-                    clearInterval(checkLoaded);
+                    clearInterval(check);
                     resolve();
                 }
             }, 100);
             return;
         }
-
         googleMapsLoading = true;
-
-        try {
-            window.initMap = () => {
-                googleMapsLoaded = true;
-                googleMapsLoading = false;
-                resolve();
-            };
-
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&callback=initMap&loading=async`;
-            script.async = true;
-            script.defer = true;
-            script.onerror = (error) => {
-                googleMapsLoading = false;
-                console.error('Erreur lors du chargement de Google Maps API:', error);
-                reject(new Error('Impossible de charger Google Maps API'));
-            };
-            document.head.appendChild(script);
-        } catch (error) {
+        window.initMap = () => {
+            googleMapsLoaded = true;
             googleMapsLoading = false;
-            console.error('Exception lors du chargement de Google Maps:', error);
-            reject(error);
-        }
+            resolve();
+        };
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&callback=initMap&loading=async`;
+        script.async = true;
+        script.defer = true;
+        script.onerror = err => {
+            googleMapsLoading = false;
+            reject(err);
+        };
+        document.head.appendChild(script);
     });
-};
 
 const GoogleMapsIntegration: React.FC<GoogleMapsProps> = ({
-                                                              waypoints,
-                                                              calculateRoute,
-                                                              onRouteCalculated,
-                                                              travelMode
-                                                          }) => {
-    const mapContainerRef = useRef<HTMLDivElement | null>(null);
-    const [mapInstance, setMapInstance] = useState<any | null>(null);
-    const [directionsService, setDirectionsService] = useState<any | null>(null);
-    const [directionsRenderer, setDirectionsRenderer] = useState<any | null>(null);
+    waypoints,
+    calculateRoute,
+    onRouteCalculated,
+    travelMode,
+    selectedRouteIndex
+}) => {
+    const mapRef = useRef<HTMLDivElement | null>(null);
+    const [map, setMap] = useState<any | null>(null);
+    const [dirService, setDirService] = useState<any | null>(null);
+    const [dirRenderer, setDirRenderer] = useState<any | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        let isMounted = true;
-
-        const initializeMap = async () => {
-            if (!mapContainerRef.current) return;
-
+        let mounted = true;
+        const init = async () => {
+            if (!mapRef.current) return;
             try {
                 await loadGoogleMapsApi();
-
-                if (!isMounted || !mapContainerRef.current) return;
-
+                if (!mounted || !mapRef.current) return;
                 const center = { lat: 48.8566, lng: 2.3522 };
-
-                if (!window.google || !window.google.maps) {
-                    throw new Error('Google Maps n\'a pas été chargé correctement');
-                }
-
-                const map = new window.google.maps.Map(mapContainerRef.current, {
+                const m = new window.google.maps.Map(mapRef.current, {
                     center,
                     zoom: 12,
                     disableDefaultUI: false,
@@ -120,95 +97,100 @@ const GoogleMapsIntegration: React.FC<GoogleMapsProps> = ({
                     rotateControl: true,
                     fullscreenControl: true
                 });
-
-                const dirService = new window.google.maps.DirectionsService();
-                const dirRenderer = new window.google.maps.DirectionsRenderer({
-                    map,
+                const ds = new window.google.maps.DirectionsService();
+                const dr = new window.google.maps.DirectionsRenderer({
+                    map: m,
                     suppressMarkers: false,
-                    polylineOptions: {
-                        strokeColor: '#4F46E5',
-                        strokeWeight: 5
-                    }
+                    polylineOptions: { strokeColor: '#4F46E5', strokeWeight: 5 }
                 });
-
-                setMapInstance(map);
-                setDirectionsService(dirService);
-                setDirectionsRenderer(dirRenderer);
+                setMap(m);
+                setDirService(ds);
+                setDirRenderer(dr);
                 setIsLoaded(true);
-            } catch (err) {
-                if (isMounted) {
-                    console.error('Error initializing Google Maps:', err);
+            } catch (e) {
+                if (mounted) {
+                    console.error(e);
                     setError('Failed to load Google Maps. Please try again later.');
                 }
             }
         };
-
-        initializeMap();
-
+        init();
         return () => {
-            isMounted = false;
-
-            if (directionsRenderer) {
-                directionsRenderer.setMap(null);
-            }
+            mounted = false;
+            dirRenderer?.setMap(null);
         };
     }, []);
 
     useEffect(() => {
-        if (!calculateRoute || !directionsService || !directionsRenderer || !isLoaded || !mapInstance) {
+        if (
+            !calculateRoute ||
+            !dirService ||
+            !dirRenderer ||
+            !isLoaded ||
+            !map
+        )
             return;
-        }
 
         setError(null);
 
-        const validWaypoints = waypoints.filter(wp => wp.value.trim() !== '');
+        const valid = waypoints.filter(w => w.value.trim());
+        if (valid.length < 2) return;
 
-        if (validWaypoints.length < 2) {
-            return;
-        }
+        const origin = valid[0].value;
+        const destination = valid[valid.length - 1].value;
+        const middles = valid.slice(1, -1).map(w => ({
+            location: w.value,
+            stopover: true
+        }));
 
-        try {
-            const origin = validWaypoints[0].value;
-            const destination = validWaypoints[validWaypoints.length - 1].value;
-
-            const middleWaypoints = validWaypoints.slice(1, validWaypoints.length - 1).map(wp => ({
-                location: wp.value,
-                stopover: true
-            }));
-
-            directionsService.route({
+        dirService.route(
+            {
                 origin,
                 destination,
-                waypoints: middleWaypoints,
+                waypoints: middles,
                 travelMode: window.google.maps.TravelMode[travelMode],
                 optimizeWaypoints: true,
                 provideRouteAlternatives: true,
                 avoidHighways: false,
                 avoidTolls: false
-            }, (result: any, status: any) => {
+            },
+            (result: any, status: any) => {
                 if (status === window.google.maps.DirectionsStatus.OK) {
-                    directionsRenderer.setDirections(result);
-                    if (onRouteCalculated) {
-                        onRouteCalculated(result);
-                    }
+                    dirRenderer.setDirections(result);
+                    dirRenderer.setRouteIndex(selectedRouteIndex);
+                    onRouteCalculated?.(result);
                 } else {
-                    console.error(`Directions request failed: ${status}`);
                     setError(`Could not calculate route: ${status}`);
                 }
-            });
-        } catch (err) {
-            console.error('Error calculating route:', err);
-            setError('An error occurred while calculating the route.');
+            }
+        );
+    }, [
+        calculateRoute,
+        waypoints,
+        dirService,
+        dirRenderer,
+        isLoaded,
+        travelMode,
+        selectedRouteIndex,
+        map,
+        onRouteCalculated
+    ]);
+
+    useEffect(() => {
+        try {
+            dirRenderer?.setRouteIndex(selectedRouteIndex);
+        } catch {
+            /* .. */
         }
-    }, [calculateRoute, directionsService, directionsRenderer, mapInstance, waypoints, isLoaded, onRouteCalculated, travelMode]);
+    }, [selectedRouteIndex, dirRenderer]);
 
     return (
         <div className="w-full h-full rounded-lg relative">
-            <div ref={mapContainerRef} className="w-full h-full"></div>
+            <div ref={mapRef} className="w-full h-full" />
 
             {!isLoaded && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500" />
                 </div>
             )}
 
