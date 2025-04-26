@@ -1,13 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNearbyAlerts } from '../../hooks/useNearbyAlerts';
 
 declare global {
     interface Window {
         google: any;
         initMap: () => void;
-        env?: {
-            API_BASE_URL: string;
-            GOOGLE_API_KEY: string;
-        };
+        env?: { API_BASE_URL: string; GOOGLE_API_KEY: string };
     }
 }
 
@@ -17,7 +15,7 @@ interface WaypointType {
     value: string;
 }
 
-interface GoogleMapsProps {
+interface Props {
     waypoints: WaypointType[];
     calculateRoute: boolean;
     onRouteCalculated?: (routeDetails: any) => void;
@@ -25,189 +23,147 @@ interface GoogleMapsProps {
     selectedRouteIndex: number;
 }
 
-let googleMapsLoaded = false;
-let googleMapsLoading = false;
+let mapsLoaded = false;
+let mapsLoading = false;
 
-const GOOGLE_API_KEY = window.env && window.env.GOOGLE_API_KEY ? window.env.GOOGLE_API_KEY : '';
+const KEY = window.env?.GOOGLE_API_KEY ?? '';
 
-if (!GOOGLE_API_KEY) {
-    console.warn("Attention : GOOGLE_API_KEY n'est pas définie");
-}
-
-const loadGoogleMapsApi = (): Promise<void> =>
-    new Promise((resolve, reject) => {
-        if (googleMapsLoaded) {
-            resolve();
-            return;
-        }
-        if (googleMapsLoading) {
-            const check = setInterval(() => {
-                if (googleMapsLoaded) {
-                    clearInterval(check);
-                    resolve();
+const loadMaps = () =>
+    new Promise<void>((res, rej) => {
+        if (mapsLoaded) return res();
+        if (mapsLoading) {
+            const id = setInterval(() => {
+                if (mapsLoaded) {
+                    clearInterval(id);
+                    res();
                 }
             }, 100);
             return;
         }
-        googleMapsLoading = true;
+        mapsLoading = true;
         window.initMap = () => {
-            googleMapsLoaded = true;
-            googleMapsLoading = false;
-            resolve();
+            mapsLoaded = true;
+            mapsLoading = false;
+            res();
         };
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&callback=initMap&loading=async`;
-        script.async = true;
-        script.defer = true;
-        script.onerror = err => {
-            googleMapsLoading = false;
-            reject(err);
-        };
-        document.head.appendChild(script);
+        const s = document.createElement('script');
+        s.src = `https://maps.googleapis.com/maps/api/js?key=${KEY}&libraries=places&callback=initMap&loading=async`;
+        s.async = true;
+        s.defer = true;
+        s.onerror = rej;
+        document.head.appendChild(s);
     });
 
-const GoogleMapsIntegration: React.FC<GoogleMapsProps> = ({
+const GoogleMapsIntegration: React.FC<Props> = ({
     waypoints,
     calculateRoute,
     onRouteCalculated,
     travelMode,
     selectedRouteIndex
 }) => {
-    const mapRef = useRef<HTMLDivElement | null>(null);
-    const [map, setMap] = useState<any | null>(null);
-    const [dirService, setDirService] = useState<any | null>(null);
-    const [dirRenderer, setDirRenderer] = useState<any | null>(null);
-    const [isLoaded, setIsLoaded] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const ref = useRef<HTMLDivElement>(null);
+    const [map, setMap] = useState<google.maps.Map | null>(null);
+    const [svc, setSvc] = useState<google.maps.DirectionsService | null>(null);
+    const [rend, setRend] = useState<google.maps.DirectionsRenderer | null>(null);
+    const [ready, setReady] = useState(false);
+    const [err, setErr] = useState<string | null>(null);
+
+    const { fetchAlerts } = useNearbyAlerts(map);
 
     useEffect(() => {
         let mounted = true;
-        const init = async () => {
-            if (!mapRef.current) return;
+        (async () => {
+            if (!ref.current) return;
             try {
-                await loadGoogleMapsApi();
-                if (!mounted || !mapRef.current) return;
-                const defaultCenter = { lat: 48.8566, lng: 2.3522 };
-                const m = new window.google.maps.Map(mapRef.current, {
-                    center: defaultCenter,
-                    zoom: 12,
-                    disableDefaultUI: false,
-                    zoomControl: true,
-                    mapTypeControl: true,
-                    scaleControl: true,
-                    streetViewControl: true,
-                    rotateControl: true,
-                    fullscreenControl: true
-                });
+                await loadMaps();
+                if (!mounted || !ref.current) return;
+                const paris = { lat: 48.8566, lng: 2.3522 };
+                const m = new window.google.maps.Map(ref.current, { center: paris, zoom: 12 });
+                fetchAlerts(paris.lat, paris.lng);
                 if ('geolocation' in navigator) {
                     navigator.geolocation.getCurrentPosition(
-                        position => {
+                        pos => {
                             if (!mounted) return;
-                            const userPos = {
-                                lat: position.coords.latitude,
-                                lng: position.coords.longitude
-                            };
-                            m.setCenter(userPos);
+                            const me = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                            m.setCenter(me);
                             m.setZoom(15);
-                            new window.google.maps.Marker({
-                                position: userPos,
-                                map: m,
-                                title: 'Votre position'
-                            });
+                            new window.google.maps.Marker({ position: me, map: m, title: 'Vous' });
+                            fetchAlerts(me.lat, me.lng);
                         },
-                        () => {},
-                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                        () => {}
                     );
                 }
-                const ds = new window.google.maps.DirectionsService();
-                const dr = new window.google.maps.DirectionsRenderer({
-                    map: m,
-                    suppressMarkers: false,
-                    polylineOptions: { strokeColor: '#4F46E5', strokeWeight: 5 }
-                });
                 setMap(m);
-                setDirService(ds);
-                setDirRenderer(dr);
-                setIsLoaded(true);
-            } catch (e) {
-                if (mounted) {
-                    console.error(e);
-                    setError('Failed to load Google Maps. Please try again later.');
-                }
+                setSvc(new window.google.maps.DirectionsService());
+                setRend(
+                    new window.google.maps.DirectionsRenderer({
+                        map: m,
+                        polylineOptions: { strokeColor: '#4F46E5', strokeWeight: 5 }
+                    })
+                );
+                setReady(true);
+            } catch {
+                if (mounted) setErr('Google Maps error');
             }
-        };
-        init();
+        })();
         return () => {
             mounted = false;
-            dirRenderer?.setMap(null);
+            rend?.setMap(null);
         };
     }, []);
 
     useEffect(() => {
-        if (!calculateRoute || !dirService || !dirRenderer || !isLoaded || !map) return;
-        setError(null);
+        if (!calculateRoute || !svc || !rend || !ready) return;
         const valid = waypoints.filter(w => w.value.trim());
         if (valid.length < 2) return;
         const origin = valid[0].value;
-        const destination = valid[valid.length - 1].value;
-        const middles = valid.slice(1, -1).map(w => ({
-            location: w.value,
-            stopover: true
-        }));
-        dirService.route(
+        const dest = valid[valid.length - 1].value;
+        const mids = valid.slice(1, -1).map(w => ({ location: w.value, stopover: true }));
+        svc.route(
             {
                 origin,
-                destination,
-                waypoints: middles,
+                destination: dest,
+                waypoints: mids,
                 travelMode: window.google.maps.TravelMode[travelMode],
                 optimizeWaypoints: true,
-                provideRouteAlternatives: true,
-                avoidHighways: false,
-                avoidTolls: false
+                provideRouteAlternatives: true
             },
-            (result: any, status: any) => {
+            (res, status) => {
                 if (status === window.google.maps.DirectionsStatus.OK) {
-                    dirRenderer.setDirections(result);
-                    dirRenderer.setRouteIndex(selectedRouteIndex);
-                    onRouteCalculated?.(result);
-                } else {
-                    setError(`Could not calculate route: ${status}`);
-                }
+                    rend.setDirections(res);
+                    rend.setRouteIndex(selectedRouteIndex);
+                    onRouteCalculated?.(res);
+                } else setErr(status);
             }
         );
     }, [
         calculateRoute,
         waypoints,
-        dirService,
-        dirRenderer,
-        isLoaded,
+        svc,
+        rend,
+        ready,
         travelMode,
         selectedRouteIndex,
-        map,
         onRouteCalculated
     ]);
 
     useEffect(() => {
         try {
-            dirRenderer?.setRouteIndex(selectedRouteIndex);
-        } catch {
-
-            // Handle error if dirRenderer is not initialized or selectedRouteIndex is invalid
-            console.error('Error setting route index:', selectedRouteIndex);
-        }
-    }, [selectedRouteIndex, dirRenderer]);
+            rend?.setRouteIndex(selectedRouteIndex);
+        } catch {}
+    }, [selectedRouteIndex, rend]);
 
     return (
-        <div className="w-full h-full rounded-lg relative">
-            <div ref={mapRef} className="w-full h-full" />
-            {!isLoaded && (
+        <div className="w-full h-full relative">
+            <div ref={ref} className="w-full h-full" />
+            {!ready && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500" />
                 </div>
             )}
-            {error && (
-                <div className="absolute bottom-4 left-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg">
-                    {error}
+            {err && (
+                <div className="absolute bottom-4 left-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg">
+                    {err}
                 </div>
             )}
         </div>

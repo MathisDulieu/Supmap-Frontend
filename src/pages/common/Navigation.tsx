@@ -39,10 +39,10 @@ const Navigation: React.FC = () => {
     const [travelMode, setTravelMode] = useState<TravelMode>('DRIVING');
     const [routeDetails, setRouteDetails] = useState<any>(null);
     const [isRouteInfoVisible, setIsRouteInfoVisible] = useState(false);
-
     const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
 
     const togglePanel = () => setIsPanelOpen(!isPanelOpen);
+
 
     const addWaypoint = () => {
         if (waypoints.length >= 7) return;
@@ -154,7 +154,9 @@ const Navigation: React.FC = () => {
         if (routeDetails) handleCalculateRoute();
     };
 
+    
     const headerHeight = 80;
+    const showUserMarker = !isRouteInfoVisible;
 
     return (
         <div className="h-screen w-full relative bg-gray-100 overflow-hidden">
@@ -162,9 +164,14 @@ const Navigation: React.FC = () => {
                 <GoogleMapsIntegration
                     waypoints={waypoints}
                     calculateRoute={calculateRoute}
-                    onRouteCalculated={handleRouteCalculated}
+                    onRouteCalculated={r => {
+                        setRouteDetails(r);
+                        setSelectedRouteIndex(0);
+                        setCalculateRoute(false);
+                    }}
                     travelMode={travelMode}
                     selectedRouteIndex={selectedRouteIndex}
+                    showUserMarker={showUserMarker}
                 />
             </div>
 
@@ -173,7 +180,6 @@ const Navigation: React.FC = () => {
                     onClick={togglePanel}
                     className="absolute left-4 z-30 bg-white p-3 rounded-full shadow-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105"
                     style={{ top: `${headerHeight + 16}px` }}
-                    aria-label="Open navigation panel"
                 >
                     <MenuIcon size={20} className="text-indigo-600" />
                 </button>
