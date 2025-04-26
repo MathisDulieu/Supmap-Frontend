@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNearbyAlerts } from '../../hooks/useNearbyAlerts';
+import { useNearbyAlerts } from '../../hooks/map/useNearbyAlerts';
 
 declare global {
     interface Window {
@@ -21,6 +21,8 @@ interface Props {
     onRouteCalculated?: (routeDetails: any) => void;
     travelMode: 'DRIVING' | 'BICYCLING' | 'WALKING' | 'TRANSIT';
     selectedRouteIndex: number;
+    /** affiche ou non le marqueur de la position utilisateur */
+    showUserMarker?: boolean;
 }
 
 let mapsLoaded = false;
@@ -59,7 +61,8 @@ const GoogleMapsIntegration: React.FC<Props> = ({
     calculateRoute,
     onRouteCalculated,
     travelMode,
-    selectedRouteIndex
+    selectedRouteIndex,
+    showUserMarker = true
 }) => {
     const ref = useRef<HTMLDivElement>(null);
     const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -77,9 +80,12 @@ const GoogleMapsIntegration: React.FC<Props> = ({
             try {
                 await loadMaps();
                 if (!mounted || !ref.current) return;
+
                 const paris = { lat: 48.8566, lng: 2.3522 };
                 const m = new window.google.maps.Map(ref.current, { center: paris, zoom: 12 });
+
                 fetchAlerts(paris.lat, paris.lng);
+
                 if ('geolocation' in navigator) {
                     navigator.geolocation.getCurrentPosition(
                         pos => {
@@ -87,12 +93,19 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                             const me = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                             m.setCenter(me);
                             m.setZoom(15);
-                            new window.google.maps.Marker({ position: me, map: m, title: 'Vous' });
+                            if (showUserMarker) {
+                                new window.google.maps.Marker({
+                                    position: me,
+                                    map: m,
+                                    title: 'Votre position'
+                                });
+                            }
                             fetchAlerts(me.lat, me.lng);
                         },
                         () => {}
                     );
                 }
+
                 setMap(m);
                 setSvc(new window.google.maps.DirectionsService());
                 setRend(
@@ -110,7 +123,7 @@ const GoogleMapsIntegration: React.FC<Props> = ({
             mounted = false;
             rend?.setMap(null);
         };
-    }, []);
+    }, [showUserMarker]);
 
     useEffect(() => {
         if (!calculateRoute || !svc || !rend || !ready) return;
