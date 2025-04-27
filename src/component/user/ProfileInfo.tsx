@@ -10,7 +10,8 @@ interface ProfileInfoProps {
         role: string;
         favoriteLocations: any[];
         stats: any;
-        isValidEmail: boolean;
+        isValidEmail?: boolean; // Peut être isValidEmail
+        validEmail?: boolean;   // Ou validEmail selon l'API
     };
     onUpdate: () => void;
 }
@@ -27,6 +28,9 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
     const [imageLoading, setImageLoading] = useState(false);
     const [showOldPassword, setShowOldPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
+
+    // Déterminer si l'email est vérifié - vérifier les deux propriétés possibles
+    const isEmailVerified = userData.isValidEmail || userData.validEmail;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -294,7 +298,7 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
                                 <p className="text-sm text-gray-400">Email</p>
                                 <div className="flex items-center">
                                     <p className="text-white mr-2">{userData.email}</p>
-                                    {userData.isValidEmail ? (
+                                    {isEmailVerified ? (
                                         <span className="bg-green-900/30 text-green-400 text-xs px-2 py-1 rounded-full flex items-center">
                                           <CheckCircle size={12} className="mr-1" />
                                           Verified
