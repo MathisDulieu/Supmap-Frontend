@@ -35,7 +35,7 @@ export async function getAuthenticatedUserDetails(): Promise<UserResponse> {
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return await response.json();
@@ -57,11 +57,10 @@ export async function deleteAuthenticatedUserAccount(): Promise<UserResponse> {
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function setProfileImage(file: File): Promise<UserResponse> {
@@ -83,11 +82,10 @@ export async function setProfileImage(file: File): Promise<UserResponse> {
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function updateAuthenticatedUserDetails(
@@ -117,11 +115,10 @@ export async function updateAuthenticatedUserDetails(
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function createAdminAccount(
@@ -153,11 +150,10 @@ export async function createAdminAccount(
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function deleteAdminAccount(id: string): Promise<UserResponse> {
@@ -176,11 +172,10 @@ export async function deleteAdminAccount(id: string): Promise<UserResponse> {
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function getAllUsers(keyword: string = '', page: number = 0): Promise<UserResponse> {
@@ -199,7 +194,7 @@ export async function getAllUsers(keyword: string = '', page: number = 0): Promi
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return await response.json();
@@ -221,7 +216,7 @@ export async function getUserAdminDashboardData(): Promise<UserResponse> {
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return await response.json();
@@ -244,11 +239,10 @@ export async function rateApplication(rate: number): Promise<UserResponse> {
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
 
 export async function updateUserLocation(location: Location): Promise<UserResponse> {
@@ -268,9 +262,8 @@ export async function updateUserLocation(location: Location): Promise<UserRespon
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }

@@ -31,9 +31,8 @@ export async function updateAuthenticatedUserNotificationPreferences(email: stri
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await response.text());
     }
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    return await response.text();
 }
