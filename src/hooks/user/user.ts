@@ -41,7 +41,7 @@ export async function getAuthenticatedUserDetails(): Promise<UserResponse> {
     return await response.json();
 }
 
-export async function deleteAuthenticatedUserAccount(): Promise<UserResponse> {
+export async function deleteAuthenticatedUserAccount(): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -63,7 +63,7 @@ export async function deleteAuthenticatedUserAccount(): Promise<UserResponse> {
     return await response.text();
 }
 
-export async function setProfileImage(file: File): Promise<UserResponse> {
+export async function setProfileImage(file: File): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -93,7 +93,7 @@ export async function updateAuthenticatedUserDetails(
     email: string,
     oldPassword: string | null,
     newPassword: string | null
-): Promise<UserResponse> {
+): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -127,7 +127,7 @@ export async function createAdminAccount(
     password: string,
     profileImage: string | null,
     isValidEmail: boolean
-): Promise<UserResponse> {
+): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -156,7 +156,7 @@ export async function createAdminAccount(
     return await response.text();
 }
 
-export async function deleteAdminAccount(id: string): Promise<UserResponse> {
+export async function deleteAdminAccount(id: string): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -222,7 +222,7 @@ export async function getUserAdminDashboardData(): Promise<UserResponse> {
     return await response.json();
 }
 
-export async function rateApplication(rate: number): Promise<UserResponse> {
+export async function rateApplication(rate: number): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
@@ -245,7 +245,7 @@ export async function rateApplication(rate: number): Promise<UserResponse> {
     return await response.text();
 }
 
-export async function updateUserLocation(location: Location): Promise<UserResponse> {
+export async function updateUserLocation(location: Location): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {

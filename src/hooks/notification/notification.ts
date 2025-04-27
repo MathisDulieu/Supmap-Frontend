@@ -1,9 +1,5 @@
 import Cookies from 'js-cookie';
 
-interface NotificationResponse {
-    [key: string]: any;
-}
-
 const API_BASE_URL = (window as any).env && (window as any).env.API_BASE_URL ? (window as any).env.API_BASE_URL : '';
 
 function getAuthToken(): string | null {
@@ -14,7 +10,7 @@ function getAuthToken(): string | null {
     return cookiesAccepted ? (cookieToken || null) : localToken;
 }
 
-export async function updateAuthenticatedUserNotificationPreferences(email: string): Promise<NotificationResponse> {
+export async function updateAuthenticatedUserNotificationPreferences(email: string): Promise<string> {
     const authToken = getAuthToken();
 
     if (!authToken) {
