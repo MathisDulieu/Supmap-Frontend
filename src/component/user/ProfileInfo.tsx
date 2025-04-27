@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPinIcon, MailIcon, Star, CheckCircle, AlertCircle, Edit2Icon, Clock, ThumbsUp, Medal } from 'lucide-react';
+import { MapPinIcon, MailIcon, Star, CheckCircle, AlertCircle, Edit2Icon, Clock, ThumbsUp, Medal, EyeIcon, EyeOffIcon } from 'lucide-react';
 import { updateAuthenticatedUserDetails, setProfileImage } from '../../hooks/user/user.ts';
 
 interface ProfileInfoProps {
@@ -25,6 +25,8 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
     const [imageLoading, setImageLoading] = useState(false);
+    const [showOldPassword, setShowOldPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,9 +35,12 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
         setSuccess('');
 
         try {
+            const updatedUsername = username !== userData.username ? username : null;
+            const updatedEmail = email !== userData.email ? email : null;
+
             await updateAuthenticatedUserDetails(
-                username,
-                email,
+                updatedUsername,
+                updatedEmail,
                 oldPassword || null,
                 newPassword || null
             );
@@ -89,6 +94,14 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
             }
             return `${value} min`;
         }
+    };
+
+    const toggleOldPasswordVisibility = () => {
+        setShowOldPassword(!showOldPassword);
+    };
+
+    const toggleNewPasswordVisibility = () => {
+        setShowNewPassword(!showNewPassword);
     };
 
     return (
@@ -170,6 +183,7 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 className="py-2.5 px-4 w-full bg-indigo-900/30 border border-indigo-800/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
+                                autoComplete="off"
                             />
                         </div>
 
@@ -181,6 +195,7 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="py-2.5 px-4 w-full bg-indigo-900/30 border border-indigo-800/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
+                                autoComplete="off"
                             />
                         </div>
 
@@ -189,26 +204,46 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
 
                             <div className="mb-4">
                                 <label htmlFor="old-password" className="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
-                                <input
-                                    id="old-password"
-                                    type="password"
-                                    value={oldPassword}
-                                    onChange={(e) => setOldPassword(e.target.value)}
-                                    className="py-2.5 px-4 w-full bg-indigo-900/30 border border-indigo-800/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
-                                    placeholder="••••••••"
-                                />
+                                <div className="relative">
+                                    <input
+                                        id="old-password"
+                                        type={showOldPassword ? "text" : "password"}
+                                        value={oldPassword}
+                                        onChange={(e) => setOldPassword(e.target.value)}
+                                        className="py-2.5 px-4 w-full bg-indigo-900/30 border border-indigo-800/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300 pr-10"
+                                        placeholder="••••••••"
+                                        autoComplete="new-password"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-indigo-400 hover:text-indigo-300 transition-colors duration-300"
+                                        onClick={toggleOldPasswordVisibility}
+                                    >
+                                        {showOldPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                                    </button>
+                                </div>
                             </div>
 
                             <div>
                                 <label htmlFor="new-password" className="block text-sm font-medium text-gray-300 mb-2">New Password</label>
-                                <input
-                                    id="new-password"
-                                    type="password"
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                    className="py-2.5 px-4 w-full bg-indigo-900/30 border border-indigo-800/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
-                                    placeholder="••••••••"
-                                />
+                                <div className="relative">
+                                    <input
+                                        id="new-password"
+                                        type={showNewPassword ? "text" : "password"}
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className="py-2.5 px-4 w-full bg-indigo-900/30 border border-indigo-800/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300 pr-10"
+                                        placeholder="••••••••"
+                                        autoComplete="new-password"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-indigo-400 hover:text-indigo-300 transition-colors duration-300"
+                                        onClick={toggleNewPasswordVisibility}
+                                    >
+                                        {showNewPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

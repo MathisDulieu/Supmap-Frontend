@@ -89,8 +89,8 @@ export async function setProfileImage(file: File): Promise<string> {
 }
 
 export async function updateAuthenticatedUserDetails(
-    username: string,
-    email: string,
+    username: string | null,
+    email: string | null,
     oldPassword: string | null,
     newPassword: string | null
 ): Promise<string> {
