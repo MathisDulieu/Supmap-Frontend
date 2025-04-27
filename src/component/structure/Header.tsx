@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../services/AuthContext.tsx';
 import {
     Navigation,
@@ -15,7 +15,6 @@ import {
 const Header: React.FC = () => {
     const { isAuthenticated } = useAuth();
     const location = useLocation();
-    const navigate = useNavigate();
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [hoverIndex, setHoverIndex] = useState<number | null>(null);
@@ -59,12 +58,10 @@ const Header: React.FC = () => {
     };
 
     const handleLogout = () => {
-        // Clear authentication
         localStorage.removeItem('authToken');
         document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; secure; samesite=strict';
 
-        // Redirect to login page
-        navigate('/login');
+        window.location.href = '/login';
     };
 
     return (
