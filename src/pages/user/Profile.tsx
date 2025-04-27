@@ -3,7 +3,7 @@ import { getAuthenticatedUserDetails } from '../../hooks/user/user.ts';
 import ProfileHeader from '../../component/user/ProfileHeader.tsx';
 import ProfileInfo from '../../component/user/ProfileInfo.tsx';
 import DeleteAccountModal from '../../component/user/DeleteAccountModal.tsx';
-import { AlertCircle, LogOut } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 const Profile: React.FC = () => {
     const [userData, setUserData] = useState<any>(null);
@@ -29,18 +29,9 @@ const Profile: React.FC = () => {
         fetchUserData();
     }, []);
 
-    const handleLogout = () => {
-        // Clear authentication
-        localStorage.removeItem('authToken');
-        document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; secure; samesite=strict';
-
-        // Redirect to login page
-        window.location.href = '/login';
-    };
-
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-[rgba(5,7,15,0.98)] to-[rgba(8,10,18,0.95)] text-white flex flex-col items-center justify-center p-4">
+            <div className="min-h-screen bg-[rgba(8,10,18,0.95)] text-white flex flex-col items-center justify-center p-4">
                 <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500 mb-4"></div>
                 <p className="text-indigo-300">Loading your profile...</p>
             </div>
@@ -49,7 +40,7 @@ const Profile: React.FC = () => {
 
     if (error || !userData) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-[rgba(5,7,15,0.98)] to-[rgba(8,10,18,0.95)] text-white flex flex-col items-center justify-center p-4">
+            <div className="min-h-screen bg-[rgba(8,10,18,0.95)] text-white flex flex-col items-center justify-center p-4">
                 <div className="bg-red-900/20 border border-red-800/30 text-red-200 px-6 py-4 rounded-lg flex items-center gap-3 max-w-md">
                     <AlertCircle size={24} className="text-red-400" />
                     <div>
@@ -84,20 +75,10 @@ const Profile: React.FC = () => {
             </div>
 
             <div className="container mx-auto max-w-5xl px-4 py-8 relative z-10">
-                <div className="flex justify-between items-start mb-8">
-                    <ProfileHeader
-                        username={userData.username}
-                        profileImage={userData.profileImage}
-                    />
-
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-lg text-white shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
-                    >
-                        <LogOut size={18} className="mr-2" />
-                        <span>Logout</span>
-                    </button>
-                </div>
+                <ProfileHeader
+                    username={userData.username}
+                    profileImage={userData.profileImage}
+                />
 
                 <ProfileInfo
                     userData={userData}

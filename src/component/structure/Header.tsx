@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../services/AuthContext.tsx';
 import {
     Navigation,
@@ -8,12 +8,14 @@ import {
     Download,
     Menu,
     X,
-    ChevronRight
+    ChevronRight,
+    LogOut
 } from 'lucide-react';
 
 const Header: React.FC = () => {
     const { isAuthenticated } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [hoverIndex, setHoverIndex] = useState<number | null>(null);
@@ -54,6 +56,15 @@ const Header: React.FC = () => {
 
     const getTransitionDelay = (index: number): string => {
         return `transition-all duration-300 delay-[${index * 50}ms]`;
+    };
+
+    const handleLogout = () => {
+        // Clear authentication
+        localStorage.removeItem('authToken');
+        document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; secure; samesite=strict';
+
+        // Redirect to login page
+        navigate('/login');
     };
 
     return (
@@ -121,6 +132,29 @@ const Header: React.FC = () => {
                     ))}
 
                     <div className="flex items-center space-x-3 ml-3">
+                        {isAuthenticated && (
+                            <button
+                                onClick={handleLogout}
+                                className={`
+                                    text-white/90 flex items-center gap-3 py-2.5 px-4 rounded-lg 
+                                    transition-all duration-300 
+                                    hover:bg-indigo-500/15 hover:text-white
+                                    relative overflow-hidden group
+                                    text-sm
+                                `}
+                            >
+                                <div className="relative w-5 h-5 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-0.5">
+                                    <LogOut className="text-red-400" />
+                                    <span className="absolute inset-0 bg-red-500/20 rounded-full filter blur-sm -z-10 opacity-0 group-hover:opacity-100"></span>
+                                </div>
+                                <span className="relative font-medium">Logout</span>
+                                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4/5 h-0.5
+                                    bg-gradient-to-r from-transparent via-red-500 to-transparent
+                                    transition-all duration-500 opacity-0 scale-x-0
+                                    group-hover:opacity-100 group-hover:scale-x-100"></span>
+                            </button>
+                        )}
+
                         <ActionButton
                             to="/mobile/app"
                             icon={<Download className="w-4 h-4" />}
@@ -168,6 +202,30 @@ const Header: React.FC = () => {
                                 className={getTransitionDelay(index)}
                             />
                         ))}
+
+                        {isAuthenticated && (
+                            <li className={`${getTransitionDelay(isAuthenticated ? 2 : 1)} animate-fadeIn opacity-100`}>
+                                <button
+                                    onClick={handleLogout}
+                                    className={`
+                                        text-white flex items-center gap-3 py-3 px-4 rounded-lg 
+                                        transition-all duration-300 
+                                        hover:bg-red-500/15 
+                                        relative overflow-hidden group
+                                        w-full
+                                    `}
+                                >
+                                    <div className="relative w-5 h-5 transition-all duration-300 text-red-400 group-hover:scale-110 group-hover:-translate-y-0.5">
+                                        <LogOut />
+                                    </div>
+                                    <span className="relative font-medium">Logout</span>
+                                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4/5 h-0.5
+                                        bg-gradient-to-r from-transparent via-red-500 to-transparent
+                                        transition-all duration-300 opacity-0 scale-x-0
+                                        group-hover:opacity-100 group-hover:scale-x-100"></span>
+                                </button>
+                            </li>
+                        )}
                     </ul>
 
                     <div className="mt-6 flex flex-col gap-3">
