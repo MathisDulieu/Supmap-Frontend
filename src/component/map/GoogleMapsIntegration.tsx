@@ -3,7 +3,7 @@ import { useNearbyAlerts } from '../../hooks/map/useNearbyAlerts';
 
 declare global {
     interface Window {
-        google: any;
+        google: typeof google;
         initMap: () => void;
         env?: { API_BASE_URL: string; GOOGLE_API_KEY: string };
     }
@@ -64,7 +64,7 @@ const GoogleMapsIntegration: React.FC<Props> = ({
     selectedRouteIndex,
     showUserMarker = true
 }) => {
-    const ref = useRef<HTMLDivElement>(null);
+    const ref = useRef<HTMLDivElement | null>(null);
     const [map, setMap] = useState<google.maps.Map | null>(null);
     const [svc, setSvc] = useState<google.maps.DirectionsService | null>(null);
     const [rend, setRend] = useState<google.maps.DirectionsRenderer | null>(null);
@@ -141,8 +141,8 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                 optimizeWaypoints: true,
                 provideRouteAlternatives: true
             },
-            (res, status) => {
-                if (status === window.google.maps.DirectionsStatus.OK) {
+            (res: google.maps.DirectionsResult | null, status: google.maps.DirectionsStatus) => {
+                if (status === window.google.maps.DirectionsStatus.OK && res) {
                     rend.setDirections(res);
                     rend.setRouteIndex(selectedRouteIndex);
                     onRouteCalculated?.(res);
