@@ -47,7 +47,7 @@ const Navigation: React.FC = () => {
     history,
     loading: historyLoading,
     error: historyError,
-    save: saveHistory
+    save: saveHistory   // on garde saveHistory et on l'utilise ci-dessous
   } = useRouteHistory();
 
   const headerHeight = 80;
@@ -55,100 +55,119 @@ const Navigation: React.FC = () => {
 
   const togglePanel = () => setIsPanelOpen(!isPanelOpen);
 
-    const addWaypoint = () => {
-        if (waypoints.length >= 7) return;
-        const newWp = [...waypoints];
-        newWp.splice(newWp.length - 1, 0, {
-            id: `waypoint-${Date.now()}`,
-            placeholder: `Waypoint ${newWp.length - 1}`,
-            value: ''
-        });
-        for (let i = 1; i < newWp.length - 1; i++) {
-            newWp[i].placeholder = `Waypoint ${i}`;
+  const addWaypoint = () => {
+    if (waypoints.length >= 7) return;
+    const newWp = [...waypoints];
+    newWp.splice(newWp.length - 1, 0, {
+      id: `waypoint-${Date.now()}`,
+      placeholder: `Waypoint ${newWp.length - 1}`,
+      value: ''
+    });
+    for (let i = 1; i < newWp.length - 1; i++) {
+      newWp[i].placeholder = `Waypoint ${i}`;
+    }
+    setWaypoints(newWp);
+  };
+
+  const removeWaypoint = (id: string) => {
+    if (id === 'start' || id === 'end') return;
+    const filtered = waypoints.filter(wp => wp.id !== id);
+    for (let i = 1; i < filtered.length - 1; i++) {
+      filtered[i].placeholder = `Waypoint ${i}`;
+    }
+    setWaypoints(filtered);
+  };
+
+  const updateWaypoint = (id: string, value: string) => {
+    setWaypoints(prev =>
+      prev.map(wp =>
+        wp.id === id ? { ...wp, value, isUserLocation: false } : wp
+      )
+    );
+    if (value.trim()) fetchAutocompleteResults(value);
+    else setAutocompleteResults([]);
+  };
+
+  const fetchAutocompleteResults = (input: string) => {
+    if (!window.google?.maps?.places) return;
+    const service = new window.google.maps.places.AutocompleteService();
+    service.getPlacePredictions(
+      { input, componentRestrictions: { country: 'fr' }, types: ['geocode','establishment'] },
+      (predictions, status) => {
+        if (
+          status === window.google.maps.places.PlacesServiceStatus.OK &&
+          predictions
+        ) {
+          setAutocompleteResults(
+            predictions.map((p: any) => ({
+              id: p.place_id,
+              description: p.description
+            }))
+          );
+        } else {
+          setAutocompleteResults([]);
         }
-        setWaypoints(newWp);
-    };
-
-    const removeWaypoint = (id: string) => {
-        if (id === 'start' || id === 'end') return;
-        const filtered = waypoints.filter(wp => wp.id !== id);
-        for (let i = 1; i < filtered.length - 1; i++) {
-            filtered[i].placeholder = `Waypoint ${i}`;
-        }
-        setWaypoints(filtered);
-    };
-
-    const updateWaypoint = (id: string, value: string) => {
-        setWaypoints(prev =>
-            prev.map(wp =>
-                wp.id === id ? { ...wp, value, isUserLocation: false } : wp
-            )
-        );
-        if (value.trim()) fetchAutocompleteResults(value);
-        else setAutocompleteResults([]);
-    };
-
-    const fetchAutocompleteResults = (input: string) => {
-        if (!window.google?.maps?.places) return;
-        const service = new window.google.maps.places.AutocompleteService();
-        service.getPlacePredictions(
-            { input, componentRestrictions: { country: 'fr' }, types: ['geocode','establishment'] },
-            (predictions, status) => {
-                if (
-                    status === window.google.maps.places.PlacesServiceStatus.OK &&
-                    predictions
-                ) {
-                    setAutocompleteResults(
-                        predictions.map((p: any) => ({
-                            id: p.place_id,
-                            description: p.description
-                        }))
-                    );
-                } else setAutocompleteResults([]);
-            }
-        );
-    };
+      }
+    );
+  };
 
     const selectAutocompleteResult = (result: AutocompleteResult) => {
-        if (!activeInput) return;
-        setWaypoints(prev =>
-            prev.map(wp =>
-                wp.id === activeInput
-                    ? { ...wp, value: result.description, isUserLocation: false }
-                    : wp
-            )
-        );
-        setAutocompleteResults([]);
-        setActiveInput(null);
+      if (!activeInput) return;
+      setWaypoints(prev =>
+        prev.map(wp =>
+          wp.id === activeInput
+            ? { ...wp, value: result.description, isUserLocation: false }
+            : wp
+        )
+      );
+      setAutocompleteResults([]);
+      setActiveInput(null);
     };
-
+  
     const handleInputFocus = (id: string) => {
-        setActiveInput(id);
-        const wp = waypoints.find(w => w.id === id);
-        if (wp?.value.trim()) fetchAutocompleteResults(wp.value);
+      setActiveInput(id);
+      const wp = waypoints.find(w => w.id === id);
+      if (wp?.value.trim()) fetchAutocompleteResults(wp.value);
     };
 
     const handleInputBlur = () => {
-        setTimeout(() => {
-            setActiveInput(null);
-            setAutocompleteResults([]);
-        }, 200);
+      setTimeout(() => {
+        setActiveInput(null);
+        setAutocompleteResults([]);
+      }, 200);
     };
-
+  
     const handleCalculateRoute = () => {
-        setIsRouteInfoVisible(true);
-        if (calculateRoute) {
-            setCalculateRoute(false);
-            setTimeout(() => setCalculateRoute(true), 100);
-        } else {
-            setCalculateRoute(true);
-        }
+      setIsRouteInfoVisible(true);
+      if (calculateRoute) {
+        setCalculateRoute(false);
+        setTimeout(() => setCalculateRoute(true), 100);
+      } else {
+        setCalculateRoute(true);
+      }
     };
-
+  
     const handleTravelModeChange = (mode: TravelMode) => {
-        setTravelMode(mode);
-        if (routeDetails) handleCalculateRoute();
+      setTravelMode(mode);
+      if (routeDetails) handleCalculateRoute();
     };
+  
+    const handleHistoryClick = (h: RouteHistoryItem) => {
+      setWaypoints([
+        { id: 'start', placeholder: 'Starting point', value: h.startAddress },
+        { id: 'end',   placeholder: 'Destination',    value: h.endAddress }
+      ]);
+      setSelectedRouteIndex(0);
+      setIsRouteInfoVisible(true);
+      if (calculateRoute) {
+        setCalculateRoute(false);
+        setTimeout(() => setCalculateRoute(true), 100);
+      } else {
+        setCalculateRoute(true);
+      }
+    };
+  
+  
 
     return (
       <div className="h-screen w-full relative bg-gray-100 overflow-hidden">
@@ -159,19 +178,20 @@ const Navigation: React.FC = () => {
             calculateRoute={calculateRoute}
             onRouteCalculated={r => {
               setRouteDetails(r);
-              // on sauvegarde SI token valide (getAuthToken dans map.ts lèvera sinon)
+  
+              // --- Réintroduction de saveHistory pour lever TS6133 ---
               const leg0 = r.routes[0].legs[0];
-              const legN = r.routes[0].legs.at(-1);
+              const legN = r.routes[0].legs[r.routes[0].legs.length - 1];
               if (legN) {
                 saveHistory({
                   startAddress: leg0.start_address,
-                  endAddress:   legN.end_address,
+                  endAddress: legN.end_address,
                   startPoint: {
-                    latitude:  leg0.start_location.lat(),
+                    latitude: leg0.start_location.lat(),
                     longitude: leg0.start_location.lng()
                   },
                   endPoint: {
-                    latitude:  legN.end_location.lat(),
+                    latitude: legN.end_location.lat(),
                     longitude: legN.end_location.lng()
                   },
                   kilometersDistance:
@@ -180,6 +200,7 @@ const Navigation: React.FC = () => {
                     r.routes[0].legs.reduce((s: number, l: any) => s + l.duration.value, 0)
                 });
               }
+  
               setSelectedRouteIndex(0);
               setCalculateRoute(false);
             }}
@@ -189,18 +210,18 @@ const Navigation: React.FC = () => {
           />
         </div>
   
-        {/* Bouton d’ouverture du panneau */}
-        {!isPanelOpen && (
-          <button
-            onClick={togglePanel}
-            className="absolute left-4 z-30 bg-white p-3 rounded-full shadow-lg hover:bg-gray-100 transform hover:scale-105"
-            style={{ top: `${headerHeight + 16}px` }}
-          >
-            <MenuIcon size={20} className="text-indigo-600" />
-          </button>
-        )}
-  
-        {/* Side panel */}
+      {/* Bouton d’ouverture du panneau */}
+      {!isPanelOpen && (
+        <button
+          onClick={togglePanel}
+          className="absolute left-4 z-30 bg-white p-3 rounded-full shadow-lg hover:bg-gray-100 transform hover:scale-105"
+          style={{ top: `${headerHeight + 16}px` }}
+        >
+          <MenuIcon size={20} className="text-indigo-600" />
+        </button>
+      )}
+
+      {/* Side panel */}
         <div
           className="absolute left-0 z-20 bg-white shadow-xl transition-all duration-300 ease-in-out overflow-hidden"
           style={{
@@ -343,42 +364,44 @@ const Navigation: React.FC = () => {
                             </button>
                         </div>
 
-                    {/* Historique */}
-                    <div className="mt-6">
-                        <h3 className="text-lg font-semibold mb-2">History</h3>
-                        {historyLoading && <p>Loading...</p>}
-                        {historyError ? (
-                          <p className="text-red-500">{historyError}</p>
-                        ) : null}
-                        <div className="space-y-2 max-h-48 overflow-y-auto">
-                          {history.map((h: RouteHistoryItem) => (
-                            <div key={h.id} className="p-2 border rounded-lg">
-                              <p className="text-sm font-medium">
-                                {h.startAddress} → {h.endAddress}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {new Date(h.createdAt).toLocaleString()}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Détails itinéraire */}
-                {isRouteInfoVisible && routeDetails && (
-                  <RouteInfo
-                    routeDetails={routeDetails}
-                    onClose={() => setIsRouteInfoVisible(false)}
-                    travelMode={travelMode}
-                    onSelectRoute={setSelectedRouteIndex}
-                    selectedRouteIndex={selectedRouteIndex}
-                  />
-                )}
+            {/* Historique */}
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-2">History</h3>
+              {historyLoading && <p>Loading...</p>}
+              {historyError && <p className="text-red-500">{historyError}</p>}
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {history.map((h: RouteHistoryItem) => (
+                  <div
+                    key={h.id}
+                    onClick={() => handleHistoryClick(h)}
+                    className="p-2 border rounded-lg cursor-pointer hover:bg-gray-50 transition"
+                  >
+                    <p className="text-sm font-medium">
+                      {h.startAddress} → {h.endAddress}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(h.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
               </div>
-            );
-          };
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Détails itinéraire */}
+      {isRouteInfoVisible && routeDetails && (
+        <RouteInfo
+          routeDetails={routeDetails}
+          onClose={() => setIsRouteInfoVisible(false)}
+          travelMode={travelMode}
+          onSelectRoute={setSelectedRouteIndex}
+          selectedRouteIndex={selectedRouteIndex}
+        />
+      )}
+    </div>
+  );
+};
 
 export default Navigation;

@@ -33,11 +33,10 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState<number>(selectedRouteIndex);
   const { qrUrl, isLoading, error, share } = useRouteShare();
-  const [showQr, setShowQr] = useState(false); // <- nouvel état
+  const [showQr, setShowQr] = useState(false);
 
   useEffect(() => {
     setSelectedRoute(selectedRouteIndex);
-    // on cache le QR lors du changement de route
     setShowQr(false);
   }, [selectedRouteIndex]);
 
@@ -81,14 +80,18 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
   const handleSelectRoute = (idx: number) => {
     setSelectedRoute(idx);
     onSelectRoute?.(idx);
-    setShowQr(false); // on cache le QR quand on change d’itinéraire
+    setShowQr(false);
   };
 
   const handleShareClick = () => {
+    if (showQr) {
+      setShowQr(false);
+      return;
+    }
     const start = legs[0].start_location;
     const end = legs[legs.length - 1].end_location;
     share(start.lat(), start.lng(), end.lat(), end.lng());
-    setShowQr(true); // Affiche le QR après clic
+    setShowQr(true);
   };
 
   return (
@@ -106,7 +109,6 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
           <span className="text-gray-600">{formatDistance(totalDistance)}</span>
         </div>
         <div className="flex items-center space-x-2">
-          {/* Bouton partager / rafraîchir QR */}
           <button
             onClick={handleShareClick}
             disabled={isLoading}
@@ -118,7 +120,6 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
               className={isLoading ? 'animate-spin text-indigo-600' : 'text-indigo-600'}
             />
           </button>
-          {/* Développer / réduire */}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-2 rounded-full hover:bg-gray-100"
@@ -126,7 +127,6 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
           >
             {isExpanded ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
           </button>
-          {/* Fermer */}
           <button
             onClick={onClose}
             className="p-2 rounded-full hover:bg-gray-100"
@@ -144,7 +144,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
         </div>
       )}
 
-      {/* QR code : n’apparaît que si showQr est vrai */}
+      {/* QR code */}
       {qrUrl && showQr && (
         <div className="p-4 flex justify-center border-b border-gray-200">
           <img src={qrUrl} alt="QR code partage" className="w-32 h-32" />
