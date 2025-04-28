@@ -208,40 +208,34 @@ export async function updateUserFavoriteLocation(
 export async function saveUserRoute(
     startAddress: string,
     endAddress: string,
-    startPoint: Coordinates,
-    endPoint: Coordinates,
+    startPoint: { lat: number; lng: number },
+    endPoint:   { lat: number; lng: number },
     kilometersDistance: number,
     estimatedDurationInSeconds: number
-): Promise<string> {
-    const authToken = getAuthToken();
-
-    if (!authToken) {
-        throw new Error('Authentication token not found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/private/map/save-route`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-            startAddress,
-            endAddress,
-            startPoint,
-            endPoint,
-            kilometersDistance,
-            estimatedDurationInSeconds
-        })
+  ): Promise<void> {
+    const token = getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/private/map/save-route`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        startAddress,
+        endAddress,
+        startPoint: { latitude: startPoint.lat, longitude: startPoint.lng },
+        endPoint:   { latitude: endPoint.lat,   longitude: endPoint.lng   },
+        kilometersDistance,
+        estimatedDurationInSeconds
+      })
     });
-
-    if (!response.ok) {
-        throw new Error(await response.text());
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || 'Failed to save route');
     }
+  }
 
-    return await response.text();
-}
-
+  
 export async function getUserRouteHistory(): Promise<string> {
     const authToken = getAuthToken();
 
@@ -351,30 +345,20 @@ export async function shareRoute(
     startLongitude: number,
     endLatitude: number,
     endLongitude: number
-): Promise<string> {
-    const authToken = getAuthToken();
-
-    if (!authToken) {
-        throw new Error('Authentication token not found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/private/map/route/share`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-            startLatitude,
-            startLongitude,
-            endLatitude,
-            endLongitude
-        })
+  ): Promise<string> {
+    const token = getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/private/map/route/share`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ startLatitude, startLongitude, endLatitude, endLongitude })
     });
-
-    if (!response.ok) {
-        throw new Error(await response.text());
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || 'Failed to share route');
     }
-
-    return await response.text();
-}
+    // le serveur renvoie directement l’URL du QR en plain text
+    return res.text();
+  }

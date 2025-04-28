@@ -1,60 +1,59 @@
 import React, { useState } from 'react';
 import {
-    MapPinIcon,
-    PlusIcon,
-    XIcon,
-    MenuIcon,
-    NavigationIcon,
-    TrashIcon,
-    Car,
-    Bike,
-    PersonStanding,
-    Train
+  MapPinIcon,
+  PlusIcon,
+  XIcon,
+  MenuIcon,
+  NavigationIcon,
+  TrashIcon,
+  Car,
+  Bike,
+  PersonStanding,
+  Train
 } from 'lucide-react';
 import GoogleMapsIntegration from '../../component/map/GoogleMapsIntegration';
 import RouteInfo from '../../component/map/RouteInfo';
 import { useRouteHistory, RouteHistoryItem } from '../../hooks/map/useRouteHistory';
 
+type TravelMode = 'DRIVING' | 'BICYCLING' | 'WALKING' | 'TRANSIT';
+
 interface WaypointType {
-    id: string;
-    placeholder: string;
-    value: string;
-    isUserLocation?: boolean;
+  id: string;
+  placeholder: string;
+  value: string;
+  isUserLocation?: boolean;
 }
 
 interface AutocompleteResult {
-    id: string;
-    description: string;
+  id: string;
+  description: string;
 }
 
-type TravelMode = 'DRIVING' | 'BICYCLING' | 'WALKING' | 'TRANSIT';
-
 const Navigation: React.FC = () => {
-    const [isPanelOpen, setIsPanelOpen] = useState(true);
-    const [waypoints, setWaypoints] = useState<WaypointType[]>([
-        { id: 'start', placeholder: 'Starting point', value: '' },
-        { id: 'end',   placeholder: 'Destination',    value: '' }
-    ]);
-    const [calculateRoute, setCalculateRoute] = useState(false);
-    const [activeInput, setActiveInput] = useState<string | null>(null);
-    const [autocompleteResults, setAutocompleteResults] = useState<AutocompleteResult[]>([]);
-    const [travelMode, setTravelMode] = useState<TravelMode>('DRIVING');
-    const [routeDetails, setRouteDetails] = useState<any>(null);
-    const [isRouteInfoVisible, setIsRouteInfoVisible] = useState(false);
-    const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
+  const [isPanelOpen, setIsPanelOpen] = useState(true);
+  const [waypoints, setWaypoints] = useState<WaypointType[]>([
+    { id: 'start', placeholder: 'Starting point', value: '' },
+    { id: 'end',   placeholder: 'Destination',    value: '' }
+  ]);
+  const [calculateRoute, setCalculateRoute] = useState(false);
+  const [activeInput, setActiveInput] = useState<string | null>(null);
+  const [autocompleteResults, setAutocompleteResults] = useState<AutocompleteResult[]>([]);
+  const [travelMode, setTravelMode] = useState<TravelMode>('DRIVING');
+  const [routeDetails, setRouteDetails] = useState<any>(null);
+  const [isRouteInfoVisible, setIsRouteInfoVisible] = useState(false);
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
 
-    // hook historique
-    const {
-        history,
-        loading: historyLoading,
-        error: historyError,
-        save: saveHistory
-    } = useRouteHistory();
+  const {
+    history,
+    loading: historyLoading,
+    error: historyError,
+    save: saveHistory
+  } = useRouteHistory();
 
-    const headerHeight = 80;
-    const showUserMarker = !isRouteInfoVisible;
+  const headerHeight = 80;
+  const showUserMarker = !isRouteInfoVisible;
 
-    const togglePanel = () => setIsPanelOpen(!isPanelOpen);
+  const togglePanel = () => setIsPanelOpen(!isPanelOpen);
 
     const addWaypoint = () => {
         if (waypoints.length >= 7) return;
@@ -152,85 +151,80 @@ const Navigation: React.FC = () => {
     };
 
     return (
-        <div className="h-screen w-full relative bg-gray-100 overflow-hidden">
-            {/* carte */}
-            <div className="absolute inset-0">
-                <GoogleMapsIntegration
-                    waypoints={waypoints}
-                    calculateRoute={calculateRoute}
-                    onRouteCalculated={r => {
-                        setRouteDetails(r);
-                        // construction du payload pour saveHistory
-                        const leg0 = r.routes[0].legs[0];
-                        const legN = r.routes[0].legs.at(-1);
-                        if (legN) {
-                            const item: Omit<RouteHistoryItem,'id'|'createdAt'|'userId'> = {
-                                startAddress: leg0.start_address,
-                                endAddress:   legN.end_address,
-                                startPoint: {
-                                    latitude:  leg0.start_location.lat(),
-                                    longitude: leg0.start_location.lng()
-                                },
-                                endPoint: {
-                                    latitude:  legN.end_location.lat(),
-                                    longitude: legN.end_location.lng()
-                                },
-                                kilometersDistance: r.routes[0].legs.reduce(
-                                    (sum: number, l: any) => sum + l.distance.value,
-                                    0
-                                )/1000,
-                                estimatedDurationInSeconds: r.routes[0].legs.reduce(
-                                    (sum: number, l: any) => sum + l.duration.value,
-                                    0
-                                )
-                            };
-                            saveHistory(item);
-                        }
-                        setSelectedRouteIndex(0);
-                        setCalculateRoute(false);
-                    }}
-                    travelMode={travelMode}
-                    selectedRouteIndex={selectedRouteIndex}
-                    showUserMarker={showUserMarker}
-                />
-            </div>
-
-            {/* toggle panel */}
-            {!isPanelOpen && (
+      <div className="h-screen w-full relative bg-gray-100 overflow-hidden">
+        {/* Carte */}
+        <div className="absolute inset-0">
+          <GoogleMapsIntegration
+            waypoints={waypoints}
+            calculateRoute={calculateRoute}
+            onRouteCalculated={r => {
+              setRouteDetails(r);
+              // on sauvegarde SI token valide (getAuthToken dans map.ts lèvera sinon)
+              const leg0 = r.routes[0].legs[0];
+              const legN = r.routes[0].legs.at(-1);
+              if (legN) {
+                saveHistory({
+                  startAddress: leg0.start_address,
+                  endAddress:   legN.end_address,
+                  startPoint: {
+                    latitude:  leg0.start_location.lat(),
+                    longitude: leg0.start_location.lng()
+                  },
+                  endPoint: {
+                    latitude:  legN.end_location.lat(),
+                    longitude: legN.end_location.lng()
+                  },
+                  kilometersDistance:
+                    r.routes[0].legs.reduce((s: number, l: any) => s + l.distance.value, 0) / 1000,
+                  estimatedDurationInSeconds:
+                    r.routes[0].legs.reduce((s: number, l: any) => s + l.duration.value, 0)
+                });
+              }
+              setSelectedRouteIndex(0);
+              setCalculateRoute(false);
+            }}
+            travelMode={travelMode}
+            selectedRouteIndex={selectedRouteIndex}
+            showUserMarker={showUserMarker}
+          />
+        </div>
+  
+        {/* Bouton d’ouverture du panneau */}
+        {!isPanelOpen && (
+          <button
+            onClick={togglePanel}
+            className="absolute left-4 z-30 bg-white p-3 rounded-full shadow-lg hover:bg-gray-100 transform hover:scale-105"
+            style={{ top: `${headerHeight + 16}px` }}
+          >
+            <MenuIcon size={20} className="text-indigo-600" />
+          </button>
+        )}
+  
+        {/* Side panel */}
+        <div
+          className="absolute left-0 z-20 bg-white shadow-xl transition-all duration-300 ease-in-out overflow-hidden"
+          style={{
+            top: `${headerHeight}px`,
+            height: `calc(100% - ${headerHeight}px)`,
+            width: isPanelOpen ? '320px' : '0'
+          }}
+        >
+          {isPanelOpen && (
+            <div className="flex flex-col h-full p-4">
+              {/* Header */}
+              <div className="mb-4 flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <NavigationIcon size={20} className="mr-2 text-indigo-600" />
+                  Navigation
+                </h2>
                 <button
-                    onClick={togglePanel}
-                    className="absolute left-4 z-30 bg-white p-3 rounded-full shadow-lg hover:bg-gray-100 transition transform hover:scale-105"
-                    style={{ top: `${headerHeight + 16}px` }}
+                  onClick={togglePanel}
+                  className="text-gray-500 hover:text-gray-700"
+                  aria-label="Close navigation panel"
                 >
-                    <MenuIcon size={20} className="text-indigo-600" />
+                  <XIcon size={20} />
                 </button>
-            )}
-
-            {/* panneau */}
-            <div
-                className="absolute left-0 z-20 bg-white shadow-xl transition-all duration-300 ease-in-out overflow-hidden"
-                style={{
-                    top: `${headerHeight}px`,
-                    height: `calc(100% - ${headerHeight}px)`,
-                    width: isPanelOpen ? '320px' : '0'
-                }}
-            >
-                {isPanelOpen && (
-                    <div className="flex flex-col h-full p-4">
-                        {/* en-tête */}
-                        <div className="mb-4 flex justify-between items-center">
-                            <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                                <NavigationIcon size={20} className="mr-2 text-indigo-600" />
-                                Navigation
-                            </h2>
-                            <button
-                                onClick={togglePanel}
-                                className="text-gray-500 hover:text-gray-700"
-                                aria-label="Close navigation panel"
-                            >
-                                <XIcon size={20} />
-                            </button>
-                        </div>
+              </div>
 
                         {/* champs de recherche */}
                         <div className="space-y-3 flex-grow overflow-y-auto pr-1">
@@ -349,39 +343,42 @@ const Navigation: React.FC = () => {
                             </button>
                         </div>
 
-                        {/* historique */}
-                        <div className="mt-6">
-                            <h3 className="text-lg font-semibold mb-2">History</h3>
-                            {historyLoading && <p>Loading...</p>}
-                            {historyError && <p className="text-red-500">{historyError}</p>}
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
-                                {history.map((h: RouteHistoryItem) => (
-                                    <div key={h.id} className="p-2 border rounded-lg">
-                                        <p className="text-sm font-medium">
-                                            {h.startAddress} → {h.endAddress}
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            {new Date(h.createdAt).toLocaleString()}
-                                        </p>
-                                    </div>
-                                ))}
+                    {/* Historique */}
+                    <div className="mt-6">
+                        <h3 className="text-lg font-semibold mb-2">History</h3>
+                        {historyLoading && <p>Loading...</p>}
+                        {historyError ? (
+                          <p className="text-red-500">{historyError}</p>
+                        ) : null}
+                        <div className="space-y-2 max-h-48 overflow-y-auto">
+                          {history.map((h: RouteHistoryItem) => (
+                            <div key={h.id} className="p-2 border rounded-lg">
+                              <p className="text-sm font-medium">
+                                {h.startAddress} → {h.endAddress}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {new Date(h.createdAt).toLocaleString()}
+                              </p>
                             </div>
+                          ))}
                         </div>
+                      </div>
                     </div>
-                )}
-            </div>
+                  )}
+                </div>
 
-            {isRouteInfoVisible && routeDetails && (
-                <RouteInfo
+                {/* Détails itinéraire */}
+                {isRouteInfoVisible && routeDetails && (
+                  <RouteInfo
                     routeDetails={routeDetails}
                     onClose={() => setIsRouteInfoVisible(false)}
                     travelMode={travelMode}
                     onSelectRoute={setSelectedRouteIndex}
                     selectedRouteIndex={selectedRouteIndex}
-                />
-            )}
-        </div>
-    );
-};
+                  />
+                )}
+              </div>
+            );
+          };
 
 export default Navigation;
