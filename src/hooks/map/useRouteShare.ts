@@ -1,5 +1,3 @@
-// src/hooks/map/useRouteShare.ts
-
 import { useState, useCallback } from 'react';
 import { shareRoute } from './map';
 
@@ -15,13 +13,13 @@ export function useRouteShare() {
       endLat: number,
       endLng: number
     ) => {
-      setIsLoading(true);
       setError(null);
+      setIsLoading(true);
       try {
         const url = await shareRoute(startLat, startLng, endLat, endLng);
         setQrUrl(url);
       } catch (e: any) {
-        setError(e.message || 'Erreur lors de la génération du QR code');
+        setError(e.message);
       } finally {
         setIsLoading(false);
       }

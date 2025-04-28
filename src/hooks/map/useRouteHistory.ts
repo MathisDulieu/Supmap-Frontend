@@ -1,3 +1,4 @@
+// src/hooks/map/useRouteHistory.ts
 
 import { useState, useEffect, useCallback } from 'react';
 import { saveUserRoute, getUserRouteHistory } from './map';
@@ -7,7 +8,7 @@ export interface RouteHistoryItem {
   startAddress: string;
   endAddress: string;
   startPoint: { latitude: number; longitude: number };
-  endPoint: { latitude: number; longitude: number };
+  endPoint:   { latitude: number; longitude: number };
   kilometersDistance: number;
   estimatedDurationInSeconds: number;
   createdAt: string;
@@ -16,21 +17,25 @@ export interface RouteHistoryItem {
 
 export function useRouteHistory() {
   const [history, setHistory] = useState<RouteHistoryItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchHistory = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      // getUserRouteHistory() is typed to return string, but actually returns JSON.
       const raw = await getUserRouteHistory();
-      const data = (raw as unknown) as {
+      // Safely parse or cast it to the expected shape:
+      const data = (typeof raw === 'string'
+        ? JSON.parse(raw)
+        : raw) as {
         routes: RouteHistoryItem[];
         error: string | null;
       };
-      setHistory(data.routes ?? []);
+      setHistory(data.routes || []);
     } catch (e: any) {
-      setError(e.message || 'Impossible de charger l’historique');
+      setError(e.message);
     } finally {
       setLoading(false);
     }
@@ -44,13 +49,13 @@ export function useRouteHistory() {
           item.startAddress,
           item.endAddress,
           { lat: item.startPoint.latitude, lng: item.startPoint.longitude },
-          { lat: item.endPoint.latitude, lng: item.endPoint.longitude },
+          { lat: item.endPoint.latitude,   lng: item.endPoint.longitude   },
           item.kilometersDistance,
           item.estimatedDurationInSeconds
         );
         await fetchHistory();
       } catch (e: any) {
-        setError(e.message || 'Impossible de sauvegarder l’itinéraire');
+        setError(e.message);
       }
     },
     [fetchHistory]
