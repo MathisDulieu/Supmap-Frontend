@@ -12,7 +12,8 @@ declare global {
 interface WaypointType {
     id: string;
     placeholder: string;
-    value: string;
+    value: string | google.maps.LatLngLiteral;
+    isUserLocation?: boolean;
 }
 
 interface Props {
@@ -21,13 +22,11 @@ interface Props {
     onRouteCalculated?: (routeDetails: any) => void;
     travelMode: 'DRIVING' | 'BICYCLING' | 'WALKING' | 'TRANSIT';
     selectedRouteIndex: number;
-    /** affiche ou non le marqueur de la position utilisateur */
     showUserMarker?: boolean;
 }
 
 let mapsLoaded = false;
 let mapsLoading = false;
-
 const KEY = window.env?.GOOGLE_API_KEY ?? '';
 
 const loadMaps = () =>
@@ -57,13 +56,13 @@ const loadMaps = () =>
     });
 
 const GoogleMapsIntegration: React.FC<Props> = ({
-    waypoints,
-    calculateRoute,
-    onRouteCalculated,
-    travelMode,
-    selectedRouteIndex,
-    showUserMarker = true
-}) => {
+                                                    waypoints,
+                                                    calculateRoute,
+                                                    onRouteCalculated,
+                                                    travelMode,
+                                                    selectedRouteIndex,
+                                                    showUserMarker = true
+                                                }) => {
     const ref = useRef<HTMLDivElement | null>(null);
     const [map, setMap] = useState<google.maps.Map | null>(null);
     const [svc, setSvc] = useState<google.maps.DirectionsService | null>(null);
@@ -71,6 +70,7 @@ const GoogleMapsIntegration: React.FC<Props> = ({
     const [ready, setReady] = useState(false);
     const [err, setErr] = useState<string | null>(null);
 
+    const [userPosition, setUserPosition] = useState<google.maps.LatLngLiteral | null>(null);
     const { fetchAlerts } = useNearbyAlerts(map);
 
     useEffect(() => {
@@ -81,16 +81,23 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                 await loadMaps();
                 if (!mounted || !ref.current) return;
 
-                const paris = { lat: 48.8566, lng: 2.3522 };
-                const m = new window.google.maps.Map(ref.current, { center: paris, zoom: 12 });
+                const defaultCenter = { lat: 48.8566, lng: 2.3522 };
+                const m = new window.google.maps.Map(ref.current, {
+                    center: defaultCenter,
+                    zoom: 12
+                });
 
-                fetchAlerts(paris.lat, paris.lng);
+                fetchAlerts(defaultCenter.lat, defaultCenter.lng);
 
                 if ('geolocation' in navigator) {
                     navigator.geolocation.getCurrentPosition(
                         pos => {
                             if (!mounted) return;
-                            const me = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                            const me = {
+                                lat: pos.coords.latitude,
+                                lng: pos.coords.longitude
+                            };
+                            setUserPosition(me);
                             m.setCenter(me);
                             m.setZoom(15);
                             if (showUserMarker) {
@@ -119,6 +126,7 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                 if (mounted) setErr('Google Maps error');
             }
         })();
+
         return () => {
             mounted = false;
             rend?.setMap(null);
@@ -127,26 +135,41 @@ const GoogleMapsIntegration: React.FC<Props> = ({
 
     useEffect(() => {
         if (!calculateRoute || !svc || !rend || !ready) return;
-        const valid = waypoints.filter(w => w.value.trim());
+        const valid = waypoints.filter(w =>
+            typeof w.value === 'string' ? w.value.trim() : true
+        );
         if (valid.length < 2) return;
-        const origin = valid[0].value;
-        const dest = valid[valid.length - 1].value;
-        const mids = valid.slice(1, -1).map(w => ({ location: w.value, stopover: true }));
+
+        const first = valid[0];
+        const last = valid[valid.length - 1];
+
+        const originParam =
+            first.isUserLocation && userPosition ? userPosition : first.value;
+        const destParam =
+            last.isUserLocation && userPosition ? userPosition : last.value;
+        const mids = valid.slice(1, -1).map(w => ({
+            location:
+                w.isUserLocation && userPosition ? userPosition : w.value,
+            stopover: true
+        }));
+
         svc.route(
             {
-                origin,
-                destination: dest,
+                origin: originParam,
+                destination: destParam,
                 waypoints: mids,
                 travelMode: window.google.maps.TravelMode[travelMode],
                 optimizeWaypoints: true,
                 provideRouteAlternatives: true
             },
-            (res: google.maps.DirectionsResult | null, status: google.maps.DirectionsStatus) => {
+            (res, status) => {
                 if (status === window.google.maps.DirectionsStatus.OK && res) {
                     rend.setDirections(res);
                     rend.setRouteIndex(selectedRouteIndex);
                     onRouteCalculated?.(res);
-                } else setErr(status);
+                } else {
+                    setErr(status);
+                }
             }
         );
     }, [
@@ -157,8 +180,27 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         ready,
         travelMode,
         selectedRouteIndex,
-        onRouteCalculated
+        onRouteCalculated,
+        userPosition
     ]);
+
+    useEffect(() => {
+        if (!rend || !map) return;
+        const dir = rend.getDirections();
+        if (!dir) return;
+        const route = dir.routes[selectedRouteIndex];
+        if (!route || !route.bounds) return;
+
+        const panel = document.querySelector<HTMLElement>('.route-info-panel');
+        const bottomPadding = panel ? panel.clientHeight + 16 : 200;
+
+        map.fitBounds(route.bounds, {
+            top: 50,
+            bottom: bottomPadding,
+            left: 20,
+            right: 20
+        });
+    }, [selectedRouteIndex, rend, map]);
 
     useEffect(() => {
         try {

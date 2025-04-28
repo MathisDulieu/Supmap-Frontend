@@ -10,8 +10,10 @@ import {
     Car,
     Bike,
     PersonStanding,
-    Train
+    Train,
+    Share2
 } from 'lucide-react';
+import { useRouteShare } from '../../hooks/map/useRouteShare';
 
 interface RouteInfoProps {
     routeDetails: any;
@@ -22,36 +24,48 @@ interface RouteInfoProps {
 }
 
 const RouteInfo: React.FC<RouteInfoProps> = ({
-    routeDetails,
-    onClose,
-    travelMode,
-    onSelectRoute,
-    selectedRouteIndex = 0
-}) => {
+                                                 routeDetails,
+                                                 onClose,
+                                                 travelMode,
+                                                 onSelectRoute,
+                                                 selectedRouteIndex = 0
+                                             }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [selectedRoute, setSelectedRoute] = useState<number>(selectedRouteIndex);
+    const { qrUrl, isLoading, error, share } = useRouteShare();
 
-    useEffect(() => setSelectedRoute(selectedRouteIndex), [selectedRouteIndex]);
+    useEffect(() => {
+        setSelectedRoute(selectedRouteIndex);
+    }, [selectedRouteIndex]);
 
     if (!routeDetails?.routes?.length) return null;
 
-    const routes = routeDetails.routes;
+    const routes = routeDetails.routes as any[];
     const currentRoute = routes[selectedRoute];
-    const legs = currentRoute.legs;
+    const legs = currentRoute.legs as any[];
 
-    const formatDistance = (m: number) => (m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1)} km`);
+    const totalDistance = legs.reduce((sum: number, leg: any) => sum + leg.distance.value, 0);
+    const totalDuration = legs.reduce((sum: number, leg: any) => sum + leg.duration.value, 0);
+
+    const formatDistance = (m: number) =>
+        m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1)} km`;
+
     const formatDuration = (s: number) => {
         const min = Math.floor(s / 60);
         if (min < 60) return `${min} min`;
         const h = Math.floor(min / 60);
         const r = min % 60;
-        return `${h}h ${r ? r + 'min' : ''}`;
+        return `${h}h ${r ? `${r}min` : ''}`;
     };
+
     const getArrivalTime = () => {
         const now = new Date();
-        return new Date(now.getTime() + currentRoute.legs.reduce((t: number, l: any) => t + l.duration.value, 0) * 1000)
-            .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return new Date(now.getTime() + totalDuration * 1000).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
+
     const getTransportIcon = () =>
         ({
             DRIVING: <Car size={20} className="text-blue-500" />,
@@ -66,6 +80,12 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
         return tmp.textContent || tmp.innerText || '';
     };
 
+    useEffect(() => {
+        const start = legs[0].start_location;
+        const end = legs[legs.length - 1].end_location;
+        share(start.lat(), start.lng(), end.lat(), end.lng());
+    }, [selectedRoute]);
+
     const handleSelectRoute = (idx: number) => {
         setSelectedRoute(idx);
         onSelectRoute?.(idx);
@@ -73,26 +93,36 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
 
     return (
         <div
-            className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-lg bg-white rounded-t-xl shadow-2xl z-30 transition-all duration-300 ease-in-out ${
-                isExpanded ? 'h-3/4' : 'h-auto'
-            }`}
+            className={`route-info-panel fixed bottom-0 left-1/2 transform -translate-x-1/2
+        w-full max-w-lg bg-white rounded-t-xl shadow-2xl z-30
+        transition-all duration-300 ease-in-out ${isExpanded ? 'h-3/4' : 'h-auto'}`}
         >
+            {/* Header: icon, duration, distance, actions */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <div className="flex items-center">
                     {getTransportIcon()}
-                    <h3 className="text-lg font-semibold ml-2">
-                        {formatDuration(
-                            legs.reduce((t: number, l: any) => t + l.duration.value, 0)
-                        )}
-                    </h3>
+                    <h3 className="text-lg font-semibold ml-2">{formatDuration(totalDuration)}</h3>
                     <span className="mx-2 text-gray-500">·</span>
-                    <span className="text-gray-600">
-                        {formatDistance(
-                            legs.reduce((t: number, l: any) => t + l.distance.value, 0)
-                        )}
-                    </span>
+                    <span className="text-gray-600">{formatDistance(totalDistance)}</span>
                 </div>
                 <div className="flex items-center space-x-2">
+                    {/* Refresh QR button */}
+                    <button
+                        onClick={() => {
+                            const start = legs[0].start_location;
+                            const end = legs[legs.length - 1].end_location;
+                            share(start.lat(), start.lng(), end.lat(), end.lng());
+                        }}
+                        disabled={isLoading}
+                        className="p-2 rounded-full hover:bg-gray-100"
+                        aria-label="Refresh QR code"
+                    >
+                        <Share2
+                            size={20}
+                            className={isLoading ? 'animate-spin text-indigo-600' : 'text-indigo-600'}
+                        />
+                    </button>
+                    {/* Expand/Collapse */}
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
                         className="p-2 rounded-full hover:bg-gray-100"
@@ -100,6 +130,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
                     >
                         {isExpanded ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
                     </button>
+                    {/* Close */}
                     <button
                         onClick={onClose}
                         className="p-2 rounded-full hover:bg-gray-100"
@@ -110,24 +141,32 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
                 </div>
             </div>
 
+            {/* Error or QR code */}
+            {error && <div className="p-4 text-red-500 text-center">{error}</div>}
+            {qrUrl && (
+                <div className="p-4 flex justify-center border-b border-gray-200">
+                    <img src={qrUrl} alt="QR code partage" className="w-32 h-32" />
+                </div>
+            )}
+
+            {/* Arrival summary & alternatives */}
             <div className="p-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center">
                         <Clock size={18} className="text-gray-500" />
                         <span className="ml-2 text-gray-700">
-                            Arriving at <span className="font-semibold">{getArrivalTime()}</span>
-                        </span>
+              Arriving at <span className="font-semibold">{getArrivalTime()}</span>
+            </span>
                     </div>
                     {routes.length > 1 && (
                         <div className="text-sm text-indigo-600">{routes.length} routes available</div>
                     )}
                 </div>
-
                 {routes.length > 1 && (
                     <div className="mt-3 space-y-2">
                         {routes.map((route: any, idx: number) => {
-                            const dur = route.legs.reduce((t: number, l: any) => t + l.duration.value, 0);
-                            const dist = route.legs.reduce((t: number, l: any) => t + l.distance.value, 0);
+                            const dur = route.legs.reduce((sum: number, leg: any) => sum + leg.duration.value, 0);
+                            const dist = route.legs.reduce((sum: number, leg: any) => sum + leg.distance.value, 0);
                             const summary = route.summary || `Route ${idx + 1}`;
                             return (
                                 <button
@@ -148,8 +187,8 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
                                             selectedRoute === idx ? 'text-indigo-700' : 'text-gray-700'
                                         }`}
                                     >
-                                        {formatDuration(dur)}
-                                    </span>
+                    {formatDuration(dur)}
+                  </span>
                                 </button>
                             );
                         })}
@@ -157,6 +196,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
                 )}
             </div>
 
+            {/* Step-by-step details */}
             {isExpanded && (
                 <div className="overflow-y-auto p-4 pb-16" style={{ maxHeight: 'calc(100% - 160px)' }}>
                     <div className="space-y-4">
@@ -168,23 +208,16 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
                                         <span className="font-medium">{leg.start_address}</span>
                                     </div>
                                 )}
-
                                 {leg.steps.map((step: any, stepIdx: number) => {
                                     const instruction = stripHtml(step.instructions || '');
                                     const maneuverIcon = () => {
                                         if (step.maneuver?.includes('right'))
                                             return (
-                                                <CornerDownRight
-                                                    size={16}
-                                                    className="text-indigo-600 transform rotate-270"
-                                                />
+                                                <CornerDownRight size={16} className="text-indigo-600 transform rotate-270" />
                                             );
                                         if (step.maneuver?.includes('left'))
                                             return (
-                                                <CornerDownRight
-                                                    size={16}
-                                                    className="text-indigo-600 transform rotate-180"
-                                                />
+                                                <CornerDownRight size={16} className="text-indigo-600 transform rotate-180" />
                                             );
                                         return <ArrowRight size={16} className="text-indigo-600" />;
                                     };
@@ -198,22 +231,18 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
                                                     }`}
                                                     style={
                                                         line.color
-                                                            ? {
-                                                                  backgroundColor: line.color,
-                                                                  color: line.text_color || 'white'
-                                                              }
+                                                            ? { backgroundColor: line.color, color: line.text_color || 'white' }
                                                             : {}
                                                     }
                                                 >
-                                                    <span className="font-medium text-sm">
-                                                        {line.short_name || line.name}
-                                                    </span>
+                          <span className="font-medium text-sm">
+                            {line.short_name || line.name}
+                          </span>
                                                 </div>
                                             );
                                         }
                                         return null;
                                     };
-
                                     return (
                                         <div key={stepIdx} className="ml-4 mb-3 last:mb-0">
                                             <div className="flex items-start mb-1">
@@ -231,7 +260,6 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
                                         </div>
                                     );
                                 })}
-
                                 {legIdx === legs.length - 1 && (
                                     <div className="mt-3 py-2 px-3 rounded-lg bg-red-50 flex items-center">
                                         <MapPin size={16} className="text-red-600 mr-2" />
