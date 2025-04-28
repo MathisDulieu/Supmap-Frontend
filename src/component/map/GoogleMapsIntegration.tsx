@@ -2,27 +2,27 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNearbyAlerts } from '../../hooks/map/useNearbyAlerts';
 
 declare global {
-    interface Window {
-        google: typeof google;
-        initMap: () => void;
-        env?: { API_BASE_URL: string; GOOGLE_API_KEY: string };
-    }
+  interface Window {
+    google: typeof google;
+    initMap: () => void;
+    env?: { API_BASE_URL: string; GOOGLE_API_KEY: string };
+  }
 }
 
 interface WaypointType {
-    id: string;
-    placeholder: string;
-    value: string | google.maps.LatLngLiteral;
-    isUserLocation?: boolean;
+  id: string;
+  placeholder: string;
+  value: string | google.maps.LatLngLiteral;
+  isUserLocation?: boolean;
 }
 
 interface Props {
-    waypoints: WaypointType[];
-    calculateRoute: boolean;
-    onRouteCalculated?: (routeDetails: any) => void;
-    travelMode: 'DRIVING' | 'BICYCLING' | 'WALKING' | 'TRANSIT';
-    selectedRouteIndex: number;
-    showUserMarker?: boolean;
+  waypoints: WaypointType[];
+  calculateRoute: boolean;
+  onRouteCalculated?: (routeDetails: any) => void;
+  travelMode: 'DRIVING' | 'BICYCLING' | 'WALKING' | 'TRANSIT';
+  selectedRouteIndex: number;
+  showUserMarker?: boolean;
 }
 
 let mapsLoaded = false;
@@ -81,15 +81,22 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         await loadMaps();
         if (!mounted || !ref.current) return;
 
-        const paris = { lat: 48.8566, lng: 2.3522 };
-        const m = new window.google.maps.Map(ref.current, { center: paris, zoom: 12 });
-        fetchAlerts(paris.lat, paris.lng);
+        const defaultCenter = { lat: 48.8566, lng: 2.3522 };
+        const m = new window.google.maps.Map(ref.current, {
+          center: defaultCenter,
+          zoom: 12
+        });
+
+        fetchAlerts(defaultCenter.lat, defaultCenter.lng);
 
         if ('geolocation' in navigator) {
           navigator.geolocation.getCurrentPosition(
             pos => {
               if (!mounted) return;
-              const me = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+              const me = {
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude
+              };
               setUserPosition(me);
               m.setCenter(me);
               m.setZoom(15);
@@ -128,15 +135,21 @@ const GoogleMapsIntegration: React.FC<Props> = ({
 
   useEffect(() => {
     if (!calculateRoute || !svc || !rend || !ready) return;
-    const valid = waypoints.filter(w => (w.value as string).toString().trim());
+    const valid = waypoints.filter(w =>
+      typeof w.value === 'string' ? w.value.trim() : true
+    );
     if (valid.length < 2) return;
 
     const first = valid[0];
     const last = valid[valid.length - 1];
-    const originParam = first.isUserLocation && userPosition ? userPosition : first.value;
-    const destParam = last.isUserLocation && userPosition ? userPosition : last.value;
+
+    const originParam =
+      first.isUserLocation && userPosition ? userPosition : first.value;
+    const destParam =
+      last.isUserLocation && userPosition ? userPosition : last.value;
     const mids = valid.slice(1, -1).map(w => ({
-      location: w.isUserLocation && userPosition ? userPosition : w.value,
+      location:
+        w.isUserLocation && userPosition ? userPosition : w.value,
       stopover: true
     }));
 
@@ -173,16 +186,20 @@ const GoogleMapsIntegration: React.FC<Props> = ({
 
   useEffect(() => {
     if (!rend || !map) return;
-    try {
-      const dir = rend.getDirections();
-      if (!dir) return;
-      const route = dir.routes[selectedRouteIndex];
-      if (route && route.bounds) {
-        map.fitBounds(route.bounds);
-      }
-    } catch {
-      // ignore error
-    }
+    const dir = rend.getDirections();
+    if (!dir) return;
+    const route = dir.routes[selectedRouteIndex];
+    if (!route || !route.bounds) return;
+
+    const panel = document.querySelector<HTMLElement>('.route-info-panel');
+    const bottomPadding = panel ? panel.clientHeight + 16 : 200;
+
+    map.fitBounds(route.bounds, {
+      top: 50,
+      bottom: bottomPadding,
+      left: 20,
+      right: 20
+    });
   }, [selectedRouteIndex, rend, map]);
 
   useEffect(() => {
