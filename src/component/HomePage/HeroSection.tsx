@@ -11,7 +11,7 @@ const HeroSection: React.FC = () => {
             </div>
 
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div className="flex flex-col lg:flex-row items-center">FO
+                <div className="flex flex-col lg:flex-row items-center">
                     <div className="lg:w-1/2 lg:pr-12 text-center lg:text-left">
                         <div className="inline-block mb-6 px-4 py-2 bg-indigo-900/40 backdrop-blur-sm border
                                         border-indigo-800/40 rounded-full text-sm text-indigo-300 font-medium">

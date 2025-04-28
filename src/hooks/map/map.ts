@@ -378,25 +378,3 @@ export async function shareRoute(
 
     return await response.text();
 }
-
-export async function saveNewRouteRecalculation(): Promise<string> {
-    const authToken = getAuthToken();
-
-    if (!authToken) {
-        throw new Error('Authentication token not found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/private/map/route-recalculation`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(await response.text());
-    }
-
-    return await response.text();
-}

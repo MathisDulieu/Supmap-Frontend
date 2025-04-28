@@ -1,11 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../services/AuthContext.tsx';
 import AppHeader from '../../component/mobile/AppHeader.tsx';
 import PhoneMockups from '../../component/mobile/PhoneMockups.tsx';
 import DownloadSection from '../../component/mobile/DownloadSection.tsx';
 import FaqSection from '../../component/mobile/FaqSection.tsx';
+import RateApp from '../../component/mobile/RateApp.tsx';
 
 const MobileApp: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'ios' | 'android'>('android');
+    const { isAuthenticated } = useAuth();
+    const [hasScrolled, setHasScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollPosition = window.scrollY;
+            if (scrollPosition > 300) {
+                setHasScrolled(true);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     return (
         <div className="min-h-screen bg-[#0a0c15] text-white pt-24 pb-16">
@@ -31,6 +47,23 @@ const MobileApp: React.FC = () => {
                         setActiveTab={setActiveTab}
                     />
                 </div>
+
+                {isAuthenticated && hasScrolled && (
+                    <div className="mb-20">
+                        <div className="max-w-3xl mx-auto">
+                            <div className="text-center mb-10">
+                                <h2 className="text-3xl font-bold bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
+                                    Your Opinion Matters
+                                </h2>
+                                <p className="mt-4 text-gray-300">
+                                    Help us improve Supmap by sharing your feedback
+                                </p>
+                            </div>
+
+                            <RateApp className="max-w-md mx-auto" />
+                        </div>
+                    </div>
+                )}
 
                 <FaqSection />
             </div>
