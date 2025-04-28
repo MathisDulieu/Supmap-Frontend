@@ -13,6 +13,7 @@ interface WaypointType {
     id: string;
     placeholder: string;
     value: string;
+    isUserLocation?: boolean; // flag pour « Ma position »
 }
 
 interface Props {
@@ -21,13 +22,11 @@ interface Props {
     onRouteCalculated?: (routeDetails: any) => void;
     travelMode: 'DRIVING' | 'BICYCLING' | 'WALKING' | 'TRANSIT';
     selectedRouteIndex: number;
-    /** affiche ou non le marqueur de la position utilisateur */
     showUserMarker?: boolean;
 }
 
 let mapsLoaded = false;
 let mapsLoading = false;
-
 const KEY = window.env?.GOOGLE_API_KEY ?? '';
 
 const loadMaps = () =>
@@ -71,6 +70,8 @@ const GoogleMapsIntegration: React.FC<Props> = ({
     const [ready, setReady] = useState(false);
     const [err, setErr] = useState<string | null>(null);
 
+    // on stocke ici la position utilisateur
+    const [userPosition, setUserPosition] = useState<google.maps.LatLngLiteral | null>(null);
     const { fetchAlerts } = useNearbyAlerts(map);
 
     useEffect(() => {
@@ -91,6 +92,7 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                         pos => {
                             if (!mounted) return;
                             const me = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                            setUserPosition(me); // <--- on enregistre
                             m.setCenter(me);
                             m.setZoom(15);
                             if (showUserMarker) {
@@ -125,23 +127,34 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         };
     }, [showUserMarker]);
 
+    // calcul d'itinéraire : on remplace la chaîne « Ma position »
+    // par l'objet userPosition si le flag isUserLocation est vrai
     useEffect(() => {
         if (!calculateRoute || !svc || !rend || !ready) return;
         const valid = waypoints.filter(w => w.value.trim());
         if (valid.length < 2) return;
-        const origin = valid[0].value;
-        const dest = valid[valid.length - 1].value;
-        const mids = valid.slice(1, -1).map(w => ({ location: w.value, stopover: true }));
+
+        const first = valid[0];
+        const last = valid[valid.length - 1];
+        const originParam =
+            first.isUserLocation && userPosition ? userPosition : first.value;
+        const destParam =
+            last.isUserLocation && userPosition ? userPosition : last.value;
+        const mids = valid.slice(1, -1).map(w => ({
+            location: w.isUserLocation && userPosition ? userPosition : w.value,
+            stopover: true
+        }));
+
         svc.route(
             {
-                origin,
-                destination: dest,
+                origin: originParam,
+                destination: destParam,
                 waypoints: mids,
                 travelMode: window.google.maps.TravelMode[travelMode],
                 optimizeWaypoints: true,
                 provideRouteAlternatives: true
             },
-            (res: google.maps.DirectionsResult | null, status: google.maps.DirectionsStatus) => {
+            (res, status) => {
                 if (status === window.google.maps.DirectionsStatus.OK && res) {
                     rend.setDirections(res);
                     rend.setRouteIndex(selectedRouteIndex);
@@ -157,7 +170,8 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         ready,
         travelMode,
         selectedRouteIndex,
-        onRouteCalculated
+        onRouteCalculated,
+        userPosition
     ]);
 
     useEffect(() => {

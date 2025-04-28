@@ -18,6 +18,7 @@ interface WaypointType {
     id: string;
     placeholder: string;
     value: string;
+    isUserLocation?: boolean; // ← ajouté
 }
 
 interface AutocompleteResult {
@@ -43,6 +44,20 @@ const Navigation: React.FC = () => {
 
     const togglePanel = () => setIsPanelOpen(!isPanelOpen);
 
+    // ————————————————————————————————————————————
+    // 1) Sélection de "Ma position"
+    const handleSelectMyLocation = (id: string) => {
+        setWaypoints(prev =>
+            prev.map(wp =>
+                wp.id === id
+                    ? { ...wp, value: 'Ma position', isUserLocation: true }
+                    : wp
+            )
+        );
+        setAutocompleteResults([]);
+        setActiveInput(null);
+    };
+    // ————————————————————————————————————————————
 
     const addWaypoint = () => {
         if (waypoints.length >= 7) return;
@@ -72,7 +87,11 @@ const Navigation: React.FC = () => {
 
     const updateWaypoint = (id: string, value: string) => {
         setWaypoints(prev =>
-            prev.map(wp => (wp.id === id ? { ...wp, value } : wp))
+            prev.map(wp =>
+                wp.id === id
+                    ? { ...wp, value, isUserLocation: false } // ← on réinitialise isUserLocation
+                    : wp
+            )
         );
         if (value.trim() !== '') {
             fetchAutocompleteResults(value);
@@ -94,7 +113,11 @@ const Navigation: React.FC = () => {
                 types: ['geocode', 'establishment']
             },
             (predictions: any, status: any) => {
-                if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+                if (
+                    status ===
+                        window.google.maps.places.PlacesServiceStatus.OK &&
+                    predictions
+                ) {
                     setAutocompleteResults(
                         predictions.map((p: any) => ({
                             id: p.place_id,
@@ -112,7 +135,9 @@ const Navigation: React.FC = () => {
         if (activeInput) {
             setWaypoints(prev =>
                 prev.map(wp =>
-                    wp.id === activeInput ? { ...wp, value: result.description } : wp
+                    wp.id === activeInput
+                        ? { ...wp, value: result.description, isUserLocation: false }
+                        : wp
                 )
             );
             setAutocompleteResults([]);
@@ -148,7 +173,6 @@ const Navigation: React.FC = () => {
         if (routeDetails) handleCalculateRoute();
     };
 
-    
     const headerHeight = 80;
     const showUserMarker = !isRouteInfoVisible;
 
@@ -272,22 +296,29 @@ const Navigation: React.FC = () => {
                                         )}
                                     </div>
 
-                                    {activeInput === waypoint.id &&
-                                        autocompleteResults.length > 0 && (
-                                            <div className="absolute z-10 left-10 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                                {autocompleteResults.map(result => (
-                                                    <div
-                                                        key={result.id}
-                                                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 truncate"
-                                                        onClick={() =>
-                                                            selectAutocompleteResult(result)
-                                                        }
-                                                    >
-                                                        {result.description}
-                                                    </div>
-                                                ))}
+                                    {activeInput === waypoint.id && (
+                                        <div className="absolute z-10 left-10 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                            {/* Option Ma position */}
+                                            <div
+                                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700"
+                                                onClick={() => handleSelectMyLocation(waypoint.id)}
+                                            >
+                                                Ma position
                                             </div>
-                                        )}
+                                            {/* Suggestions Google */}
+                                            {autocompleteResults.map(result => (
+                                                <div
+                                                    key={result.id}
+                                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 truncate"
+                                                    onClick={() =>
+                                                        selectAutocompleteResult(result)
+                                                    }
+                                                >
+                                                    {result.description}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
 
