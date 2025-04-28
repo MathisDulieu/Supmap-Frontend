@@ -56,10 +56,6 @@ const DocumentationSidebar: React.FC<DocumentationSidebarProps> = ({
                     title: "Route Preferences",
                 },
                 { id: "navigation-guide#favorites", title: "Saving Favorites" },
-                {
-                    id: "navigation-guide#voice-navigation",
-                    title: "Voice Navigation",
-                },
             ],
         },
         {
@@ -83,10 +79,6 @@ const DocumentationSidebar: React.FC<DocumentationSidebarProps> = ({
             subsections: [
                 { id: "account-management#profile", title: "Profile Settings" },
                 { id: "account-management#privacy", title: "Privacy Controls" },
-                {
-                    id: "account-management#notifications",
-                    title: "Notification Settings",
-                },
                 { id: "account-management#data", title: "Data Management" },
             ],
         },

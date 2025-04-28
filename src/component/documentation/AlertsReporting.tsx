@@ -10,7 +10,7 @@ import {
     CloudLightning,
 } from "lucide-react";
 
-const AlertsReporting: React.FC = () => {
+const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLAnchorElement>, section: string) => void }> = ({ handleLinkClick }) => {
     return (
         <div>
             <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
@@ -751,6 +751,7 @@ const AlertsReporting: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <a
                         href="#account-management"
+                        onClick={(event) => handleLinkClick(event, 'account-management')}
                         className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-purple-500/10 rounded-lg text-purple-400">
@@ -768,6 +769,7 @@ const AlertsReporting: React.FC = () => {
 
                     <a
                         href="#mobile-app"
+                        onClick={(event) => handleLinkClick(event, 'mobile-app')}
                         className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-blue-500/10 rounded-lg text-blue-400">

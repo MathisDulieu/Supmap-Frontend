@@ -1,7 +1,7 @@
 import React from "react";
-import { Smartphone, Monitor, MapPin, Route, Shield } from "lucide-react";
+import { Smartphone, Monitor, MapPin, Route, UserIcon, Navigation } from "lucide-react";
 
-const GettingStarted: React.FC = () => {
+const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLAnchorElement>, section: string) => void }> = ({ handleLinkClick }) => {
     return (
         <div>
             <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
@@ -485,10 +485,11 @@ const GettingStarted: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <a
                         href="#navigation-guide"
+                        onClick={(event) => handleLinkClick(event, 'navigation-guide')}
                         className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
-                            <Route size={20} />
+                            <Navigation size={20} />
                         </div>
                         <div>
                             <h3 className="font-medium text-white">
@@ -502,10 +503,13 @@ const GettingStarted: React.FC = () => {
 
                     <a
                         href="#alerts-reporting"
+                        onClick={(event) => handleLinkClick(event, 'alerts-reporting')}
                         className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-yellow-500/10 rounded-lg text-yellow-400">
-                            <MapPin size={20} />
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
                         </div>
                         <div>
                             <h3 className="font-medium text-white">
@@ -519,10 +523,11 @@ const GettingStarted: React.FC = () => {
 
                     <a
                         href="#account-management"
+                        onClick={(event) => handleLinkClick(event, 'account-management')}
                         className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-purple-500/10 rounded-lg text-purple-400">
-                            <Shield size={20} />
+                            <UserIcon size={18} />
                         </div>
                         <div>
                             <h3 className="font-medium text-white">
@@ -536,6 +541,7 @@ const GettingStarted: React.FC = () => {
 
                     <a
                         href="#mobile-app"
+                        onClick={(event) => handleLinkClick(event, 'mobile-app')}
                         className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-blue-500/10 rounded-lg text-blue-400">

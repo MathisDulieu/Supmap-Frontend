@@ -13,7 +13,10 @@ const Documentation: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [activeSection, setActiveSection] = useState<string>('getting-started');
-    const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>( () => {
+        const storedState = localStorage.getItem('sidebarState');
+        return storedState ? JSON.parse(storedState) : false;
+    });
 
     useEffect(() => {
         const hash = location.hash.replace('#', '');
@@ -21,6 +24,10 @@ const Documentation: React.FC = () => {
             setActiveSection(hash);
         }
     }, [location]);
+
+    useEffect(() => {
+        localStorage.setItem('sidebarState', JSON.stringify(isSidebarOpen));
+    }, [isSidebarOpen]);
 
     const handleSectionChange = (section: string) => {
         setActiveSection(section);
@@ -31,6 +38,11 @@ const Documentation: React.FC = () => {
         }
     };
 
+    const handleLinkClick = (event: React.MouseEvent<HTMLAnchorElement>, section: string) => {
+        event.preventDefault();
+        handleSectionChange(section);
+    };
+
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen);
     };
@@ -38,17 +50,17 @@ const Documentation: React.FC = () => {
     const renderContent = () => {
         switch (activeSection) {
             case 'getting-started':
-                return <GettingStarted />;
+                return <GettingStarted handleLinkClick={handleLinkClick} />;
             case 'navigation-guide':
-                return <NavigationGuide />;
+                return <NavigationGuide handleLinkClick={handleLinkClick} />;
             case 'alerts-reporting':
-                return <AlertsReporting />;
+                return <AlertsReporting handleLinkClick={handleLinkClick} />;
             case 'account-management':
-                return <AccountManagement />;
+                return <AccountManagement handleLinkClick={handleLinkClick} />;
             case 'mobile-app':
-                return <MobileApp />;
+                return <MobileApp handleLinkClick={handleLinkClick} />;
             default:
-                return <GettingStarted />;
+                return <GettingStarted handleLinkClick={handleLinkClick} />;
         }
     };
 

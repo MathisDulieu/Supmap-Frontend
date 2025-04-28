@@ -9,9 +9,10 @@ import {
     CarFront,
     AlertTriangle,
     Smartphone,
+    UserIcon,
 } from "lucide-react";
 
-const NavigationGuide: React.FC = () => {
+const NavigationGuide: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLAnchorElement>, section: string) => void }> = ({ handleLinkClick }) => {
     return (
         <div>
             <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
@@ -614,6 +615,7 @@ const NavigationGuide: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <a
                         href="#alerts-reporting"
+                        onClick={(event) => handleLinkClick(event, 'alerts-reporting')}
                         className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-yellow-500/10 rounded-lg text-yellow-400">
@@ -630,7 +632,26 @@ const NavigationGuide: React.FC = () => {
                     </a>
 
                     <a
+                        href="#account-management"
+                        onClick={(event) => handleLinkClick(event, 'account-management')}
+                        className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
+                    >
+                        <div className="mr-4 p-2 bg-purple-500/10 rounded-lg text-purple-400">
+                            <UserIcon size={18} />
+                        </div>
+                        <div>
+                            <h3 className="font-medium text-white">
+                                Account Management
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                                Privacy and profile settings
+                            </p>
+                        </div>
+                    </a>
+
+                    <a
                         href="#mobile-app"
+                        onClick={(event) => handleLinkClick(event, 'mobile-app')}
                         className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-blue-500/10 rounded-lg text-blue-400">
