@@ -33,9 +33,12 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState<number>(selectedRouteIndex);
   const { qrUrl, isLoading, error, share } = useRouteShare();
+  const [showQr, setShowQr] = useState(false); // <- nouvel état
 
   useEffect(() => {
     setSelectedRoute(selectedRouteIndex);
+    // on cache le QR lors du changement de route
+    setShowQr(false);
   }, [selectedRouteIndex]);
 
   if (!routeDetails?.routes?.length) return null;
@@ -75,16 +78,17 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
     return tmp.textContent || tmp.innerText || '';
   };
 
-  // on génère le QR code à chaque changement de route
-  useEffect(() => {
-    const start = legs[0].start_location;
-    const end = legs[legs.length - 1].end_location;
-    share(start.lat(), start.lng(), end.lat(), end.lng());
-  }, [selectedRoute, share, legs]);
-
   const handleSelectRoute = (idx: number) => {
     setSelectedRoute(idx);
     onSelectRoute?.(idx);
+    setShowQr(false); // on cache le QR quand on change d’itinéraire
+  };
+
+  const handleShareClick = () => {
+    const start = legs[0].start_location;
+    const end = legs[legs.length - 1].end_location;
+    share(start.lat(), start.lng(), end.lat(), end.lng());
+    setShowQr(true); // Affiche le QR après clic
   };
 
   return (
@@ -102,23 +106,19 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
           <span className="text-gray-600">{formatDistance(totalDistance)}</span>
         </div>
         <div className="flex items-center space-x-2">
-          {/* Bouton rafraîchir QR */}
+          {/* Bouton partager / rafraîchir QR */}
           <button
-            onClick={() => {
-              const start = legs[0].start_location;
-              const end = legs[legs.length - 1].end_location;
-              share(start.lat(), start.lng(), end.lat(), end.lng());
-            }}
+            onClick={handleShareClick}
             disabled={isLoading}
             className="p-2 rounded-full hover:bg-gray-100"
-            aria-label="Rafraîchir QR code"
+            aria-label="Partager / afficher QR code"
           >
             <Share2
               size={20}
               className={isLoading ? 'animate-spin text-indigo-600' : 'text-indigo-600'}
             />
           </button>
-          {/* Expand / Collapse */}
+          {/* Développer / réduire */}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-2 rounded-full hover:bg-gray-100"
@@ -126,7 +126,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
           >
             {isExpanded ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
           </button>
-          {/* Close */}
+          {/* Fermer */}
           <button
             onClick={onClose}
             className="p-2 rounded-full hover:bg-gray-100"
@@ -137,15 +137,15 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
         </div>
       </div>
 
-      {/* Erreur éventuelle */}
+      {/* Message d’erreur si pas connecté */}
       {error && (
-        <div className="p-4 text-red-500 text-center">
-          {error}
+        <div className="p-4 text-center text-gray-700">
+          Vous devez vous connecter.
         </div>
       )}
 
-      {/* QR code */}
-      {qrUrl && (
+      {/* QR code : n’apparaît que si showQr est vrai */}
+      {qrUrl && showQr && (
         <div className="p-4 flex justify-center border-b border-gray-200">
           <img src={qrUrl} alt="QR code partage" className="w-32 h-32" />
         </div>
@@ -200,7 +200,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
         )}
       </div>
 
-      {/* Step-by-step details */}
+      {/* Détails pas à pas */}
       {isExpanded && (
         <div className="overflow-y-auto p-4 pb-16" style={{ maxHeight: 'calc(100% - 160px)' }}>
           <div className="space-y-4">
