@@ -1,5 +1,3 @@
-// src/component/map/RouteInfo.tsx
-
 import React, { useEffect, useState } from 'react';
 import {
   XIcon,
@@ -46,6 +44,9 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
   const currentRoute = routes[selectedRoute];
   const legs = currentRoute.legs as any[];
 
+  const totalDistance = legs.reduce((sum: number, leg: any) => sum + leg.distance.value, 0);
+  const totalDuration = legs.reduce((sum: number, leg: any) => sum + leg.duration.value, 0);
+
   const formatDistance = (m: number) =>
     m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1)} km`;
 
@@ -54,18 +55,15 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
     if (min < 60) return `${min} min`;
     const h = Math.floor(min / 60);
     const r = min % 60;
-    return `${h}h ${r ? r + 'min' : ''}`;
+    return `${h}h ${r ? `${r}min` : ''}`;
   };
 
   const getArrivalTime = () => {
     const now = new Date();
-    const totalSeconds = legs.reduce((sum: number, leg: any): number => {
-      return sum + leg.duration.value;
-    }, 0);
-    return new Date(now.getTime() + totalSeconds * 1000).toLocaleTimeString(
-      [],
-      { hour: '2-digit', minute: '2-digit' }
-    );
+    return new Date(now.getTime() + totalDuration * 1000).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const getTransportIcon = () =>
@@ -82,15 +80,15 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
     return tmp.textContent || tmp.innerText || '';
   };
 
-  const handleSelectRoute = (idx: number) => {
-    setSelectedRoute(idx);
-    onSelectRoute?.(idx);
-  };
-
-  const handleShare = () => {
+  useEffect(() => {
     const start = legs[0].start_location;
     const end = legs[legs.length - 1].end_location;
     share(start.lat(), start.lng(), end.lat(), end.lng());
+  }, [selectedRoute]);
+
+  const handleSelectRoute = (idx: number) => {
+    setSelectedRoute(idx);
+    onSelectRoute?.(idx);
   };
 
   return (
@@ -99,34 +97,32 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
         w-full max-w-lg bg-white rounded-t-xl shadow-2xl z-30
         transition-all duration-300 ease-in-out ${isExpanded ? 'h-3/4' : 'h-auto'}`}
     >
-      {/* En-tête : icône, durée, distance, actions */}
+      {/* Header: icon, duration, distance, actions */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div className="flex items-center">
           {getTransportIcon()}
-          <h3 className="text-lg font-semibold ml-2">
-            {formatDuration(
-              legs.reduce((sum: number, leg: any): number => sum + leg.duration.value, 0)
-            )}
-          </h3>
+          <h3 className="text-lg font-semibold ml-2">{formatDuration(totalDuration)}</h3>
           <span className="mx-2 text-gray-500">·</span>
-          <span className="text-gray-600">
-            {formatDistance(
-              legs.reduce((sum: number, leg: any): number => sum + leg.distance.value, 0)
-            )}
-          </span>
+          <span className="text-gray-600">{formatDistance(totalDistance)}</span>
         </div>
         <div className="flex items-center space-x-2">
+          {/* Refresh QR button */}
           <button
-            onClick={handleShare}
+            onClick={() => {
+              const start = legs[0].start_location;
+              const end = legs[legs.length - 1].end_location;
+              share(start.lat(), start.lng(), end.lat(), end.lng());
+            }}
             disabled={isLoading}
             className="p-2 rounded-full hover:bg-gray-100"
-            aria-label="Share route"
+            aria-label="Refresh QR code"
           >
             <Share2
               size={20}
               className={isLoading ? 'animate-spin text-indigo-600' : 'text-indigo-600'}
             />
           </button>
+          {/* Expand/Collapse */}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-2 rounded-full hover:bg-gray-100"
@@ -134,6 +130,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
           >
             {isExpanded ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
           </button>
+          {/* Close */}
           <button
             onClick={onClose}
             className="p-2 rounded-full hover:bg-gray-100"
@@ -144,7 +141,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
         </div>
       </div>
 
-      {/* Erreur ou QR code */}
+      {/* Error or QR code */}
       {error && <div className="p-4 text-red-500 text-center">{error}</div>}
       {qrUrl && (
         <div className="p-4 flex justify-center border-b border-gray-200">
@@ -152,7 +149,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
         </div>
       )}
 
-      {/* Arrivée et alternatives */}
+      {/* Arrival summary & alternatives */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -168,14 +165,8 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
         {routes.length > 1 && (
           <div className="mt-3 space-y-2">
             {routes.map((route: any, idx: number) => {
-              const dur = route.legs.reduce(
-                (sum: number, leg: any): number => sum + leg.duration.value,
-                0
-              );
-              const dist = route.legs.reduce(
-                (sum: number, leg: any): number => sum + leg.distance.value,
-                0
-              );
+              const dur = route.legs.reduce((sum: number, leg: any) => sum + leg.duration.value, 0);
+              const dist = route.legs.reduce((sum: number, leg: any) => sum + leg.distance.value, 0);
               const summary = route.summary || `Route ${idx + 1}`;
               return (
                 <button
@@ -205,7 +196,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
         )}
       </div>
 
-      {/* Détails pas à pas */}
+      {/* Step-by-step details */}
       {isExpanded && (
         <div className="overflow-y-auto p-4 pb-16" style={{ maxHeight: 'calc(100% - 160px)' }}>
           <div className="space-y-4">
