@@ -12,6 +12,10 @@ interface DocumentationSidebarProps {
     activeSection: string;
     onSectionChange: (section: string) => void;
     isOpen: boolean;
+    handleLinkClick: (
+        event: React.MouseEvent<HTMLAnchorElement>,
+        section: string
+    ) => void;
 }
 
 interface SidebarSection {
@@ -25,6 +29,7 @@ const DocumentationSidebar: React.FC<DocumentationSidebarProps> = ({
     activeSection,
     onSectionChange,
     isOpen,
+    handleLinkClick,
 }) => {
     const sections: SidebarSection[] = [
         {
@@ -161,6 +166,12 @@ const DocumentationSidebar: React.FC<DocumentationSidebarProps> = ({
                                                 <li key={subsection.id}>
                                                     <a
                                                         href={`#${subsection.id}`}
+                                                        onClick={(event) =>
+                                                            handleLinkClick(
+                                                                event,
+                                                                subsection.id
+                                                            )
+                                                        }
                                                         className="block p-1 text-sm text-gray-400 hover:text-indigo-300 transition-colors duration-300"
                                                     >
                                                         {subsection.title}

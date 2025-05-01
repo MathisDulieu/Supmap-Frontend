@@ -10,31 +10,57 @@ import {
     CloudLightning,
 } from "lucide-react";
 
-const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLAnchorElement>, section: string) => void }> = ({ handleLinkClick }) => {
+interface AlertsReportingProps {
+    handleLinkClick: (
+        event: React.MouseEvent<HTMLAnchorElement>,
+        section: string
+    ) => void;
+    searchQuery: string;
+}
+
+const AlertsReporting: React.FC<AlertsReportingProps> = ({
+    handleLinkClick,
+    searchQuery,
+}) => {
+    const highlightSearch = (text: string) => {
+        if (!searchQuery) return text;
+        const regex = new RegExp(`(${searchQuery})`, "gi");
+        return text.split(regex).map((part, index) =>
+            part.toLowerCase() === searchQuery.toLowerCase() ? (
+                <mark key={index} className="bg-yellow-300 text-black">
+                    {part}
+                </mark>
+            ) : (
+                part
+            )
+        );
+    };
+
     return (
         <div>
             <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
-                Alerts & Reporting
+                {highlightSearch("Alerts & Reporting")}
             </h1>
 
             <p className="text-gray-300 mb-8 text-lg">
-                Supmap's community-powered alert system helps drivers avoid
-                hazards and delays through real-time reporting of traffic
-                conditions and incidents on the road.
+                {highlightSearch(
+                    "Supmap's community-powered alert system helps drivers avoid hazards and delays through real-time reporting of traffic conditions and incidents on the road."
+                )}
             </p>
 
             <div id="alerts-reporting#receiving" className="mb-12">
                 <h2 className="text-2xl font-bold text-white mb-4 border-b border-indigo-900/30 pb-2">
-                    Receiving Alerts
+                    {highlightSearch("Receiving Alerts")}
                 </h2>
 
                 <p className="text-gray-300 mb-6">
-                    Supmap alerts you of various road conditions and incidents
-                    that may affect your journey.
+                    {highlightSearch(
+                        "Supmap alerts you of various road conditions and incidents that may affect your journey."
+                    )}
                 </p>
 
                 <h3 className="text-xl font-medium text-white mb-4">
-                    Types of Alerts
+                    {highlightSearch("Types of Alerts")}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -44,14 +70,14 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                 <Car size={20} />
                             </div>
                             <div className="text-white font-medium">
-                                Traffic Incidents
+                                {highlightSearch("Traffic Incidents")}
                             </div>
                         </div>
                         <ul className="text-gray-300 space-y-1 text-sm ml-1">
-                            <li>• Accidents</li>
-                            <li>• Traffic jams</li>
-                            <li>• Stalled vehicles</li>
-                            <li>• Road closures</li>
+                            <li>{highlightSearch("• Accidents")}</li>
+                            <li>{highlightSearch("• Traffic jams")}</li>
+                            <li>{highlightSearch("• Stalled vehicles")}</li>
+                            <li>{highlightSearch("• Road closures")}</li>
                         </ul>
                     </div>
 
@@ -61,14 +87,14 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                 <AlertTriangle size={20} />
                             </div>
                             <div className="text-white font-medium">
-                                Road Hazards
+                                {highlightSearch("Road Hazards")}
                             </div>
                         </div>
                         <ul className="text-gray-300 space-y-1 text-sm ml-1">
-                            <li>• Weather conditions</li>
-                            <li>• Objects on road</li>
-                            <li>• Construction</li>
-                            <li>• Poor road conditions</li>
+                            <li>{highlightSearch("• Weather conditions")}</li>
+                            <li>{highlightSearch("• Objects on road")}</li>
+                            <li>{highlightSearch("• Construction")}</li>
+                            <li>{highlightSearch("• Poor road conditions")}</li>
                         </ul>
                     </div>
 
@@ -78,13 +104,13 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                 <Eye size={20} />
                             </div>
                             <div className="text-white font-medium">
-                                Other Alerts
+                                {highlightSearch("Other Alerts")}
                             </div>
                         </div>
                         <ul className="text-gray-300 space-y-1 text-sm ml-1">
-                            <li>• Speed traps</li>
-                            <li>• Street events</li>
-                            <li>• Road closures</li>
+                            <li>{highlightSearch("• Speed traps")}</li>
+                            <li>{highlightSearch("• Street events")}</li>
+                            <li>{highlightSearch("• Road closures")}</li>
                         </ul>
                     </div>
                 </div>
@@ -92,17 +118,17 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
 
             <div id="alerts-reporting#creating" className="mb-12">
                 <h2 className="text-2xl font-bold text-white mb-4 border-b border-indigo-900/30 pb-2">
-                    Creating Reports
+                    {highlightSearch("Creating Reports")}
                 </h2>
 
                 <p className="text-gray-300 mb-6">
-                    Contributing to the Supmap community by reporting incidents
-                    helps other drivers navigate more safely and efficiently.
-                    Here's how to report incidents on the road :
+                    {highlightSearch(
+                        "Contributing to the Supmap community by reporting incidents helps other drivers navigate more safely and efficiently. Here's how to report incidents on the road:"
+                    )}
                 </p>
 
                 <h3 className="text-xl font-medium text-white mb-4">
-                    How to Report an Incident
+                    {highlightSearch("How to Report an Incident")}
                 </h3>
 
                 <div className="mb-8">
@@ -112,13 +138,14 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                 <span className="text-2xl font-bold">1</span>
                             </div>
                             <h3 className="text-xl font-medium text-white text-center">
-                                Tap the Report Button
+                                {highlightSearch("Tap the Report Button")}
                             </h3>
                         </div>
                         <div className="p-5 md:w-2/3 border-t md:border-t-0 md:border-l border-indigo-900/30">
                             <p className="text-gray-300 mb-2">
-                                During navigation, tap the report button (red
-                                icon) at the bottom right of your screen.
+                                {highlightSearch(
+                                    "During navigation, tap the report button (red icon) at the bottom right of your screen."
+                                )}
                             </p>
                         </div>
                     </div>
@@ -129,42 +156,44 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                 <span className="text-2xl font-bold">2</span>
                             </div>
                             <h3 className="text-xl font-medium text-white text-center">
-                                Select Incident Type
+                                {highlightSearch("Select Incident Type")}
                             </h3>
                         </div>
                         <div className="p-5 md:w-2/3 border-t md:border-t-0 md:border-l border-indigo-900/30">
                             <p className="text-gray-300 mb-3">
-                                Choose the type of incident from the menu:
+                                {highlightSearch(
+                                    "Choose the type of incident from the menu:"
+                                )}
                             </p>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 <div className="bg-red-900/20 p-3 rounded-lg border border-red-800/30 text-center">
                                     <span className="text-white text-sm">
-                                        Accident
+                                        {highlightSearch("Accident")}
                                     </span>
                                 </div>
                                 <div className="bg-orange-900/20 p-3 rounded-lg border border-orange-800/30 text-center">
                                     <span className="text-white text-sm">
-                                        Traffic Jam
+                                        {highlightSearch("Traffic Jam")}
                                     </span>
                                 </div>
                                 <div className="bg-yellow-900/20 p-3 rounded-lg border border-yellow-800/30 text-center">
                                     <span className="text-white text-sm">
-                                        Road Closure
+                                        {highlightSearch("Road Closure")}
                                     </span>
                                 </div>
                                 <div className="bg-blue-900/20 p-3 rounded-lg border border-blue-800/30 text-center">
                                     <span className="text-white text-sm">
-                                        Police
+                                        {highlightSearch("Police")}
                                     </span>
                                 </div>
                                 <div className="bg-green-900/20 p-3 rounded-lg border border-green-800/30 text-center">
                                     <span className="text-white text-sm">
-                                        Hazard
+                                        {highlightSearch("Hazard")}
                                     </span>
                                 </div>
                                 <div className="bg-purple-900/20 p-3 rounded-lg border border-purple-800/30 text-center">
                                     <span className="text-white text-sm">
-                                        Other
+                                        {highlightSearch("Other")}
                                     </span>
                                 </div>
                             </div>
@@ -177,13 +206,14 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                 <span className="text-2xl font-bold">3</span>
                             </div>
                             <h3 className="text-xl font-medium text-white text-center">
-                                Submit Report
+                                {highlightSearch("Submit Report")}
                             </h3>
                         </div>
                         <div className="p-5 md:w-2/3 border-t md:border-t-0 md:border-l border-indigo-900/30">
                             <p className="text-gray-300 mb-3">
-                                Tap "Submit" to send your report to the Supmap
-                                community. The report will :
+                                {highlightSearch(
+                                    "Tap 'Submit' to send your report to the Supmap community. The report will:"
+                                )}
                             </p>
                             <ul className="text-gray-300 space-y-2 text-sm">
                                 <li className="flex items-start">
@@ -201,8 +231,9 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                             d="M5 13l4 4L19 7"
                                         ></path>
                                     </svg>
-                                    Immediately appear on the map for nearby
-                                    drivers
+                                    {highlightSearch(
+                                        "Immediately appear on the map for nearby drivers"
+                                    )}
                                 </li>
                                 <li className="flex items-start">
                                     <svg
@@ -219,7 +250,9 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                             d="M5 13l4 4L19 7"
                                         ></path>
                                     </svg>
-                                    Be available for verification by other users
+                                    {highlightSearch(
+                                        "Be available for verification by other users"
+                                    )}
                                 </li>
                                 <li className="flex items-start">
                                     <svg
@@ -236,8 +269,9 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                             d="M5 13l4 4L19 7"
                                         ></path>
                                     </svg>
-                                    Help Supmap calculate better routes for
-                                    everyone
+                                    {highlightSearch(
+                                        "Help Supmap calculate better routes for everyone"
+                                    )}
                                 </li>
                             </ul>
                         </div>
@@ -258,66 +292,69 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                 clipRule="evenodd"
                             ></path>
                         </svg>
-                        Safety First
+                        {highlightSearch("Safety First")}
                     </h4>
                     <p className="text-gray-300 text-sm">
-                        Never use your phone while driving to report incidents.
-                        Either have a passenger submit the report, or wait until
-                        you are safely parked. Your safety and the safety of
-                        others on the road is more important than reporting an
-                        incident.
+                        {highlightSearch(
+                            "Never use your phone while driving to report incidents. Either have a passenger submit the report, or wait until you are safely parked. Your safety and the safety of others on the road is more important than reporting an incident."
+                        )}
                     </p>
                 </div>
             </div>
 
             <div id="alerts-reporting#verifying" className="mb-12">
                 <h2 className="text-2xl font-bold text-white mb-4 border-b border-indigo-900/30 pb-2">
-                    Verifying Reports
+                    {highlightSearch("Verifying Reports")}
                 </h2>
 
                 <p className="text-gray-300 mb-6">
-                    The accuracy of Supmap's alert system depends on community
-                    verification. When you encounter an incident reported by
-                    another user, you can confirm or deny its presence to help
-                    maintain reliable information.
+                    {highlightSearch(
+                        "The accuracy of Supmap's alert system depends on community verification. When you encounter an incident reported by another user, you can confirm or deny its presence to help maintain reliable information."
+                    )}
                 </p>
 
                 <h3 className="text-xl font-medium text-white mb-4">
-                    How to Verify Reports
+                    {highlightSearch("How to Verify Reports")}
                 </h3>
 
                 <div className="bg-[rgba(15,18,30,0.6)] rounded-lg border border-indigo-900/30 overflow-hidden mb-6">
                     <div className="p-4 bg-indigo-900/20 border-b border-indigo-900/30">
                         <h4 className="font-medium text-white flex items-center">
                             <ThumbsUp className="w-5 h-5 mr-2 text-green-400" />
-                            Confirming an Incident
+                            {highlightSearch("Confirming an Incident")}
                         </h4>
                     </div>
                     <div className="p-5">
                         <p className="text-gray-300 mb-4">
-                            When you pass by a reported incident and verify it's
-                            still there:
+                            {highlightSearch(
+                                "When you pass by a reported incident and verify it's still there:"
+                            )}
                         </p>
                         <ol className="text-gray-300 space-y-2 list-decimal list-inside ml-1">
                             <li>
-                                When approaching a reported incident, a card
-                                will appear on your screen
+                                {highlightSearch(
+                                    "When approaching a reported incident, a card will appear on your screen"
+                                )}
                                 <div className="mt-1 ml-6 text-sm text-gray-400">
-                                    Example: "Accident reported. Is it still
-                                    there?"
+                                    {highlightSearch(
+                                        "Example: 'Accident reported. Is it still there?'"
+                                    )}
                                 </div>
                             </li>
                             <li>
-                                Tap "Yes" to confirm the incident is still
-                                present
+                                {highlightSearch(
+                                    "Tap 'Yes' to confirm the incident is still present"
+                                )}
                             </li>
                             <li>
-                                Optionally add additional details or update the
-                                report
+                                {highlightSearch(
+                                    "Optionally add additional details or update the report"
+                                )}
                             </li>
                             <li>
-                                Your confirmation helps keep the alert active
-                                for other drivers
+                                {highlightSearch(
+                                    "Your confirmation helps keep the alert active for other drivers"
+                                )}
                             </li>
                         </ol>
                     </div>
@@ -327,42 +364,48 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                     <div className="p-4 bg-indigo-900/20 border-b border-indigo-900/30">
                         <h4 className="font-medium text-white flex items-center">
                             <ThumbsDown className="w-5 h-5 mr-2 text-red-400" />
-                            Reporting a Cleared Incident
+                            {highlightSearch("Reporting a Cleared Incident")}
                         </h4>
                     </div>
                     <div className="p-5">
                         <p className="text-gray-300 mb-4">
-                            When you pass by a reported incident location and
-                            the incident is no longer there:
+                            {highlightSearch(
+                                "When you pass by a reported incident location and the incident is no longer there:"
+                            )}
                         </p>
                         <ol className="text-gray-300 space-y-2 list-decimal list-inside ml-1">
                             <li>
-                                When approaching a reported incident, a card
-                                will appear on your screen
+                                {highlightSearch(
+                                    "When approaching a reported incident, a card will appear on your screen"
+                                )}
                             </li>
                             <li>
-                                Tap "Not there" if the incident has been cleared
+                                {highlightSearch(
+                                    "Tap 'Not there' if the incident has been cleared"
+                                )}
                             </li>
                             <li>
-                                Your report helps remove outdated alerts from
-                                the map
+                                {highlightSearch(
+                                    "Your report helps remove outdated alerts from the map"
+                                )}
                             </li>
                             <li>
-                                Multiple "Not there" reports will automatically
-                                remove the alert
+                                {highlightSearch(
+                                    "Multiple 'Not there' reports will automatically remove the alert"
+                                )}
                             </li>
                         </ol>
                     </div>
                 </div>
 
                 <h3 className="text-xl font-medium text-white mb-4">
-                    Impact of Verification
+                    {highlightSearch("Impact of Verification")}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="bg-[rgba(15,18,30,0.6)] p-5 rounded-lg border border-indigo-900/30">
                         <h4 className="font-medium text-white mb-3">
-                            How Verification Works
+                            {highlightSearch("How Verification Works")}
                         </h4>
                         <ul className="text-gray-300 space-y-2 text-sm">
                             <li className="flex items-start">
@@ -380,7 +423,9 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         d="M5 13l4 4L19 7"
                                     ></path>
                                 </svg>
-                                Reports gain credibility with each confirmation
+                                {highlightSearch(
+                                    "Reports gain credibility with each confirmation"
+                                )}
                             </li>
                             <li className="flex items-start">
                                 <svg
@@ -397,7 +442,9 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         d="M5 13l4 4L19 7"
                                     ></path>
                                 </svg>
-                                Highly confirmed reports appear more prominently
+                                {highlightSearch(
+                                    "Highly confirmed reports appear more prominently"
+                                )}
                             </li>
                             <li className="flex items-start">
                                 <svg
@@ -414,8 +461,9 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         d="M5 13l4 4L19 7"
                                     ></path>
                                 </svg>
-                                Multiple "Not there" reports will remove the
-                                alert
+                                {highlightSearch(
+                                    "Multiple 'Not there' reports will remove the alert"
+                                )}
                             </li>
                             <li className="flex items-start">
                                 <svg
@@ -432,15 +480,16 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         d="M5 13l4 4L19 7"
                                     ></path>
                                 </svg>
-                                Incidents automatically expire after a certain
-                                time
+                                {highlightSearch(
+                                    "Incidents automatically expire after a certain time"
+                                )}
                             </li>
                         </ul>
                     </div>
 
                     <div className="bg-[rgba(15,18,30,0.6)] p-5 rounded-lg border border-indigo-900/30">
                         <h4 className="font-medium text-white mb-3">
-                            Benefits of Verification
+                            {highlightSearch("Benefits of Verification")}
                         </h4>
                         <ul className="text-gray-300 space-y-2 text-sm">
                             <li className="flex items-start">
@@ -458,7 +507,9 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         d="M5 13l4 4L19 7"
                                     ></path>
                                 </svg>
-                                Improves accuracy of alerts for all users
+                                {highlightSearch(
+                                    "Improves accuracy of alerts for all users"
+                                )}
                             </li>
                             <li className="flex items-start">
                                 <svg
@@ -475,8 +526,9 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         d="M5 13l4 4L19 7"
                                     ></path>
                                 </svg>
-                                Prevents outdated information from affecting
-                                routes
+                                {highlightSearch(
+                                    "Prevents outdated information from affecting routes"
+                                )}
                             </li>
                             <li className="flex items-start">
                                 <svg
@@ -493,7 +545,9 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         d="M5 13l4 4L19 7"
                                     ></path>
                                 </svg>
-                                Earns you community contribution points
+                                {highlightSearch(
+                                    "Earns you community contribution points"
+                                )}
                             </li>
                             <li className="flex items-start">
                                 <svg
@@ -510,7 +564,9 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         d="M5 13l4 4L19 7"
                                     ></path>
                                 </svg>
-                                Helps identify and discourage false reports
+                                {highlightSearch(
+                                    "Helps identify and discourage false reports"
+                                )}
                             </li>
                         </ul>
                     </div>
@@ -519,32 +575,31 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                 <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-4">
                     <h4 className="text-yellow-500 font-medium flex items-center mb-2">
                         <AlertTriangle className="w-5 h-5 mr-2" />
-                        Important
+                        {highlightSearch("Important")}
                     </h4>
                     <p className="text-gray-300 text-sm">
-                        Only verify reports when you can directly observe the
-                        presence or absence of an incident. Never confirm or
-                        deny based on assumption or outdated information.
+                        {highlightSearch(
+                            "Only verify reports when you can directly observe the presence or absence of an incident. Never confirm or deny based on assumption or outdated information."
+                        )}
                     </p>
                 </div>
             </div>
 
             <div id="alerts-reporting#types" className="mb-12">
                 <h2 className="text-2xl font-bold text-white mb-4 border-b border-indigo-900/30 pb-2">
-                    Alert Types
+                    {highlightSearch("Alert Types")}
                 </h2>
 
                 <p className="text-gray-300 mb-6">
-                    Supmap supports a wide range of alert types to keep you
-                    informed about road conditions and traffic situations.
-                    Familiarize yourself with these alert types to better
-                    understand what you're seeing on the map.
+                    {highlightSearch(
+                        "Supmap supports a wide range of alert types to keep you informed about road conditions and traffic situations. Familiarize yourself with these alert types to better understand what you're seeing on the map."
+                    )}
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <div>
                         <h3 className="text-xl font-medium text-white mb-4">
-                            Traffic Incidents
+                            {highlightSearch("Traffic Incidents")}
                         </h3>
 
                         <div className="space-y-4">
@@ -554,13 +609,13 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         <Car size={16} />
                                     </div>
                                     <div className="text-white font-medium">
-                                        Accident
+                                        {highlightSearch("Accident")}
                                     </div>
                                 </div>
                                 <p className="text-gray-400 text-sm">
-                                    Collision between vehicles or with objects.
-                                    May include severity level (minor, major)
-                                    and affected lanes.
+                                    {highlightSearch(
+                                        "Collision between vehicles or with objects. May include severity level (minor, major) and affected lanes."
+                                    )}
                                 </p>
                             </div>
 
@@ -577,13 +632,13 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         </svg>
                                     </div>
                                     <div className="text-white font-medium">
-                                        Traffic Jam
+                                        {highlightSearch("Traffic Jam")}
                                     </div>
                                 </div>
                                 <p className="text-gray-400 text-sm">
-                                    Slow-moving or stopped traffic. May include
-                                    severity (light, moderate, heavy) and
-                                    estimated delay time.
+                                    {highlightSearch(
+                                        "Slow-moving or stopped traffic. May include severity (light, moderate, heavy) and estimated delay time."
+                                    )}
                                 </p>
                             </div>
 
@@ -604,13 +659,13 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         </svg>
                                     </div>
                                     <div className="text-white font-medium">
-                                        Road Closure
+                                        {highlightSearch("Road Closure")}
                                     </div>
                                 </div>
                                 <p className="text-gray-400 text-sm">
-                                    Road completely blocked or closed. May
-                                    include reason (construction, event,
-                                    accident) and estimated reopening time.
+                                    {highlightSearch(
+                                        "Road completely blocked or closed. May include reason (construction, event, accident) and estimated reopening time."
+                                    )}
                                 </p>
                             </div>
 
@@ -631,13 +686,13 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         </svg>
                                     </div>
                                     <div className="text-white font-medium">
-                                        Stalled Vehicle
+                                        {highlightSearch("Stalled Vehicle")}
                                     </div>
                                 </div>
                                 <p className="text-gray-400 text-sm">
-                                    Vehicle stopped on the road or shoulder due
-                                    to breakdown. May include position (left
-                                    lane, shoulder, etc.).
+                                    {highlightSearch(
+                                        "Vehicle stopped on the road or shoulder due to breakdown. May include position (left lane, shoulder, etc.)."
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -645,7 +700,7 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
 
                     <div>
                         <h3 className="text-xl font-medium text-white mb-4">
-                            Road Conditions
+                            {highlightSearch("Road Conditions")}
                         </h3>
 
                         <div className="space-y-4">
@@ -655,13 +710,13 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         <CloudLightning />
                                     </div>
                                     <div className="text-white font-medium">
-                                        Weather
+                                        {highlightSearch("Weather")}
                                     </div>
                                 </div>
                                 <p className="text-gray-400 text-sm">
-                                    Weather conditions on the road. May include
-                                    type (rain, snow, hail, fog) and severity
-                                    (light, moderate, heavy).
+                                    {highlightSearch(
+                                        "Weather conditions on the road. May include type (rain, snow, hail, fog) and severity (light, moderate, heavy)."
+                                    )}
                                 </p>
                             </div>
 
@@ -671,13 +726,13 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         <AlertTriangle size={16} />
                                     </div>
                                     <div className="text-white font-medium">
-                                        Hazard
+                                        {highlightSearch("Hazard")}
                                     </div>
                                 </div>
                                 <p className="text-gray-400 text-sm">
-                                    Objects or conditions creating danger. May
-                                    include type (debris, animal, spill) and
-                                    position.
+                                    {highlightSearch(
+                                        "Objects or conditions creating danger. May include type (debris, animal, spill) and position."
+                                    )}
                                 </p>
                             </div>
 
@@ -698,13 +753,13 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         </svg>
                                     </div>
                                     <div className="text-white font-medium">
-                                        Construction
+                                        {highlightSearch("Construction")}
                                     </div>
                                 </div>
                                 <p className="text-gray-400 text-sm">
-                                    Road work areas. May include expected
-                                    duration, reduced lanes, and speed limit
-                                    changes.
+                                    {highlightSearch(
+                                        "Road work areas. May include expected duration, reduced lanes, and speed limit changes."
+                                    )}
                                 </p>
                             </div>
 
@@ -726,13 +781,13 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                                         </svg>
                                     </div>
                                     <div className="text-white font-medium">
-                                        Police
+                                        {highlightSearch("Police")}
                                     </div>
                                 </div>
                                 <p className="text-gray-400 text-sm">
-                                    Police presence on or near the road. May
-                                    include type (speed trap, checkpoint,
-                                    accident response).
+                                    {highlightSearch(
+                                        "Police presence on or near the road. May include type (speed trap, checkpoint, accident response)."
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -742,16 +797,19 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
 
             <div className="bg-[rgba(15,18,30,0.8)] backdrop-blur-md shadow-lg border border-indigo-900/30 rounded-lg p-6">
                 <h2 className="text-xl font-bold text-white mb-4">
-                    Next Steps
+                    {highlightSearch("Next Steps")}
                 </h2>
                 <p className="text-gray-300 mb-4">
-                    Now that you understand how to use Supmap's alert system,
-                    learn more about:
+                    {highlightSearch(
+                        "Now that you understand how to use Supmap's alert system, learn more about:"
+                    )}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <a
                         href="#account-management"
-                        onClick={(event) => handleLinkClick(event, 'account-management')}
+                        onClick={(event) =>
+                            handleLinkClick(event, "account-management")
+                        }
                         className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-purple-500/10 rounded-lg text-purple-400">
@@ -759,17 +817,21 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                         </div>
                         <div>
                             <h3 className="font-medium text-white">
-                                Account Management
+                                {highlightSearch("Account Management")}
                             </h3>
                             <p className="text-gray-400 text-sm">
-                                Manage your profile and alert preferences
+                                {highlightSearch(
+                                    "Manage your profile and alert preferences"
+                                )}
                             </p>
                         </div>
                     </a>
 
                     <a
                         href="#mobile-app"
-                        onClick={(event) => handleLinkClick(event, 'mobile-app')}
+                        onClick={(event) =>
+                            handleLinkClick(event, "mobile-app")
+                        }
                         className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-blue-500/10 rounded-lg text-blue-400">
@@ -777,10 +839,12 @@ const AlertsReporting: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTML
                         </div>
                         <div>
                             <h3 className="font-medium text-white">
-                                Mobile App
+                                {highlightSearch("Mobile App")}
                             </h3>
                             <p className="text-gray-400 text-sm">
-                                Optimize mobile alerts and notifications
+                                {highlightSearch(
+                                    "Optimize mobile alerts and notifications"
+                                )}
                             </p>
                         </div>
                     </a>

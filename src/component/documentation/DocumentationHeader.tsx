@@ -1,12 +1,26 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { MenuIcon, SearchIcon, NavigationIcon } from 'lucide-react';
+import React, { useCallback, useState } from "react";
+import { Link } from "react-router-dom";
+import { MenuIcon, SearchIcon, NavigationIcon } from "lucide-react";
 
 interface DocumentationHeaderProps {
     toggleSidebar: () => void;
+    onSearch: (query: string) => void;
 }
 
-const DocumentationHeader: React.FC<DocumentationHeaderProps> = ({ toggleSidebar }) => {
+const DocumentationHeader: React.FC<DocumentationHeaderProps> = ({
+    toggleSidebar,
+    onSearch,
+}) => {
+    const [inputValue, setInputValue] = useState("");
+
+    const handleChange = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            setInputValue(event.target.value);
+            onSearch(event.target.value);
+        },
+        [onSearch, setInputValue]
+    );
+
     return (
         <div className="sticky top-20 z-30 py-3 px-4 sm:px-6 lg:px-8 bg-[rgba(10,12,20,0.8)] backdrop-blur-md border-b border-indigo-900/30 shadow-sm shadow-indigo-900/20">
             <div className="flex items-center justify-between">
@@ -33,6 +47,8 @@ const DocumentationHeader: React.FC<DocumentationHeaderProps> = ({ toggleSidebar
                             type="search"
                             className="py-2 pl-10 pr-4 bg-[rgba(20,24,35,0.8)] border border-indigo-900/30 rounded-lg text-sm text-white w-64 focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder-gray-500"
                             placeholder="Search documentation..."
+                            value={inputValue}
+                            onChange={handleChange}
                         />
                     </div>
 

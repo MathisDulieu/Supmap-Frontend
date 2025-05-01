@@ -1,30 +1,68 @@
 import React from "react";
-import { Smartphone, Monitor, MapPin, Route, UserIcon, Navigation } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+    Smartphone,
+    Monitor,
+    MapPin,
+    Route,
+    UserIcon,
+    Navigation,
+} from "lucide-react";
 
-const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLAnchorElement>, section: string) => void }> = ({ handleLinkClick }) => {
+interface GettingStartedProps {
+    handleLinkClick: (
+        event: React.MouseEvent<HTMLAnchorElement>,
+        section: string
+    ) => void;
+    searchQuery: string;
+}
+
+const GettingStarted: React.FC<GettingStartedProps> = ({
+    handleLinkClick,
+    searchQuery,
+}) => {
+    const highlightSearch = (text: string | undefined | null) => {
+        if (!text) return "";
+        if (!searchQuery) return text;
+
+        const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const regex = new RegExp(`(${escapedQuery})`, "gi");
+
+        return text.split(regex).map((part, index) =>
+            regex.test(part) &&
+            part.toLowerCase() === searchQuery.toLowerCase() ? (
+                <mark key={index} className="bg-yellow-300 text-black">
+                    {part}
+                </mark>
+            ) : (
+                part
+            )
+        );
+    };
+
+    const navigate = useNavigate();
+
     return (
         <div>
             <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
-                Getting Started with Supmap
+                {highlightSearch("Getting Started with Supmap")}
             </h1>
 
             <p className="text-gray-300 mb-8 text-lg">
-                Welcome to Supmap! This guide will help you get started with our
-                real-time navigation platform and show you how to make the most
-                of its features.
+                {highlightSearch(
+                    "Welcome to Supmap! This guide will help you get started with our real-time navigation platform and show you how to make the most of its features."
+                )}
             </p>
 
             <div id="getting-started#overview" className="mb-12">
                 <h2 className="text-2xl font-bold text-white mb-4 border-b border-indigo-900/30 pb-2">
-                    Overview
+                    {highlightSearch("Overview")}
                 </h2>
 
                 <p className="text-gray-300 mb-4">
-                    Supmap is a community-powered navigation platform that
-                    provides real-time traffic updates, optimal routing, and
-                    incident reporting. Our platform combines advanced
-                    navigation tools with community-verified data to help you
-                    reach your destination faster and safer.
+                    {highlightSearch(
+                        "Supmap is a community-powered navigation platform that provides real-time traffic updates, optimal routing, and incident reporting. Our platform combines advanced navigation tools with community-verified data to help you reach your destination faster and safer."
+                    )}
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -34,11 +72,12 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                         </div>
                         <div>
                             <h3 className="font-medium text-white mb-1">
-                                Web Application
+                                {highlightSearch("Web Application")}
                             </h3>
                             <p className="text-gray-400 text-sm">
-                                Plan routes, explore traffic patterns, and
-                                manage your account
+                                {highlightSearch(
+                                    "Plan routes, explore traffic patterns, and manage your account"
+                                )}
                             </p>
                         </div>
                     </div>
@@ -49,11 +88,12 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                         </div>
                         <div>
                             <h3 className="font-medium text-white mb-1">
-                                Mobile Apps
+                                {highlightSearch("Mobile Apps")}
                             </h3>
                             <p className="text-gray-400 text-sm">
-                                Navigate on-the-go with iOS and Android
-                                applications
+                                {highlightSearch(
+                                    "Navigate on-the-go with iOS and Android applications"
+                                )}
                             </p>
                         </div>
                     </div>
@@ -64,11 +104,12 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                         </div>
                         <div>
                             <h3 className="font-medium text-white mb-1">
-                                Real-time Navigation
+                                {highlightSearch("Real-time Navigation")}
                             </h3>
                             <p className="text-gray-400 text-sm">
-                                Get traffic-aware directions with automatic
-                                rerouting
+                                {highlightSearch(
+                                    "Get traffic-aware directions with automatic rerouting"
+                                )}
                             </p>
                         </div>
                     </div>
@@ -79,11 +120,12 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                         </div>
                         <div>
                             <h3 className="font-medium text-white mb-1">
-                                Community Reports
+                                {highlightSearch("Community Reports")}
                             </h3>
                             <p className="text-gray-400 text-sm">
-                                Report and verify traffic incidents to help
-                                other users
+                                {highlightSearch(
+                                    "Report and verify traffic incidents to help other users"
+                                )}
                             </p>
                         </div>
                     </div>
@@ -103,48 +145,54 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                                 clipRule="evenodd"
                             ></path>
                         </svg>
-                        Did you know?
+                        {highlightSearch("Did you know?")}
                     </h4>
                     <p className="text-gray-300 text-sm">
-                        Supmap users report over 10,000 incidents daily, helping
-                        fellow drivers save an average of 15 minutes on their
-                        commutes.
+                        {highlightSearch(
+                            "Supmap users report over 10,000 incidents daily, helping fellow drivers save an average of 15 minutes on their commutes."
+                        )}
                     </p>
                 </div>
             </div>
 
             <div id="getting-started#installation" className="mb-12">
                 <h2 className="text-2xl font-bold text-white mb-4 border-b border-indigo-900/30 pb-2">
-                    Installation
+                    {highlightSearch("Installation")}
                 </h2>
 
                 <h3 className="text-xl font-medium text-white mb-4">
-                    Web Application
+                    {highlightSearch("Web Application")}
                 </h3>
 
                 <p className="text-gray-300 mb-4">
-                    The Supmap web application is accessible directly through
-                    your browser. No installation is required – simply visit
+                    {highlightSearch(
+                        "The Supmap web application is accessible directly through your browser. No installation is required – simply visit "
+                    )}
                     <a
                         href="/navigation"
                         className="text-indigo-400 hover:text-indigo-300 transition-colors duration-300"
                     >
-                        {" "}app.supmap.com{" "}
+                        {highlightSearch("app.supmap.com")}
                     </a>
-                    to get started.
+                    {highlightSearch(" to get started.")}
                 </p>
 
                 <h3 className="text-xl font-medium text-white mb-4 mt-6">
-                    Mobile Applications
+                    {highlightSearch("Mobile Applications")}
                 </h3>
 
                 <p className="text-gray-300 mb-4">
-                    Download the Supmap mobile app from your device's app store:
+                    {highlightSearch(
+                        "Download the Supmap mobile app from your device's app store:"
+                    )}
                 </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6"
+                    onClick={() => navigate("/mobile/app")}
+                >
                     <a
-                        href="#"
+                        href="./pages/common/MobileApp.tsx"
                         className="bg-[rgba(15,18,30,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(20,25,40,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-blue-500/10 rounded-lg text-blue-400">
@@ -159,10 +207,10 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                         </div>
                         <div>
                             <p className="text-white font-medium">
-                                Download on the
+                                {highlightSearch("Download on the")}
                             </p>
                             <p className="text-xl text-white font-semibold">
-                                App Store
+                                {highlightSearch("App Store")}
                             </p>
                         </div>
                     </a>
@@ -182,9 +230,11 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                             </svg>
                         </div>
                         <div>
-                            <p className="text-white font-medium">Get it on</p>
+                            <p className="text-white font-medium">
+                                {highlightSearch("Get it on")}
+                            </p>
                             <p className="text-xl text-white font-semibold">
-                                Google Play
+                                {highlightSearch("Google Play")}
                             </p>
                         </div>
                     </a>
@@ -204,13 +254,15 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                                 clipRule="evenodd"
                             ></path>
                         </svg>
-                        System Requirements
+                        {highlightSearch("System Requirements")}
                     </h4>
                     <ul className="text-gray-300 text-sm list-disc list-inside ml-2 space-y-1">
-                        <li>iOS 13.0 or later</li>
-                        <li>Android 8.0 or later</li>
+                        <li>{highlightSearch("iOS 13.0 or later")}</li>
+                        <li>{highlightSearch("Android 8.0 or later")}</li>
                         <li>
-                            Modern web browser (Chrome, Firefox, Safari, Edge)
+                            {highlightSearch(
+                                "Modern web browser (Chrome, Firefox, Safari, Edge)"
+                            )}
                         </li>
                     </ul>
                 </div>
@@ -218,13 +270,13 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
 
             <div id="getting-started#account-creation" className="mb-12">
                 <h2 className="text-2xl font-bold text-white mb-4 border-b border-indigo-900/30 pb-2">
-                    Creating an Account
+                    {highlightSearch("Creating an Account")}
                 </h2>
 
                 <p className="text-gray-300 mb-4">
-                    While Supmap offers basic navigation features without
-                    registration, creating an account unlocks the full potential
-                    of the platform, including:
+                    {highlightSearch(
+                        "While Supmap offers basic navigation features without registration, creating an account unlocks the full potential of the platform, including:"
+                    )}
                 </p>
 
                 <ul className="text-gray-300 mb-6 space-y-2">
@@ -243,7 +295,9 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                                 d="M5 13l4 4L19 7"
                             ></path>
                         </svg>
-                        Saving favorite locations and routes
+                        {highlightSearch(
+                            "Saving favorite locations and routes"
+                        )}
                     </li>
                     <li className="flex items-start">
                         <svg
@@ -260,7 +314,9 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                                 d="M5 13l4 4L19 7"
                             ></path>
                         </svg>
-                        Syncing data across multiple devices
+                        {highlightSearch(
+                            "Syncing data across multiple devices"
+                        )}
                     </li>
                     <li className="flex items-start">
                         <svg
@@ -277,8 +333,9 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                                 d="M5 13l4 4L19 7"
                             ></path>
                         </svg>
-                        Contributing to the community by reporting and verifying
-                        incidents
+                        {highlightSearch(
+                            "Contributing to the community by reporting and verifying incidents"
+                        )}
                     </li>
                     <li className="flex items-start">
                         <svg
@@ -295,42 +352,58 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                                 d="M5 13l4 4L19 7"
                             ></path>
                         </svg>
-                        Accessing your travel history and statistics
+                        {highlightSearch(
+                            "Accessing your travel history and statistics"
+                        )}
                     </li>
                 </ul>
 
                 <h3 className="text-xl font-medium text-white mb-4">
-                    Sign-up Options
+                    {highlightSearch("Sign-up Options")}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="bg-[rgba(15,18,30,0.6)] p-5 rounded-lg border border-indigo-900/30">
                         <h4 className="font-medium text-white mb-3">
-                            Email Registration
+                            {highlightSearch("Email Registration")}
                         </h4>
                         <p className="text-gray-400 text-sm mb-4">
-                            Create an account using your email address and a
-                            secure password.
+                            {highlightSearch(
+                                "Create an account using your email address and a secure password."
+                            )}
                         </p>
                         <ol className="text-gray-300 text-sm space-y-2 list-decimal list-inside ml-1">
-                            <li>Click "Sign Up" in the top-right corner</li>
-                            <li>Enter your email address</li>
-                            <li>Create a password (min. 8 characters)</li>
-                            <li>Verify your email address</li>
+                            <li>
+                                {highlightSearch(
+                                    'Click "Sign Up" in the top-right corner'
+                                )}
+                            </li>
+                            <li>
+                                {highlightSearch("Enter your email address")}
+                            </li>
+                            <li>
+                                {highlightSearch(
+                                    "Create a password (min. 8 characters)"
+                                )}
+                            </li>
+                            <li>
+                                {highlightSearch("Verify your email address")}
+                            </li>
                         </ol>
                     </div>
 
                     <div className="bg-[rgba(15,18,30,0.6)] p-5 rounded-lg border border-indigo-900/30">
                         <h4 className="font-medium text-white mb-3">
-                            Social Login
+                            {highlightSearch("Social Login")}
                         </h4>
                         <p className="text-gray-400 text-sm mb-4">
-                            Use your existing social accounts for quicker
-                            registration.
+                            {highlightSearch(
+                                "Use your existing social accounts for quicker registration."
+                            )}
                         </p>
                         <div className="space-y-3">
                             <button className="w-full py-2 px-4 bg-white text-gray-800 text-sm font-medium rounded flex items-center justify-center">
-                                Continue with Google
+                                {highlightSearch("Continue with Google")}
                             </button>
                         </div>
                     </div>
@@ -339,12 +412,13 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
 
             <div id="getting-started#first-steps" className="mb-12">
                 <h2 className="text-2xl font-bold text-white mb-4 border-b border-indigo-900/30 pb-2">
-                    First Steps
+                    {highlightSearch("First Steps")}
                 </h2>
 
                 <p className="text-gray-300 mb-6">
-                    Now that you have Supmap installed and your account set up,
-                    let's explore some basic features to get you started:
+                    {highlightSearch(
+                        "Now that you have Supmap installed and your account set up, let's explore some basic features to get you started:"
+                    )}
                 </p>
 
                 <div className="space-y-6">
@@ -354,22 +428,33 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                                 <span className="text-2xl font-bold">1</span>
                             </div>
                             <h3 className="text-xl font-medium text-white text-center">
-                                Set Your Home & Work
+                                {highlightSearch("Set Your Home & Work")}
                             </h3>
                         </div>
                         <div className="p-5 md:w-2/3 border-t md:border-t-0 md:border-l border-indigo-900/30">
                             <p className="text-gray-300 mb-4">
-                                Adding your home and work locations helps Supmap
-                                provide quicker navigation and relevant traffic
-                                updates for your daily commute.
+                                {highlightSearch(
+                                    "Adding your home and work locations helps Supmap provide quicker navigation and relevant traffic updates for your daily commute."
+                                )}
                             </p>
                             <ol className="text-gray-300 space-y-2 list-decimal list-inside ml-1">
-                                <li>Go to your profile settings</li>
-                                <li>Select "Saved Places"</li>
-                                <li>Add your Home and Work addresses</li>
                                 <li>
-                                    You can now quickly navigate to these
-                                    locations from the main screen
+                                    {highlightSearch(
+                                        "Go to your profile settings"
+                                    )}
+                                </li>
+                                <li>
+                                    {highlightSearch('Select "Saved Places"')}
+                                </li>
+                                <li>
+                                    {highlightSearch(
+                                        "Add your Home and Work addresses"
+                                    )}
+                                </li>
+                                <li>
+                                    {highlightSearch(
+                                        "You can now quickly navigate to these locations from the main screen"
+                                    )}
                                 </li>
                             </ol>
                         </div>
@@ -381,38 +466,41 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                                 <span className="text-2xl font-bold">2</span>
                             </div>
                             <h3 className="text-xl font-medium text-white text-center">
-                                Explore the Map
+                                {highlightSearch("Explore the Map")}
                             </h3>
                         </div>
                         <div className="p-5 md:w-2/3 border-t md:border-t-0 md:border-l border-indigo-900/30">
                             <p className="text-gray-300 mb-4">
-                                Familiarize yourself with the map interface to
-                                understand traffic conditions at a glance.
+                                {highlightSearch(
+                                    "Familiarize yourself with the map interface to understand traffic conditions at a glance."
+                                )}
                             </p>
                             <ul className="text-gray-300 space-y-2">
                                 <li>
                                     <span className="text-green-400 font-medium">
-                                        Green roads:
+                                        {highlightSearch("Green roads:")}
                                     </span>{" "}
-                                    Free-flowing traffic
+                                    {highlightSearch("Free-flowing traffic")}
                                 </li>
                                 <li>
                                     <span className="text-yellow-400 font-medium">
-                                        Yellow roads:
+                                        {highlightSearch("Yellow roads:")}
                                     </span>{" "}
-                                    Moderate congestion
+                                    {highlightSearch("Moderate congestion")}
                                 </li>
                                 <li>
                                     <span className="text-red-400 font-medium">
-                                        Red roads:
+                                        {highlightSearch("Red roads:")}
                                     </span>{" "}
-                                    Heavy traffic
+                                    {highlightSearch("Heavy traffic")}
                                 </li>
                                 <li>
                                     <span className="text-purple-400 font-medium">
-                                        Icons:
+                                        {highlightSearch("Icons:")}
                                     </span>{" "}
-                                    Incidents reported by the community
+                                    {highlightSearch(
+                                        "Incidents reported by the community"
+                                    )}
                                 </li>
                             </ul>
                         </div>
@@ -424,27 +512,35 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                                 <span className="text-2xl font-bold">3</span>
                             </div>
                             <h3 className="text-xl font-medium text-white text-center">
-                                Start Navigating
+                                {highlightSearch("Start Navigating")}
                             </h3>
                         </div>
                         <div className="p-5 md:w-2/3 border-t md:border-t-0 md:border-l border-indigo-900/30">
                             <p className="text-gray-300 mb-4">
-                                Begin your first journey with Supmap:
+                                {highlightSearch(
+                                    "Begin your first journey with Supmap:"
+                                )}
                             </p>
                             <ol className="text-gray-300 space-y-2 list-decimal list-inside ml-1">
                                 <li>
-                                    Tap the search bar at the top of the screen
+                                    {highlightSearch(
+                                        "Tap the search bar at the top of the screen"
+                                    )}
                                 </li>
                                 <li>
-                                    Enter your destination or select from saved
-                                    places
+                                    {highlightSearch(
+                                        "Enter your destination or select from saved places"
+                                    )}
                                 </li>
                                 <li>
-                                    Review the suggested routes and select one
+                                    {highlightSearch(
+                                        "Review the suggested routes and select one"
+                                    )}
                                 </li>
                                 <li>
-                                    Tap "Start Navigation" to begin turn-by-turn
-                                    directions
+                                    {highlightSearch(
+                                        'Tap "Start Navigation" to begin turn-by-turn directions'
+                                    )}
                                 </li>
                             </ol>
                         </div>
@@ -465,27 +561,31 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                                 clipRule="evenodd"
                             ></path>
                         </svg>
-                        Pro Tip
+                        {highlightSearch("Pro Tip")}
                     </h4>
                     <p className="text-gray-300 text-sm">
-                        Enable voice guidance in the settings menu for safer,
-                        hands-free navigation.
+                        {highlightSearch(
+                            "Enable voice guidance in the settings menu for safer, hands-free navigation."
+                        )}
                     </p>
                 </div>
             </div>
 
             <div className="bg-[rgba(15,18,30,0.8)] backdrop-blur-md shadow-lg border border-indigo-900/30 rounded-lg p-6 mb-6">
                 <h2 className="text-xl font-bold text-white mb-4">
-                    Next Steps
+                    {highlightSearch("Next Steps")}
                 </h2>
                 <p className="text-gray-300 mb-4">
-                    Now that you're familiar with the basics, explore these
-                    guides to get more out of Supmap:
+                    {highlightSearch(
+                        "Now that you're familiar with the basics, explore these guides to get more out of Supmap:"
+                    )}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <a
                         href="#navigation-guide"
-                        onClick={(event) => handleLinkClick(event, 'navigation-guide')}
+                        onClick={(event) =>
+                            handleLinkClick(event, "navigation-guide")
+                        }
                         className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
@@ -493,37 +593,56 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                         </div>
                         <div>
                             <h3 className="font-medium text-white">
-                                Navigation Guide
+                                {highlightSearch("Navigation Guide")}
                             </h3>
                             <p className="text-gray-400 text-sm">
-                                Master route planning and preferences
+                                {highlightSearch(
+                                    "Master route planning and preferences"
+                                )}
                             </p>
                         </div>
                     </a>
 
                     <a
                         href="#alerts-reporting"
-                        onClick={(event) => handleLinkClick(event, 'alerts-reporting')}
+                        onClick={(event) =>
+                            handleLinkClick(event, "alerts-reporting")
+                        }
                         className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-yellow-500/10 rounded-lg text-yellow-400">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                ></path>
                             </svg>
                         </div>
                         <div>
                             <h3 className="font-medium text-white">
-                                Alerts & Reporting
+                                {highlightSearch("Alerts & Reporting")}
                             </h3>
                             <p className="text-gray-400 text-sm">
-                                Report and verify traffic incidents
+                                {highlightSearch(
+                                    "Report and verify traffic incidents"
+                                )}
                             </p>
                         </div>
                     </a>
 
                     <a
                         href="#account-management"
-                        onClick={(event) => handleLinkClick(event, 'account-management')}
+                        onClick={(event) =>
+                            handleLinkClick(event, "account-management")
+                        }
                         className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-purple-500/10 rounded-lg text-purple-400">
@@ -531,17 +650,21 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                         </div>
                         <div>
                             <h3 className="font-medium text-white">
-                                Account Management
+                                {highlightSearch("Account Management")}
                             </h3>
                             <p className="text-gray-400 text-sm">
-                                Privacy and profile settings
+                                {highlightSearch(
+                                    "Privacy and profile settings"
+                                )}
                             </p>
                         </div>
                     </a>
 
                     <a
                         href="#mobile-app"
-                        onClick={(event) => handleLinkClick(event, 'mobile-app')}
+                        onClick={(event) =>
+                            handleLinkClick(event, "mobile-app")
+                        }
                         className="bg-[rgba(30,33,45,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(40,44,60,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-blue-500/10 rounded-lg text-blue-400">
@@ -549,10 +672,12 @@ const GettingStarted: React.FC<{ handleLinkClick: (event: React.MouseEvent<HTMLA
                         </div>
                         <div>
                             <h3 className="font-medium text-white">
-                                Mobile App
+                                {highlightSearch("Mobile App")}
                             </h3>
                             <p className="text-gray-400 text-sm">
-                                Get the most from the mobile experience
+                                {highlightSearch(
+                                    "Get the most from the mobile experience"
+                                )}
                             </p>
                         </div>
                     </a>
