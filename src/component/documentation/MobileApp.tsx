@@ -203,6 +203,9 @@ const MobileApp: React.FC<MobileAppProps> = ({
                 </div>
 
                 <div className="bg-indigo-900/20 border border-indigo-500/30 rounded-lg p-4 mb-6">
+                    <a
+                        href="/mobile/app"
+                    >
                     <h4 className="text-indigo-400 font-medium flex items-center mb-2">
                         <Download className="w-5 h-5 mr-2" />
                         {highlightSearch("Direct Download")}
@@ -212,6 +215,7 @@ const MobileApp: React.FC<MobileAppProps> = ({
                             "You can also download the app directly from our website at supmap.com/download. This is useful for Android users without Google Play or for downloading specific versions. iOS users will still need to use the App Store due to Apple's restrictions."
                         )}
                     </p>
+                    </a>
                 </div>
             </div>
 

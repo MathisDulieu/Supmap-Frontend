@@ -1,5 +1,4 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import {
     Smartphone,
     Monitor,
@@ -39,8 +38,6 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             )
         );
     };
-
-    const navigate = useNavigate();
 
     return (
         <div>
@@ -189,10 +186,9 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
 
                 <div
                     className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6"
-                    onClick={() => navigate("/mobile/app")}
                 >
                     <a
-                        href="./pages/common/MobileApp.tsx"
+                        href="/mobile/app"
                         className="bg-[rgba(15,18,30,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(20,25,40,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-blue-500/10 rounded-lg text-blue-400">
@@ -216,7 +212,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                     </a>
 
                     <a
-                        href="#"
+                        href="/mobile/app"
                         className="bg-[rgba(15,18,30,0.6)] p-4 rounded-lg flex items-center border border-indigo-900/30 hover:bg-[rgba(20,25,40,0.6)] transition-colors"
                     >
                         <div className="mr-4 p-2 bg-green-500/10 rounded-lg text-green-400">
