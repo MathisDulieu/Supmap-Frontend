@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getAllAlertsByPosition } from './map';
 
 interface Alert {
     id: string;
@@ -20,6 +21,7 @@ export function useNearbyAlerts(map: google.maps.Map | null) {
     const [error, setError] = useState<string | null>(null);
     const controllerRef = useRef<AbortController | null>(null);
     const lastFetchRef = useRef<number>(0);
+    const isActiveRef = useRef<boolean>(true);
     const MIN_FETCH_INTERVAL = 10000;
 
     const clearMarkers = useCallback(() => {
@@ -28,8 +30,10 @@ export function useNearbyAlerts(map: google.maps.Map | null) {
     }, [markers]);
 
     const addMarkers = useCallback((alerts: Alert[]) => {
-        if (!map) return;
+        if (!map || !isActiveRef.current) return;
+
         clearMarkers();
+
         const ms: google.maps.Marker[] = alerts.map(alert => {
             const marker = new window.google.maps.Marker({
                 position: { lat: alert.location.latitude, lng: alert.location.longitude },
@@ -44,18 +48,21 @@ export function useNearbyAlerts(map: google.maps.Map | null) {
                     strokeColor: '#ffffff'
                 }
             });
+
             const info = new window.google.maps.InfoWindow({
                 content: `<div style="min-width:160px"><strong>${alert.type.replace('_', ' ')}</strong><br>${alert.roadName}<br>${alert.description}</div>`
             });
+
             marker.addListener('click', () => info.open({ anchor: marker, map }));
             return marker;
         });
+
         setMarkers(ms);
     }, [map, clearMarkers]);
 
     const fetchAlerts = useCallback(
         async (lat: number, lng: number) => {
-            if (!map) return;
+            if (!map || !isActiveRef.current) return;
 
             const now = Date.now();
             if (now - lastFetchRef.current < MIN_FETCH_INTERVAL) {
@@ -65,6 +72,7 @@ export function useNearbyAlerts(map: google.maps.Map | null) {
 
             if (controllerRef.current) {
                 controllerRef.current?.abort();
+                controllerRef.current = null;
             }
 
             controllerRef.current = new AbortController();
@@ -74,29 +82,18 @@ export function useNearbyAlerts(map: google.maps.Map | null) {
             setError(null);
 
             try {
-                const res = await fetch(
-                    `${window.env?.API_BASE_URL ?? ''}/map/alerts/position`,
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-                        body: JSON.stringify({ latitude: lat, longitude: lng }),
-                        signal: controllerRef.current.signal
-                    }
-                );
+                console.log(`Fetching alerts for location (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
 
-                if (!res.ok) {
-                    if (res.status === 429) {
-                        console.warn('Rate limit reached for alerts API');
-                        setError('Too many requests. Please try again later.');
-                        return;
-                    }
-                    console.error(`Error fetching alerts: ${res.status}`);
+                // Utiliser la fonction importée au lieu de fetch direct
+                const data = await getAllAlertsByPosition(lat, lng);
+
+                console.log(`Received ${data.alerts?.length || 0} alerts`);
+
+                if (isActiveRef.current && data.alerts) {
+                    addMarkers(data.alerts);
                 }
-
-                const data = await res.json();
-                if (data.alerts) addMarkers(data.alerts);
             } catch (e: any) {
-                if (controllerRef.current?.signal.aborted) {
+                if (e.name === 'AbortError') {
                     console.log('Alerts fetch aborted');
                 } else {
                     console.error('Failed to fetch alerts', e);
@@ -110,9 +107,14 @@ export function useNearbyAlerts(map: google.maps.Map | null) {
     );
 
     useEffect(() => {
+        isActiveRef.current = true;
+
         return () => {
+            isActiveRef.current = false;
+
             if (controllerRef.current) {
                 controllerRef.current?.abort();
+                controllerRef.current = null;
             }
             clearMarkers();
         };
