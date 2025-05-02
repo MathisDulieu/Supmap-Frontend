@@ -16,34 +16,12 @@ interface RoutePoint {
 
 const API_BASE_URL = (window as any).env && (window as any).env.API_BASE_URL ? (window as any).env.API_BASE_URL : '';
 
-function getAuthToken(): string | null {
+export async function getAuthToken(): Promise<string | null> {
     const cookiesAccepted = localStorage.getItem('cookiesAccepted') === 'true';
     const cookieToken = Cookies.get('authToken');
     const localToken = localStorage.getItem('authToken');
 
     return cookiesAccepted ? (cookieToken || null) : localToken;
-}
-
-export async function getMapAdminDashboardData(): Promise<MapResponse> {
-    const authToken = getAuthToken();
-
-    if (!authToken) {
-        throw new Error('Authentication token not found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/private/admin/map/dashboard-data`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(await response.text());
-    }
-
-    return await response.json();
 }
 
 export async function getAllAlertsByPosition(latitude: number, longitude: number): Promise<MapResponse> {
@@ -359,6 +337,5 @@ export async function shareRoute(
       const text = await res.text();
       throw new Error(text || 'Failed to share route');
     }
-    // le serveur renvoie directement l’URL du QR en plain text
     return res.text();
   }

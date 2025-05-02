@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './services/AuthContext.tsx';
 import { GeolocationProvider } from './services/GeolocationContext.tsx';
 import PrivateRoute from './services/PrivateRoute.tsx';
@@ -30,8 +30,11 @@ import RegisterEmail from './pages/auth/RegisterEmail.tsx';
 import Profile from './pages/user/Profile.tsx';
 import ProfileSettings from './pages/user/ProfileSettings.tsx';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+    const location = useLocation();
     const [showCookiesPopUp, setShowCookiesPopUp] = useState(false);
+
+    const showHeader = location.pathname !== '/navigation';
 
     useEffect(() => {
         const cookiesAccepted = localStorage.getItem('cookiesAccepted');
@@ -55,50 +58,56 @@ const App: React.FC = () => {
     };
 
     return (
+        <div className="flex flex-col min-h-screen">
+            {showHeader && <Header />}
+            <GeolocationPrompt />
+            <CookiesPopUp
+                showCookiesPopUp={showCookiesPopUp}
+                onAccept={handleCookiesAccept}
+                onReject={handleCookiesReject}
+            />
+
+            <main className="flex-grow">
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/navigation" element={<Navigation />} />
+                    <Route path="/support" element={<Support />} />
+                    <Route path="/mobile/app" element={<MobileApp />} />
+                    <Route path="/terms-of-use" element={<TermsOfUse />} />
+                    <Route path="/cookies-policy" element={<CookiesPolicy />} />
+                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/documentation" element={<Documentation />} />
+
+                    <Route element={<PrivateRoute requireAuth={false} redirectPath="/" />}>
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                        <Route path="/reset-password/:token" element={<ResetPassword />} />
+                        <Route path="/email-validation/:token" element={<EmailValidation />} />
+                        <Route path="/register/email" element={<RegisterEmail />} />
+                    </Route>
+
+                    <Route element={<PrivateRoute requireAuth={true} redirectPath="/login" />}>
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/profile/settings" element={<ProfileSettings />} />
+                    </Route>
+
+                    <Route path="*" element={<NotFound />} />
+                </Routes>
+            </main>
+
+            <Footer />
+        </div>
+    );
+};
+
+const App: React.FC = () => {
+    return (
         <AuthProvider>
             <GeolocationProvider>
                 <Router>
-                    <div className="flex flex-col min-h-screen">
-                        <Header />
-                        <GeolocationPrompt />
-                        <CookiesPopUp
-                            showCookiesPopUp={showCookiesPopUp}
-                            onAccept={handleCookiesAccept}
-                            onReject={handleCookiesReject}
-                        />
-
-                        <main className="flex-grow">
-                            <Routes>
-                                <Route path="/" element={<Home />} />
-                                <Route path="/navigation" element={<Navigation />} />
-                                <Route path="/support" element={<Support />} />
-                                <Route path="/mobile/app" element={<MobileApp />} />
-                                <Route path="/terms-of-use" element={<TermsOfUse />} />
-                                <Route path="/cookies-policy" element={<CookiesPolicy />} />
-                                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                                <Route path="/about" element={<About />} />
-                                <Route path="/documentation" element={<Documentation />} />
-
-                                <Route element={<PrivateRoute requireAuth={false} redirectPath="/" />}>
-                                    <Route path="/login" element={<Login />} />
-                                    <Route path="/register" element={<Register />} />
-                                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                                    <Route path="/reset-password/:token" element={<ResetPassword />} />
-                                    <Route path="/email-validation/:token" element={<EmailValidation />} />
-                                    <Route path="/register/email" element={<RegisterEmail />} />
-                                </Route>
-
-                                <Route element={<PrivateRoute requireAuth={true} redirectPath="/login" />}>
-                                    <Route path="/profile" element={<Profile />} />
-                                    <Route path="/profile/settings" element={<ProfileSettings />} />
-                                </Route>
-
-                                <Route path="*" element={<NotFound />} />
-                            </Routes>
-                        </main>
-
-                        <Footer />
-                    </div>
+                    <AppContent />
                 </Router>
             </GeolocationProvider>
         </AuthProvider>
