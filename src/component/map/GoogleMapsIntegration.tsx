@@ -106,7 +106,7 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                                     path: window.google.maps.SymbolPath.CIRCLE,
                                     scale: 10,
                                     fillOpacity: 1,
-                                    fillColor: '#4F46E5', // Indigo color
+                                    fillColor: '#4F46E5',
                                     strokeWeight: 2,
                                     strokeColor: '#ffffff'
                                 },

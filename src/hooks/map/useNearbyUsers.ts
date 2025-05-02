@@ -17,6 +17,8 @@ export function useNearbyUsers(map: google.maps.Map | null, isAuthenticated: boo
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const controllerRef = useRef<AbortController | null>(null);
+    const lastFetchRef = useRef<number>(0);
+    const MIN_FETCH_INTERVAL = 20000;
 
     const clearMarkers = useCallback(() => {
         markers.forEach(marker => marker.setMap(null));
@@ -49,12 +51,12 @@ export function useNearbyUsers(map: google.maps.Map | null, isAuthenticated: boo
             const lastUpdated = new Date(user.lastUpdated).toLocaleString();
             const info = new window.google.maps.InfoWindow({
                 content: `
-          <div style="min-width:150px">
-            <strong>${user.username}</strong>
-            <br>
-            <small>Last seen: ${lastUpdated}</small>
-          </div>
-        `
+                  <div style="min-width:150px">
+                    <strong>${user.username}</strong>
+                    <br>
+                    <small>Last seen: ${lastUpdated}</small>
+                  </div>
+                `
             });
 
             marker.addListener('click', () => info.open({ anchor: marker, map }));
@@ -68,8 +70,18 @@ export function useNearbyUsers(map: google.maps.Map | null, isAuthenticated: boo
     const fetchNearbyUsers = useCallback(async (latitude: number, longitude: number) => {
         if (!map || !isAuthenticated) return;
 
-        controllerRef.current?.abort();
+        const now = Date.now();
+        if (now - lastFetchRef.current < MIN_FETCH_INTERVAL) {
+            console.log('Skipping nearby users fetch - too soon since last fetch');
+            return;
+        }
+
+        if (controllerRef.current) {
+            controllerRef.current?.abort();
+        }
+
         controllerRef.current = new AbortController();
+        lastFetchRef.current = now;
 
         setLoading(true);
         setError(null);
@@ -84,6 +96,10 @@ export function useNearbyUsers(map: google.maps.Map | null, isAuthenticated: boo
             if (controllerRef.current?.signal.aborted) {
                 console.log('Fetch nearby users aborted');
             } else {
+                if (e.message === 'Too many requests. Please try again later.') {
+                    console.warn('Rate limit reached for nearby users API');
+                    lastFetchRef.current = now + 60000;
+                }
                 console.error('Failed to fetch nearby users', e);
                 setError(e.message || 'Failed to fetch nearby users');
             }
@@ -91,6 +107,15 @@ export function useNearbyUsers(map: google.maps.Map | null, isAuthenticated: boo
             setLoading(false);
         }
     }, [map, isAuthenticated, addMarkers]);
+
+    const throttledFetchNearbyUsers = useCallback((latitude: number, longitude: number) => {
+        const now = Date.now();
+        if (now - lastFetchRef.current < MIN_FETCH_INTERVAL) {
+            console.log('Throttled fetchNearbyUsers - too soon');
+            return;
+        }
+        fetchNearbyUsers(latitude, longitude);
+    }, [fetchNearbyUsers]);
 
     useEffect(() => {
         return () => {
@@ -103,7 +128,7 @@ export function useNearbyUsers(map: google.maps.Map | null, isAuthenticated: boo
         users,
         loading,
         error,
-        fetchNearbyUsers,
+        fetchNearbyUsers: throttledFetchNearbyUsers,
         clearMarkers
     };
 }

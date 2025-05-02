@@ -31,6 +31,8 @@ export function useRouteAlerts(map: google.maps.Map | null) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const controllerRef = useRef<AbortController | null>(null);
+    const lastFetchRef = useRef<number>(0);
+    const MIN_FETCH_INTERVAL = 15000;
 
     const clearAlertMarkers = useCallback(() => {
         markers.forEach(marker => marker.setMap(null));
@@ -94,13 +96,27 @@ export function useRouteAlerts(map: google.maps.Map | null) {
         });
 
         setMarkers(newMarkers);
+
+        if ((window as any).currentRouteAlerts !== routeAlerts) {
+            (window as any).currentRouteAlerts = routeAlerts;
+        }
     }, [map, clearAlertMarkers]);
 
     const fetchRouteAlerts = useCallback(async (routePoints: RoutePoint[]) => {
         if (!map || routePoints.length < 2) return;
 
-        controllerRef.current?.abort();
+        const now = Date.now();
+        if (now - lastFetchRef.current < MIN_FETCH_INTERVAL) {
+            console.log('Skipping route alerts fetch - too soon since last fetch');
+            return;
+        }
+
+        if (controllerRef.current) {
+            controllerRef.current?.abort();
+        }
+
         controllerRef.current = new AbortController();
+        lastFetchRef.current = now;
 
         setLoading(true);
         setError(null);
@@ -120,6 +136,10 @@ export function useRouteAlerts(map: google.maps.Map | null) {
             if (controllerRef.current?.signal.aborted) {
                 console.log('Fetch route alerts aborted');
             } else {
+                if (e.message?.includes('Too many requests') || e.message?.includes('429')) {
+                    console.warn('Rate limit reached for route alerts API');
+                    lastFetchRef.current = now + 60000;
+                }
                 console.error('Failed to fetch route alerts', e);
                 setError(e.message || 'Failed to fetch alerts for this route');
             }
@@ -127,6 +147,15 @@ export function useRouteAlerts(map: google.maps.Map | null) {
             setLoading(false);
         }
     }, [map, addAlertMarkers]);
+
+    const throttledFetchRouteAlerts = useCallback((routePoints: RoutePoint[]) => {
+        const now = Date.now();
+        if (now - lastFetchRef.current < MIN_FETCH_INTERVAL) {
+            console.log('Throttled fetchRouteAlerts - too soon');
+            return;
+        }
+        fetchRouteAlerts(routePoints);
+    }, [fetchRouteAlerts]);
 
     const sampleRoutePoints = (points: RoutePoint[], maxPoints: number): RoutePoint[] => {
         if (points.length <= maxPoints) return points;
@@ -158,6 +187,9 @@ export function useRouteAlerts(map: google.maps.Map | null) {
         return () => {
             clearAlertMarkers();
             controllerRef.current?.abort();
+            if ((window as any).currentRouteAlerts) {
+                delete (window as any).currentRouteAlerts;
+            }
         };
     }, [clearAlertMarkers]);
 
@@ -165,7 +197,7 @@ export function useRouteAlerts(map: google.maps.Map | null) {
         alerts,
         loading,
         error,
-        fetchRouteAlerts,
+        fetchRouteAlerts: throttledFetchRouteAlerts,
         clearAlertMarkers,
         extractRoutePoints
     };
