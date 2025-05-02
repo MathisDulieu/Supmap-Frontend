@@ -1,8 +1,8 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {useNearbyAlerts} from '../../hooks/map/useNearbyAlerts';
-import {useNearbyUsers} from '../../hooks/map/useNearbyUsers';
-import {useRouteAlerts} from '../../hooks/map/useRouteAlerts';
-import {RouteDetails, TravelMode, Waypoint} from '../../hooks/map/types/map.ts';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useNearbyAlerts } from '../../hooks/map/useNearbyAlerts';
+import { useNearbyUsers } from '../../hooks/map/useNearbyUsers';
+import { useRouteAlerts } from '../../hooks/map/useRouteAlerts';
+import { Waypoint, TravelMode, RouteDetails } from '../../hooks/map/types/map.ts';
 
 declare global {
     interface Window {
@@ -72,13 +72,13 @@ const GoogleMapsIntegration: React.FC<Props> = ({
     const [currentRouteDetails, setCurrentRouteDetails] = useState<any>(null);
     const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
 
+    // Référence pour limiter les appels API
     const lastLocationUpdateRef = useRef<number>(0);
     const lastNearbyUsersFetchRef = useRef<number>(0);
     const prevPositionRef = useRef<{lat: number, lng: number} | null>(null);
-    const locationUpdateCountRef = useRef<number>(0);
-    const MIN_LOCATION_UPDATE_INTERVAL = 180000;
-    const MIN_NEARBY_USERS_FETCH_INTERVAL = 300000;
+    const MIN_LOCATION_UPDATE_INTERVAL = 180000; // 3 minutes
 
+    // Utilisation des hooks avec map potentiellement null au début
     const { fetchAlerts, clearMarkers: clearAlertMarkers } = useNearbyAlerts(map);
     const {
         fetchNearbyUsers,
@@ -90,22 +90,14 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         extractRoutePoints
     } = useRouteAlerts(map);
 
-    const throttledFetchNearbyUsers = useCallback((lat: number, lng: number) => {
-        const now = Date.now();
-        if (now - lastNearbyUsersFetchRef.current < MIN_NEARBY_USERS_FETCH_INTERVAL) {
-            return;
-        }
-        fetchNearbyUsers(lat, lng);
-        lastNearbyUsersFetchRef.current = now;
-    }, [fetchNearbyUsers]);
-
+    // Fonction pour obtenir la position de l'utilisateur
+    // IMPORTANT : Cette fonction ne doit être appelée qu'en réponse à une interaction utilisateur
+    // ou après l'initialisation initiale de la carte
     const getUserLocation = useCallback(() => {
+        // Limiter la fréquence des mises à jour de position
         const now = Date.now();
         if (now - lastLocationUpdateRef.current < MIN_LOCATION_UPDATE_INTERVAL) {
-            locationUpdateCountRef.current++;
-            if (locationUpdateCountRef.current % 5 !== 0) {
-                return;
-            }
+            return;
         }
 
         lastLocationUpdateRef.current = now;
@@ -148,16 +140,24 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                                 setUserMarker(marker);
                             }
 
+                            // Centrer uniquement lors de l'initialisation
                             if (!prevPositionRef.current) {
                                 map.setCenter(coords);
                                 map.setZoom(15);
                             }
                         }
 
+                        // Récupérer les alertes seulement si changement significatif
                         fetchAlerts(coords.lat, coords.lng);
 
+                        // Récupérer les utilisateurs à proximité avec limitation
                         if (isAuthenticated && locationPermissionGranted) {
-                            throttledFetchNearbyUsers(coords.lat, coords.lng);
+                            // Vérifier l'intervalle minimum
+                            const currentTime = Date.now();
+                            if (currentTime - lastNearbyUsersFetchRef.current > 300000) { // 5 minutes
+                                fetchNearbyUsers(coords.lat, coords.lng);
+                                lastNearbyUsersFetchRef.current = currentTime;
+                            }
                         }
                     }
                 },
@@ -175,9 +175,10 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         fetchAlerts,
         isAuthenticated,
         locationPermissionGranted,
-        throttledFetchNearbyUsers
+        fetchNearbyUsers
     ]);
 
+    // Initialisation de la carte
     useEffect(() => {
         let mounted = true;
 
@@ -212,6 +213,7 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                     }
                 };
 
+                // Vérifier si Google Maps est chargé
                 if (window.google && window.google.maps) {
                     const m = new window.google.maps.Map(ref.current, mapOptions);
 
@@ -239,11 +241,11 @@ const GoogleMapsIntegration: React.FC<Props> = ({
 
                     setReady(true);
 
+                    // Récupérer les alertes initiales pour le centre par défaut
                     fetchAlerts(defaultCenter.lat, defaultCenter.lng);
 
-                    getUserLocation();
-                } else {
-                    console.error('Google Maps failed to load properly')
+                    // Ne pas demander automatiquement la géolocalisation ici
+                    // Cela provoque l'erreur "Only request geolocation in response to a user gesture"
                 }
             } catch (error) {
                 if (mounted) {
@@ -353,8 +355,11 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         map,
         travelMode,
         userPosition,
-        onRouteCalculated
-    ]); // Suppression de extractRoutePoints et fetchRouteAlerts pour éviter les re-rendus
+        selectedRouteIndex,
+        onRouteCalculated,
+        extractRoutePoints,
+        fetchRouteAlerts
+    ]);
 
     // Gérer le changement d'itinéraire sélectionné
     useEffect(() => {
@@ -365,22 +370,25 @@ const GoogleMapsIntegration: React.FC<Props> = ({
             rend.setRouteIndex(selectedRouteIndex);
 
             // Récupérer les alertes pour l'itinéraire sélectionné (avec délai)
-            const lastFetchTime = useRef<number>(0);
             const now = Date.now();
             const MIN_FETCH_INTERVAL = 30000; // 30 secondes
+            const lastFetchTime = lastRouteAlertsFetchRef.current || 0;
 
-            if (now - lastFetchTime.current > MIN_FETCH_INTERVAL) {
+            if (now - lastFetchTime > MIN_FETCH_INTERVAL) {
                 const routePoints = extractRoutePoints(currentRouteDetails);
                 if (routePoints.length > 0) {
                     clearRouteAlertMarkers();
                     fetchRouteAlerts(routePoints);
                 }
-                lastFetchTime.current = now;
+                lastRouteAlertsFetchRef.current = now;
             }
         } catch (error) {
             console.error('Error updating route index:', error);
         }
-    }, [selectedRouteIndex, rend, currentRouteDetails]);
+    }, [selectedRouteIndex, rend, currentRouteDetails, extractRoutePoints, clearRouteAlertMarkers, fetchRouteAlerts]);
+
+    // Référence pour le temps de la dernière récupération d'alertes de route
+    const lastRouteAlertsFetchRef = useRef<number>(0);
 
     // Ajuster la vue de la carte aux limites de l'itinéraire
     useEffect(() => {
@@ -407,51 +415,9 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         }
     }, [selectedRouteIndex, rend, map, currentRouteDetails]);
 
-    useEffect(() => {
-        let currentInterval = 180000;
-        let updateCount = 0;
-
-        const interval = setInterval(() => {
-            if (showUserMarker) {
-                updateCount++;
-
-                if (updateCount > 5) {
-                    currentInterval = Math.min(currentInterval * 1.5, 600000);
-                    clearInterval(interval);
-
-                    const newInterval = setInterval(() => {
-                        if (showUserMarker) {
-                            getUserLocation();
-                        }
-                    }, currentInterval);
-
-                    return () => clearInterval(newInterval);
-                }
-
-                getUserLocation();
-            }
-        }, currentInterval);
-
-        return () => clearInterval(interval);
-    }, [showUserMarker, getUserLocation]);
-
-    useEffect(() => {
-        const lastFetch = useRef<number>(0);
-        const MIN_FETCH_INTERVAL = 300000;
-        const now = Date.now();
-
-        if (
-            isAuthenticated &&
-            userPosition &&
-            locationPermissionGranted &&
-            now - lastFetch.current > MIN_FETCH_INTERVAL
-        ) {
-            throttledFetchNearbyUsers(userPosition.lat, userPosition.lng);
-            lastFetch.current = now;
-        } else if (!isAuthenticated) {
-            clearUserMarkers();
-        }
-    }, [isAuthenticated, locationPermissionGranted, throttledFetchNearbyUsers, clearUserMarkers]);
+    // Éviter l'auto-actualisation qui cause l'erreur de géolocalisation
+    // SUPPRIMÉ: L'intervalle automatique qui appelait getUserLocation périodiquement
+    // Cela résout l'erreur "Only request geolocation in response to a user gesture"
 
     return (
         <div className="w-full h-full relative">
@@ -476,36 +442,35 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                 </div>
             )}
 
-            {!locationPermissionGranted && (
-                <div className="absolute top-4 right-4 z-10">
-                    <button
-                        onClick={getUserLocation}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-colors duration-300 flex items-center"
+            {/* Bouton pour demander la position de l'utilisateur (en réponse à un geste utilisateur) */}
+            <div className="absolute top-4 right-4 z-10">
+                <button
+                    onClick={getUserLocation}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-colors duration-300 flex items-center"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 mr-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                            />
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                        </svg>
-                        Enable Location
-                    </button>
-                </div>
-            )}
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                    </svg>
+                    {locationPermissionGranted ? 'Update Location' : 'Enable Location'}
+                </button>
+            </div>
 
             {userPosition && (
                 <div className="absolute bottom-24 right-4 z-10">
