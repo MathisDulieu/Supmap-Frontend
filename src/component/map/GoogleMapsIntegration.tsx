@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useNearbyAlerts } from '../../hooks/map/useNearbyAlerts';
-import { useNearbyUsers } from '../../hooks/map/useNearbyUsers';
-import { useRouteAlerts } from '../../hooks/map/useRouteAlerts';
-import { Waypoint, TravelMode, RouteDetails } from '../../hooks/map/types/map.ts';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {useNearbyAlerts} from '../../hooks/map/useNearbyAlerts';
+import {useNearbyUsers} from '../../hooks/map/useNearbyUsers';
+import {useRouteAlerts} from '../../hooks/map/useRouteAlerts';
+import {RouteDetails, TravelMode, Waypoint} from '../../hooks/map/types/map.ts';
 
 declare global {
     interface Window {
@@ -72,6 +72,13 @@ const GoogleMapsIntegration: React.FC<Props> = ({
     const [currentRouteDetails, setCurrentRouteDetails] = useState<any>(null);
     const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
 
+    const lastLocationUpdateRef = useRef<number>(0);
+    const lastNearbyUsersFetchRef = useRef<number>(0);
+    const prevPositionRef = useRef<{lat: number, lng: number} | null>(null);
+    const locationUpdateCountRef = useRef<number>(0);
+    const MIN_LOCATION_UPDATE_INTERVAL = 180000;
+    const MIN_NEARBY_USERS_FETCH_INTERVAL = 300000;
+
     const { fetchAlerts, clearMarkers: clearAlertMarkers } = useNearbyAlerts(map);
     const {
         fetchNearbyUsers,
@@ -83,7 +90,26 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         extractRoutePoints
     } = useRouteAlerts(map);
 
+    const throttledFetchNearbyUsers = useCallback((lat: number, lng: number) => {
+        const now = Date.now();
+        if (now - lastNearbyUsersFetchRef.current < MIN_NEARBY_USERS_FETCH_INTERVAL) {
+            return;
+        }
+        fetchNearbyUsers(lat, lng);
+        lastNearbyUsersFetchRef.current = now;
+    }, [fetchNearbyUsers]);
+
     const getUserLocation = useCallback(() => {
+        const now = Date.now();
+        if (now - lastLocationUpdateRef.current < MIN_LOCATION_UPDATE_INTERVAL) {
+            locationUpdateCountRef.current++;
+            if (locationUpdateCountRef.current % 5 !== 0) {
+                return;
+            }
+        }
+
+        lastLocationUpdateRef.current = now;
+
         if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -91,58 +117,81 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                         lat: position.coords.latitude,
                         lng: position.coords.longitude
                     };
-                    setUserPosition(coords);
-                    setLocationPermissionGranted(true);
 
-                    if (map && showUserMarker) {
-                        if (userMarker) {
-                            userMarker.setPosition(coords);
-                        } else {
-                            const marker = new window.google.maps.Marker({
-                                position: coords,
-                                map,
-                                title: 'Your location',
-                                icon: {
-                                    path: window.google.maps.SymbolPath.CIRCLE,
-                                    scale: 10,
-                                    fillOpacity: 1,
-                                    fillColor: '#4F46E5',
-                                    strokeWeight: 2,
-                                    strokeColor: '#ffffff'
-                                },
-                                zIndex: 999
-                            });
-                            setUserMarker(marker);
+                    const hasSignificantChange = !prevPositionRef.current ||
+                        Math.abs(prevPositionRef.current.lat - coords.lat) > 0.0005 ||
+                        Math.abs(prevPositionRef.current.lng - coords.lng) > 0.0005;
+
+                    if (hasSignificantChange) {
+                        setUserPosition(coords);
+                        prevPositionRef.current = coords;
+                        setLocationPermissionGranted(true);
+
+                        if (map && showUserMarker) {
+                            if (userMarker) {
+                                userMarker.setPosition(coords);
+                            } else {
+                                const marker = new window.google.maps.Marker({
+                                    position: coords,
+                                    map,
+                                    title: 'Your location',
+                                    icon: {
+                                        path: window.google.maps.SymbolPath.CIRCLE,
+                                        scale: 10,
+                                        fillOpacity: 1,
+                                        fillColor: '#4F46E5',
+                                        strokeWeight: 2,
+                                        strokeColor: '#ffffff'
+                                    },
+                                    zIndex: 999
+                                });
+                                setUserMarker(marker);
+                            }
+
+                            if (!prevPositionRef.current) {
+                                map.setCenter(coords);
+                                map.setZoom(15);
+                            }
                         }
 
-                        map.setCenter(coords);
-                        map.setZoom(15);
-                    }
+                        fetchAlerts(coords.lat, coords.lng);
 
-                    fetchAlerts(coords.lat, coords.lng);
-                    if (isAuthenticated && locationPermissionGranted) {
-                        fetchNearbyUsers(coords.lat, coords.lng);
+                        if (isAuthenticated && locationPermissionGranted) {
+                            throttledFetchNearbyUsers(coords.lat, coords.lng);
+                        }
                     }
                 },
                 (error) => {
                     console.error('Error getting user location:', error);
                     setLocationPermissionGranted(false);
                 },
-                { enableHighAccuracy: true }
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
             );
         }
-    }, [map, showUserMarker, userMarker, fetchAlerts, isAuthenticated, locationPermissionGranted, fetchNearbyUsers]);
+    }, [
+        map,
+        showUserMarker,
+        userMarker,
+        fetchAlerts,
+        isAuthenticated,
+        locationPermissionGranted,
+        throttledFetchNearbyUsers
+    ]);
 
     useEffect(() => {
         let mounted = true;
+
         (async () => {
             if (!ref.current) return;
+
             try {
                 await loadMaps();
+
                 if (!mounted || !ref.current) return;
 
                 const defaultCenter = { lat: 48.8566, lng: 2.3522 }; // Paris
-                const m = new window.google.maps.Map(ref.current, {
+
+                const mapOptions = {
                     center: defaultCenter,
                     zoom: 12,
                     mapTypeControl: true,
@@ -161,38 +210,46 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                     zoomControlOptions: {
                         position: window.google.maps.ControlPosition.RIGHT_TOP
                     }
-                });
+                };
 
-                setMap(m);
-                setSvc(new window.google.maps.DirectionsService());
-                setRend(
-                    new window.google.maps.DirectionsRenderer({
-                        map: m,
-                        polylineOptions: {
-                            strokeColor: '#4F46E5',
-                            strokeWeight: 5
-                        },
-                        markerOptions: {
-                            icon: {
-                                path: window.google.maps.SymbolPath.CIRCLE,
-                                scale: 7,
-                                fillOpacity: 1,
-                                fillColor: '#4F46E5',
-                                strokeWeight: 2,
-                                strokeColor: '#ffffff'
+                if (window.google && window.google.maps) {
+                    const m = new window.google.maps.Map(ref.current, mapOptions);
+
+                    setMap(m);
+                    setSvc(new window.google.maps.DirectionsService());
+                    setRend(
+                        new window.google.maps.DirectionsRenderer({
+                            map: m,
+                            polylineOptions: {
+                                strokeColor: '#4F46E5',
+                                strokeWeight: 5
+                            },
+                            markerOptions: {
+                                icon: {
+                                    path: window.google.maps.SymbolPath.CIRCLE,
+                                    scale: 7,
+                                    fillOpacity: 1,
+                                    fillColor: '#4F46E5',
+                                    strokeWeight: 2,
+                                    strokeColor: '#ffffff'
+                                }
                             }
-                        }
-                    })
-                );
+                        })
+                    );
 
-                setReady(true);
+                    setReady(true);
 
-                fetchAlerts(defaultCenter.lat, defaultCenter.lng);
+                    fetchAlerts(defaultCenter.lat, defaultCenter.lng);
 
-                getUserLocation();
+                    getUserLocation();
+                } else {
+                    console.error('Google Maps failed to load properly')
+                }
             } catch (error) {
-                if (mounted) setErr('Google Maps initialization error');
-                console.error('Maps initialization error:', error);
+                if (mounted) {
+                    console.error('Maps initialization error:', error);
+                    setErr('Google Maps initialization error. Please refresh the page.');
+                }
             }
         })();
 
@@ -205,16 +262,18 @@ const GoogleMapsIntegration: React.FC<Props> = ({
             clearRouteAlertMarkers();
             if (rend) rend.setMap(null);
         };
-    }, [fetchAlerts, getUserLocation, clearAlertMarkers, clearUserMarkers, clearRouteAlertMarkers]);
+    }, []); // Dépendances vides pour n'exécuter qu'une seule fois
 
+    // Mettre à jour la visibilité du marqueur utilisateur
     useEffect(() => {
         if (userMarker) {
             userMarker.setVisible(showUserMarker);
         }
     }, [showUserMarker, userMarker]);
 
+    // Calculer l'itinéraire
     useEffect(() => {
-        if (!calculateRoute || !svc || !rend || !ready) return;
+        if (!calculateRoute || !svc || !rend || !ready || !map) return;
 
         const valid = waypoints.filter(w =>
             typeof w.value === 'string' ? w.value.trim() : true
@@ -236,80 +295,94 @@ const GoogleMapsIntegration: React.FC<Props> = ({
             stopover: true
         }));
 
-        svc.route(
-            {
-                origin: originParam,
-                destination: destParam,
-                waypoints: mids,
-                travelMode: window.google.maps.TravelMode[travelMode],
-                optimizeWaypoints: true,
-                provideRouteAlternatives: true,
-                ...(travelMode === 'DRIVING' ? {
-                    drivingOptions: {
-                        departureTime: new Date(),
-                        trafficModel: window.google.maps.TrafficModel.BEST_GUESS
-                    }
-                } : {}),
-                ...(travelMode === 'TRANSIT' ? {
-                    transitOptions: {
-                        departureTime: new Date(),
-                        modes: [window.google.maps.TransitMode.BUS, window.google.maps.TransitMode.RAIL],
-                        routingPreference: window.google.maps.TransitRoutePreference.FEWER_TRANSFERS
-                    }
-                } : {})
-            },
-            (res, status) => {
-                if (status === window.google.maps.DirectionsStatus.OK && res) {
-                    rend.setDirections(res);
-                    rend.setRouteIndex(selectedRouteIndex);
+        // Utiliser un objet de configuration pour route()
+        const routeConfig: google.maps.DirectionsRequest = {
+            origin: originParam,
+            destination: destParam,
+            waypoints: mids,
+            travelMode: window.google.maps.TravelMode[travelMode],
+            optimizeWaypoints: true,
+            provideRouteAlternatives: true
+        };
 
-                    setCurrentRouteDetails(res);
+        // Ajouter les options spécifiques au mode de transport
+        if (travelMode === 'DRIVING') {
+            routeConfig.drivingOptions = {
+                departureTime: new Date(),
+                trafficModel: window.google.maps.TrafficModel.BEST_GUESS
+            };
+        } else if (travelMode === 'TRANSIT') {
+            routeConfig.transitOptions = {
+                departureTime: new Date(),
+                modes: [window.google.maps.TransitMode.BUS, window.google.maps.TransitMode.RAIL],
+                routingPreference: window.google.maps.TransitRoutePreference.FEWER_TRANSFERS
+            };
+        }
 
-                    if (onRouteCalculated) {
-                        // Typage explicite pour s'assurer que res est compatible avec RouteDetails
-                        onRouteCalculated(res as unknown as RouteDetails);
-                    }
+        // Calculer l'itinéraire
+        svc.route(routeConfig, (res, status) => {
+            if (status === window.google.maps.DirectionsStatus.OK && res) {
+                // Afficher l'itinéraire
+                rend.setDirections(res);
+                rend.setRouteIndex(selectedRouteIndex);
 
-                    const routePoints = extractRoutePoints(res);
-                    if (routePoints.length > 0) {
-                        fetchRouteAlerts(routePoints);
-                    }
-                } else {
-                    setErr(`Route calculation failed: ${status}`);
-                    console.error('Route calculation error:', status);
+                // Stocker les détails de l'itinéraire
+                setCurrentRouteDetails(res);
+
+                // Informer le parent
+                if (onRouteCalculated) {
+                    onRouteCalculated(res as unknown as RouteDetails);
                 }
+
+                // Récupérer les alertes pour cet itinéraire
+                const routePoints = extractRoutePoints(res);
+                if (routePoints.length > 0) {
+                    fetchRouteAlerts(routePoints);
+                }
+            } else {
+                setErr(`Route calculation failed: ${status}`);
+                console.error('Route calculation error:', status);
             }
-        );
+        });
     }, [
         calculateRoute,
         waypoints,
         svc,
         rend,
         ready,
+        map,
         travelMode,
         userPosition,
-        selectedRouteIndex,
-        onRouteCalculated,
-        extractRoutePoints,
-        fetchRouteAlerts
-    ]);
+        onRouteCalculated
+    ]); // Suppression de extractRoutePoints et fetchRouteAlerts pour éviter les re-rendus
 
+    // Gérer le changement d'itinéraire sélectionné
     useEffect(() => {
         if (!rend || !currentRouteDetails) return;
 
         try {
+            // Mettre à jour l'index d'itinéraire
             rend.setRouteIndex(selectedRouteIndex);
 
-            const routePoints = extractRoutePoints(currentRouteDetails);
-            if (routePoints.length > 0) {
-                clearRouteAlertMarkers();
-                fetchRouteAlerts(routePoints);
+            // Récupérer les alertes pour l'itinéraire sélectionné (avec délai)
+            const lastFetchTime = useRef<number>(0);
+            const now = Date.now();
+            const MIN_FETCH_INTERVAL = 30000; // 30 secondes
+
+            if (now - lastFetchTime.current > MIN_FETCH_INTERVAL) {
+                const routePoints = extractRoutePoints(currentRouteDetails);
+                if (routePoints.length > 0) {
+                    clearRouteAlertMarkers();
+                    fetchRouteAlerts(routePoints);
+                }
+                lastFetchTime.current = now;
             }
         } catch (error) {
             console.error('Error updating route index:', error);
         }
-    }, [selectedRouteIndex, rend, currentRouteDetails, extractRoutePoints, clearRouteAlertMarkers, fetchRouteAlerts]);
+    }, [selectedRouteIndex, rend, currentRouteDetails]);
 
+    // Ajuster la vue de la carte aux limites de l'itinéraire
     useEffect(() => {
         if (!rend || !map || !currentRouteDetails) return;
 
@@ -335,22 +408,50 @@ const GoogleMapsIntegration: React.FC<Props> = ({
     }, [selectedRouteIndex, rend, map, currentRouteDetails]);
 
     useEffect(() => {
+        let currentInterval = 180000;
+        let updateCount = 0;
+
         const interval = setInterval(() => {
             if (showUserMarker) {
+                updateCount++;
+
+                if (updateCount > 5) {
+                    currentInterval = Math.min(currentInterval * 1.5, 600000);
+                    clearInterval(interval);
+
+                    const newInterval = setInterval(() => {
+                        if (showUserMarker) {
+                            getUserLocation();
+                        }
+                    }, currentInterval);
+
+                    return () => clearInterval(newInterval);
+                }
+
                 getUserLocation();
             }
-        }, 30000);
+        }, currentInterval);
 
         return () => clearInterval(interval);
     }, [showUserMarker, getUserLocation]);
 
     useEffect(() => {
-        if (isAuthenticated && userPosition && locationPermissionGranted) {
-            fetchNearbyUsers(userPosition.lat, userPosition.lng);
-        } else {
+        const lastFetch = useRef<number>(0);
+        const MIN_FETCH_INTERVAL = 300000;
+        const now = Date.now();
+
+        if (
+            isAuthenticated &&
+            userPosition &&
+            locationPermissionGranted &&
+            now - lastFetch.current > MIN_FETCH_INTERVAL
+        ) {
+            throttledFetchNearbyUsers(userPosition.lat, userPosition.lng);
+            lastFetch.current = now;
+        } else if (!isAuthenticated) {
             clearUserMarkers();
         }
-    }, [isAuthenticated, userPosition, locationPermissionGranted, fetchNearbyUsers, clearUserMarkers]);
+    }, [isAuthenticated, locationPermissionGranted, throttledFetchNearbyUsers, clearUserMarkers]);
 
     return (
         <div className="w-full h-full relative">
