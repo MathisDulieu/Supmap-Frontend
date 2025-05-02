@@ -39,13 +39,17 @@ const Navigation: React.FC = () => {
     syncToRemote
   } = useLocalRouteHistory();
 
+  // Choisir quel historique utiliser selon le statut d'authentification
   const history = isAuthenticated ? remoteHistory : localHistory;
   const historyLoading = isAuthenticated ? remoteLoading : localLoading;
-  const historyError = isAuthenticated ? remoteError : localError;
+  // Pour les erreurs, on ne veut pas afficher les erreurs d'authentification
+  const historyError = isAuthenticated ?
+      (remoteError && !remoteError.includes('401') && !remoteError.includes('Unauthorized') ? remoteError : null) :
+      localError;
 
   useEffect(() => {
-    const checkAuth = () => {
-      const token = getAuthToken();
+    const checkAuth = async () => {
+      const token = await getAuthToken();
       setIsAuthenticated(!!token);
     };
 
@@ -130,6 +134,7 @@ const Navigation: React.FC = () => {
               selectedRouteIndex={selectedRouteIndex}
               showUserMarker={!isRouteInfoVisible}
               isAuthenticated={isAuthenticated}
+              setWaypoints={setWaypoints}
           />
         </div>
 

@@ -1,3 +1,5 @@
+import React from "react";
+
 export type TravelMode = 'DRIVING' | 'BICYCLING' | 'WALKING' | 'TRANSIT';
 
 export interface Waypoint {
@@ -76,4 +78,15 @@ export interface MapResponse {
 export interface MediaQueryResult {
     matches: boolean;
     media: string;
+}
+
+export interface GoogleMapsIntegrationProps {
+    waypoints: Waypoint[];
+    calculateRoute: boolean;
+    onRouteCalculated?: (routeDetails: RouteDetails) => void;
+    travelMode: TravelMode;
+    selectedRouteIndex: number;
+    showUserMarker?: boolean;
+    isAuthenticated: boolean;
+    setWaypoints?: React.Dispatch<React.SetStateAction<Waypoint[]>>;
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNearbyAlerts } from '../../hooks/map/useNearbyAlerts';
 import { useNearbyUsers } from '../../hooks/map/useNearbyUsers';
 import { useRouteAlerts } from '../../hooks/map/useRouteAlerts';
+import { useGeolocation } from '../../services/GeolocationContext';
 import { Waypoint, TravelMode, RouteDetails } from '../../hooks/map/types/map.ts';
 
 declare global {
@@ -20,37 +21,47 @@ interface Props {
     selectedRouteIndex: number;
     showUserMarker?: boolean;
     isAuthenticated: boolean;
+    setWaypoints?: React.Dispatch<React.SetStateAction<Waypoint[]>>;
 }
 
 let mapsLoaded = false;
 let mapsLoading = false;
-const KEY = window.env?.GOOGLE_API_KEY ?? '';
+const API_KEY = window.env?.GOOGLE_API_KEY ?? '';
 
-const loadMaps = () =>
-    new Promise<void>((res, rej) => {
-        if (mapsLoaded) return res();
+const loadMapsAPI = (): Promise<void> => {
+    return new Promise<void>((resolve, reject) => {
+        if (mapsLoaded) return resolve();
+
         if (mapsLoading) {
-            const id = setInterval(() => {
+            const checkInterval = setInterval(() => {
                 if (mapsLoaded) {
-                    clearInterval(id);
-                    res();
+                    clearInterval(checkInterval);
+                    resolve();
                 }
             }, 100);
             return;
         }
+
         mapsLoading = true;
+
         window.initMap = () => {
             mapsLoaded = true;
             mapsLoading = false;
-            res();
+            resolve();
         };
-        const s = document.createElement('script');
-        s.src = `https://maps.googleapis.com/maps/api/js?key=${KEY}&libraries=places&callback=initMap&loading=async`;
-        s.async = true;
-        s.defer = true;
-        s.onerror = rej;
-        document.head.appendChild(s);
+
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places&callback=initMap&loading=async`;
+        script.async = true;
+        script.defer = true;
+        script.onerror = (error) => {
+            mapsLoading = false;
+            reject(new Error(`Failed to load Google Maps API : ${error}`));
+        };
+
+        document.head.appendChild(script);
     });
+};
 
 const GoogleMapsIntegration: React.FC<Props> = ({
                                                     waypoints,
@@ -59,140 +70,50 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                                                     travelMode,
                                                     selectedRouteIndex,
                                                     showUserMarker = true,
-                                                    isAuthenticated
+                                                    isAuthenticated,
+                                                    setWaypoints
                                                 }) => {
-    const ref = useRef<HTMLDivElement | null>(null);
-    const [map, setMap] = useState<google.maps.Map | null>(null);
-    const [svc, setSvc] = useState<google.maps.DirectionsService | null>(null);
-    const [rend, setRend] = useState<google.maps.DirectionsRenderer | null>(null);
-    const [ready, setReady] = useState(false);
-    const [err, setErr] = useState<string | null>(null);
-    const [userPosition, setUserPosition] = useState<google.maps.LatLngLiteral | null>(null);
-    const [userMarker, setUserMarker] = useState<google.maps.Marker | null>(null);
-    const [currentRouteDetails, setCurrentRouteDetails] = useState<any>(null);
-    const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
-
-    // Référence pour limiter les appels API
+    const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const lastLocationUpdateRef = useRef<number>(0);
     const lastNearbyUsersFetchRef = useRef<number>(0);
     const prevPositionRef = useRef<{lat: number, lng: number} | null>(null);
-    const MIN_LOCATION_UPDATE_INTERVAL = 180000; // 3 minutes
+    const lastRouteAlertsFetchRef = useRef<number>(0);
+    const initialWaypointsSetRef = useRef<boolean>(false);
 
-    // Utilisation des hooks avec map potentiellement null au début
+    const [map, setMap] = useState<google.maps.Map | null>(null);
+    const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
+    const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
+    const [isMapReady, setIsMapReady] = useState(false);
+    const [mapError, setMapError] = useState<string | null>(null);
+    const [userMarker, setUserMarker] = useState<google.maps.Marker | null>(null);
+    const [currentRouteDetails, setCurrentRouteDetails] = useState<RouteDetails | null>(null);
+
+    const { isGeolocationEnabled, userPosition: contextUserPosition } = useGeolocation();
     const { fetchAlerts, clearMarkers: clearAlertMarkers } = useNearbyAlerts(map);
-    const {
-        fetchNearbyUsers,
-        clearMarkers: clearUserMarkers
-    } = useNearbyUsers(map, isAuthenticated);
-    const {
-        fetchRouteAlerts,
-        clearAlertMarkers: clearRouteAlertMarkers,
-        extractRoutePoints
-    } = useRouteAlerts(map);
+    const { fetchNearbyUsers, clearMarkers: clearUserMarkers } = useNearbyUsers(map, isAuthenticated);
+    const { fetchRouteAlerts, clearAlertMarkers: clearRouteAlertMarkers, extractRoutePoints } = useRouteAlerts(map);
 
-    // Fonction pour obtenir la position de l'utilisateur
-    // IMPORTANT : Cette fonction ne doit être appelée qu'en réponse à une interaction utilisateur
-    // ou après l'initialisation initiale de la carte
-    const getUserLocation = useCallback(() => {
-        // Limiter la fréquence des mises à jour de position
-        const now = Date.now();
-        if (now - lastLocationUpdateRef.current < MIN_LOCATION_UPDATE_INTERVAL) {
-            return;
-        }
+    const userPosition = contextUserPosition ? {
+        lat: contextUserPosition.latitude,
+        lng: contextUserPosition.longitude
+    } : null;
 
-        lastLocationUpdateRef.current = now;
-
-        if ('geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const coords = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    };
-
-                    const hasSignificantChange = !prevPositionRef.current ||
-                        Math.abs(prevPositionRef.current.lat - coords.lat) > 0.0005 ||
-                        Math.abs(prevPositionRef.current.lng - coords.lng) > 0.0005;
-
-                    if (hasSignificantChange) {
-                        setUserPosition(coords);
-                        prevPositionRef.current = coords;
-                        setLocationPermissionGranted(true);
-
-                        if (map && showUserMarker) {
-                            if (userMarker) {
-                                userMarker.setPosition(coords);
-                            } else {
-                                const marker = new window.google.maps.Marker({
-                                    position: coords,
-                                    map,
-                                    title: 'Your location',
-                                    icon: {
-                                        path: window.google.maps.SymbolPath.CIRCLE,
-                                        scale: 10,
-                                        fillOpacity: 1,
-                                        fillColor: '#4F46E5',
-                                        strokeWeight: 2,
-                                        strokeColor: '#ffffff'
-                                    },
-                                    zIndex: 999
-                                });
-                                setUserMarker(marker);
-                            }
-
-                            // Centrer uniquement lors de l'initialisation
-                            if (!prevPositionRef.current) {
-                                map.setCenter(coords);
-                                map.setZoom(15);
-                            }
-                        }
-
-                        // Récupérer les alertes seulement si changement significatif
-                        fetchAlerts(coords.lat, coords.lng);
-
-                        // Récupérer les utilisateurs à proximité avec limitation
-                        if (isAuthenticated && locationPermissionGranted) {
-                            // Vérifier l'intervalle minimum
-                            const currentTime = Date.now();
-                            if (currentTime - lastNearbyUsersFetchRef.current > 300000) { // 5 minutes
-                                fetchNearbyUsers(coords.lat, coords.lng);
-                                lastNearbyUsersFetchRef.current = currentTime;
-                            }
-                        }
-                    }
-                },
-                (error) => {
-                    console.error('Error getting user location:', error);
-                    setLocationPermissionGranted(false);
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-            );
-        }
-    }, [
-        map,
-        showUserMarker,
-        userMarker,
-        fetchAlerts,
-        isAuthenticated,
-        locationPermissionGranted,
-        fetchNearbyUsers
-    ]);
-
-    // Initialisation de la carte
+    // Effet pour initialiser la carte
     useEffect(() => {
-        let mounted = true;
+        let isMounted = true;
 
-        (async () => {
-            if (!ref.current) return;
+        const initializeMap = async () => {
+            if (!mapContainerRef.current) return;
 
             try {
-                await loadMaps();
+                await loadMapsAPI();
 
-                if (!mounted || !ref.current) return;
+                if (!isMounted || !mapContainerRef.current) return;
 
-                const defaultCenter = { lat: 48.8566, lng: 2.3522 }; // Paris
+                // Utiliser Paris comme centre par défaut si la position utilisateur n'est pas disponible
+                const defaultCenter = { lat: 48.8566, lng: 2.3522 };
 
-                const mapOptions = {
+                const mapOptions: google.maps.MapOptions = {
                     center: defaultCenter,
                     zoom: 12,
                     mapTypeControl: true,
@@ -213,58 +134,144 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                     }
                 };
 
-                // Vérifier si Google Maps est chargé
                 if (window.google && window.google.maps) {
-                    const m = new window.google.maps.Map(ref.current, mapOptions);
+                    const mapInstance = new window.google.maps.Map(mapContainerRef.current, mapOptions);
+                    setMap(mapInstance);
 
-                    setMap(m);
-                    setSvc(new window.google.maps.DirectionsService());
-                    setRend(
-                        new window.google.maps.DirectionsRenderer({
-                            map: m,
-                            polylineOptions: {
-                                strokeColor: '#4F46E5',
-                                strokeWeight: 5
-                            },
-                            markerOptions: {
-                                icon: {
-                                    path: window.google.maps.SymbolPath.CIRCLE,
-                                    scale: 7,
-                                    fillOpacity: 1,
-                                    fillColor: '#4F46E5',
-                                    strokeWeight: 2,
-                                    strokeColor: '#ffffff'
-                                }
+                    setDirectionsService(new window.google.maps.DirectionsService());
+
+                    const renderer = new window.google.maps.DirectionsRenderer({
+                        map: mapInstance,
+                        polylineOptions: {
+                            strokeColor: '#4F46E5',
+                            strokeWeight: 5
+                        },
+                        markerOptions: {
+                            icon: {
+                                path: window.google.maps.SymbolPath.CIRCLE,
+                                scale: 7,
+                                fillOpacity: 1,
+                                fillColor: '#4F46E5',
+                                strokeWeight: 2,
+                                strokeColor: '#ffffff'
                             }
-                        })
-                    );
+                        }
+                    });
+                    setDirectionsRenderer(renderer);
 
-                    setReady(true);
+                    setIsMapReady(true);
 
-                    // Récupérer les alertes initiales pour le centre par défaut
                     fetchAlerts(defaultCenter.lat, defaultCenter.lng);
-
-                    // Ne pas demander automatiquement la géolocalisation ici
-                    // Cela provoque l'erreur "Only request geolocation in response to a user gesture"
                 }
             } catch (error) {
-                if (mounted) {
+                if (isMounted) {
                     console.error('Maps initialization error:', error);
-                    setErr('Google Maps initialization error. Please refresh the page.');
+                    setMapError('Google Maps initialization error. Please refresh the page.');
                 }
             }
-        })();
+        };
+
+        initializeMap();
 
         return () => {
-            mounted = false;
+            isMounted = false;
 
             if (userMarker) userMarker.setMap(null);
             clearAlertMarkers();
             clearUserMarkers();
             clearRouteAlertMarkers();
-            if (rend) rend.setMap(null);
+            if (directionsRenderer) directionsRenderer.setMap(null);
         };
-    }, []); // Dépendances vides pour n'exécuter qu'une seule fois
+    }, [fetchAlerts, clearAlertMarkers, clearUserMarkers, clearRouteAlertMarkers]);
+
+    // Effet pour gérer la position de l'utilisateur
+    useEffect(() => {
+        if (!map || !userPosition) return;
+
+        const hasSignificantChange = !prevPositionRef.current ||
+            Math.abs(prevPositionRef.current.lat - userPosition.lat) > 0.0005 ||
+            Math.abs(prevPositionRef.current.lng - userPosition.lng) > 0.0005;
+
+        if (hasSignificantChange) {
+            prevPositionRef.current = userPosition;
+
+            // Mettre à jour ou créer le marqueur utilisateur
+            if (showUserMarker) {
+                if (userMarker) {
+                    userMarker.setPosition(userPosition);
+                } else {
+                    const marker = new window.google.maps.Marker({
+                        position: userPosition,
+                        map,
+                        title: 'Your location',
+                        icon: {
+                            path: window.google.maps.SymbolPath.CIRCLE,
+                            scale: 10,
+                            fillOpacity: 1,
+                            fillColor: '#4F46E5',
+                            strokeWeight: 2,
+                            strokeColor: '#ffffff'
+                        },
+                        zIndex: 999
+                    });
+                    setUserMarker(marker);
+                }
+            }
+
+            // Centrer la carte sur la position de l'utilisateur au premier chargement
+            if (!prevPositionRef.current) {
+                map.setCenter(userPosition);
+                map.setZoom(15);
+            }
+
+            // Mettre à jour les waypoints avec la position actuelle si l'utilisateur est authentifié
+            // et que les waypoints n'ont pas encore été définis
+            if (isAuthenticated && setWaypoints && !initialWaypointsSetRef.current && userPosition) {
+                setWaypoints(prev => {
+                    // Modifier uniquement le point de départ
+                    const updatedWaypoints = [...prev];
+                    if (updatedWaypoints[0] && updatedWaypoints[0].id === 'start') {
+                        updatedWaypoints[0] = {
+                            ...updatedWaypoints[0],
+                            value: 'My Location',
+                            isUserLocation: true
+                        };
+                    }
+                    return updatedWaypoints;
+                });
+                initialWaypointsSetRef.current = true;
+            }
+
+            // Récupérer les alertes et utilisateurs à proximité
+            const now = Date.now();
+            const MIN_LOCATION_UPDATE_INTERVAL = 180000; // 3 minutes
+
+            if (now - lastLocationUpdateRef.current > MIN_LOCATION_UPDATE_INTERVAL) {
+                lastLocationUpdateRef.current = now;
+                fetchAlerts(userPosition.lat, userPosition.lng);
+
+                // Récupérer les utilisateurs à proximité si authentifié
+                if (isAuthenticated && isGeolocationEnabled) {
+                    const MIN_NEARBY_USERS_INTERVAL = 300000; // 5 minutes
+
+                    if (now - lastNearbyUsersFetchRef.current > MIN_NEARBY_USERS_INTERVAL) {
+                        fetchNearbyUsers(userPosition.lat, userPosition.lng);
+                        lastNearbyUsersFetchRef.current = now;
+                    }
+                }
+            }
+        }
+    }, [
+        map,
+        userPosition,
+        showUserMarker,
+        userMarker,
+        isAuthenticated,
+        isGeolocationEnabled,
+        fetchAlerts,
+        fetchNearbyUsers,
+        setWaypoints
+    ]);
 
     // Mettre à jour la visibilité du marqueur utilisateur
     useEffect(() => {
@@ -273,41 +280,41 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         }
     }, [showUserMarker, userMarker]);
 
-    // Calculer l'itinéraire
+    // Calculer l'itinéraire quand demandé
     useEffect(() => {
-        if (!calculateRoute || !svc || !rend || !ready || !map) return;
+        if (!calculateRoute || !directionsService || !directionsRenderer || !isMapReady || !map) return;
 
-        const valid = waypoints.filter(w =>
+        // Filtrer les waypoints valides
+        const validWaypoints = waypoints.filter(w =>
             typeof w.value === 'string' ? w.value.trim() : true
         );
 
-        if (valid.length < 2) return;
+        if (validWaypoints.length < 2) return;
 
-        const first = valid[0];
-        const last = valid[valid.length - 1];
+        const origin = validWaypoints[0];
+        const destination = validWaypoints[validWaypoints.length - 1];
 
-        const originParam =
-            first.isUserLocation && userPosition ? userPosition : first.value;
-        const destParam =
-            last.isUserLocation && userPosition ? userPosition : last.value;
+        // Gérer les waypoints "My Location"
+        const originParam = origin.isUserLocation && userPosition ? userPosition : origin.value;
+        const destParam = destination.isUserLocation && userPosition ? userPosition : destination.value;
 
-        const mids = valid.slice(1, -1).map(w => ({
-            location:
-                w.isUserLocation && userPosition ? userPosition : w.value,
+        // Créer un tableau de waypoints pour les arrêts intermédiaires
+        const waypointParams = validWaypoints.slice(1, -1).map(w => ({
+            location: w.isUserLocation && userPosition ? userPosition : w.value,
             stopover: true
         }));
 
-        // Utiliser un objet de configuration pour route()
+        // Configurer la requête d'itinéraire
         const routeConfig: google.maps.DirectionsRequest = {
             origin: originParam,
             destination: destParam,
-            waypoints: mids,
+            waypoints: waypointParams,
             travelMode: window.google.maps.TravelMode[travelMode],
             optimizeWaypoints: true,
             provideRouteAlternatives: true
         };
 
-        // Ajouter les options spécifiques au mode de transport
+        // Ajouter des options spécifiques au mode de transport
         if (travelMode === 'DRIVING') {
             routeConfig.drivingOptions = {
                 departureTime: new Date(),
@@ -321,37 +328,37 @@ const GoogleMapsIntegration: React.FC<Props> = ({
             };
         }
 
-        // Calculer l'itinéraire
-        svc.route(routeConfig, (res, status) => {
-            if (status === window.google.maps.DirectionsStatus.OK && res) {
+        // Demander l'itinéraire
+        directionsService.route(routeConfig, (result, status) => {
+            if (status === window.google.maps.DirectionsStatus.OK && result) {
                 // Afficher l'itinéraire
-                rend.setDirections(res);
-                rend.setRouteIndex(selectedRouteIndex);
+                directionsRenderer.setDirections(result);
+                directionsRenderer.setRouteIndex(selectedRouteIndex);
 
                 // Stocker les détails de l'itinéraire
-                setCurrentRouteDetails(res);
+                setCurrentRouteDetails(result as unknown as RouteDetails);
 
-                // Informer le parent
+                // Notifier le composant parent
                 if (onRouteCalculated) {
-                    onRouteCalculated(res as unknown as RouteDetails);
+                    onRouteCalculated(result as unknown as RouteDetails);
                 }
 
                 // Récupérer les alertes pour cet itinéraire
-                const routePoints = extractRoutePoints(res);
+                const routePoints = extractRoutePoints(result);
                 if (routePoints.length > 0) {
                     fetchRouteAlerts(routePoints);
                 }
             } else {
-                setErr(`Route calculation failed: ${status}`);
+                setMapError(`Route calculation failed: ${status}`);
                 console.error('Route calculation error:', status);
             }
         });
     }, [
         calculateRoute,
         waypoints,
-        svc,
-        rend,
-        ready,
+        directionsService,
+        directionsRenderer,
+        isMapReady,
         map,
         travelMode,
         userPosition,
@@ -361,17 +368,17 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         fetchRouteAlerts
     ]);
 
-    // Gérer le changement d'itinéraire sélectionné
+    // Mettre à jour l'itinéraire sélectionné
     useEffect(() => {
-        if (!rend || !currentRouteDetails) return;
+        if (!directionsRenderer || !currentRouteDetails) return;
 
         try {
             // Mettre à jour l'index d'itinéraire
-            rend.setRouteIndex(selectedRouteIndex);
+            directionsRenderer.setRouteIndex(selectedRouteIndex);
 
-            // Récupérer les alertes pour l'itinéraire sélectionné (avec délai)
-            const now = Date.now();
+            // Récupérer les alertes pour l'itinéraire sélectionné
             const MIN_FETCH_INTERVAL = 30000; // 30 secondes
+            const now = Date.now();
             const lastFetchTime = lastRouteAlertsFetchRef.current || 0;
 
             if (now - lastFetchTime > MIN_FETCH_INTERVAL) {
@@ -385,20 +392,24 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         } catch (error) {
             console.error('Error updating route index:', error);
         }
-    }, [selectedRouteIndex, rend, currentRouteDetails, extractRoutePoints, clearRouteAlertMarkers, fetchRouteAlerts]);
+    }, [
+        selectedRouteIndex,
+        directionsRenderer,
+        currentRouteDetails,
+        extractRoutePoints,
+        clearRouteAlertMarkers,
+        fetchRouteAlerts
+    ]);
 
-    // Référence pour le temps de la dernière récupération d'alertes de route
-    const lastRouteAlertsFetchRef = useRef<number>(0);
-
-    // Ajuster la vue de la carte aux limites de l'itinéraire
+    // Ajuster les limites de la carte pour s'adapter à l'itinéraire
     useEffect(() => {
-        if (!rend || !map || !currentRouteDetails) return;
+        if (!directionsRenderer || !map || !currentRouteDetails) return;
 
         try {
-            const dir = rend.getDirections();
-            if (!dir) return;
+            const directions = directionsRenderer.getDirections();
+            if (!directions) return;
 
-            const route = dir.routes[selectedRouteIndex];
+            const route = directions.routes[selectedRouteIndex];
             if (!route || !route.bounds) return;
 
             const panel = document.querySelector<HTMLElement>('.route-info-panel');
@@ -413,27 +424,31 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         } catch (error) {
             console.error('Error fitting map to bounds:', error);
         }
-    }, [selectedRouteIndex, rend, map, currentRouteDetails]);
+    }, [selectedRouteIndex, directionsRenderer, map, currentRouteDetails]);
 
-    // Éviter l'auto-actualisation qui cause l'erreur de géolocalisation
-    // SUPPRIMÉ: L'intervalle automatique qui appelait getUserLocation périodiquement
-    // Cela résout l'erreur "Only request geolocation in response to a user gesture"
+    // Centrer la carte sur la position de l'utilisateur
+    const centerMapOnUserLocation = useCallback(() => {
+        if (map && userPosition) {
+            map.setCenter(userPosition);
+            map.setZoom(15);
+        }
+    }, [map, userPosition]);
 
     return (
         <div className="w-full h-full relative">
-            <div ref={ref} className="w-full h-full" />
+            <div ref={mapContainerRef} className="w-full h-full" />
 
-            {!ready && (
+            {!isMapReady && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500" />
                 </div>
             )}
 
-            {err && (
+            {mapError && (
                 <div className="absolute bottom-4 left-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg">
-                    <p className="font-medium">{err}</p>
+                    <p className="font-medium">{mapError}</p>
                     <button
-                        onClick={() => setErr(null)}
+                        onClick={() => setMapError(null)}
                         className="absolute top-2 right-2 text-white"
                         aria-label="Close error message"
                     >
@@ -442,47 +457,13 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                 </div>
             )}
 
-            {/* Bouton pour demander la position de l'utilisateur (en réponse à un geste utilisateur) */}
-            <div className="absolute top-4 right-4 z-10">
-                <button
-                    onClick={getUserLocation}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-colors duration-300 flex items-center"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 mr-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                    </svg>
-                    {locationPermissionGranted ? 'Update Location' : 'Enable Location'}
-                </button>
-            </div>
-
             {userPosition && (
                 <div className="absolute bottom-24 right-4 z-10">
                     <button
-                        onClick={() => {
-                            if (map && userPosition) {
-                                map.setCenter(userPosition);
-                                map.setZoom(15);
-                            }
-                        }}
+                        onClick={centerMapOnUserLocation}
                         className="bg-white hover:bg-gray-100 text-gray-800 p-3 rounded-full shadow-lg transition-colors duration-300"
                         aria-label="Center map on your location"
+                        title="Center map on your location"
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"

@@ -9,6 +9,7 @@ const GeolocationPrompt: React.FC = () => {
 
     useEffect(() => {
         const hasResponded = localStorage.getItem('geolocationPromptResponded');
+        const geolocationEnabled = localStorage.getItem('geolocationEnabled');
 
         if (!hasResponded && isGeolocationAvailable && !isGeolocationEnabled && !error) {
             const timer = setTimeout(() => {
@@ -18,17 +19,26 @@ const GeolocationPrompt: React.FC = () => {
 
             return () => clearTimeout(timer);
         }
-    }, [isGeolocationAvailable, isGeolocationEnabled, error]);
+
+        if (geolocationEnabled === 'true' && isGeolocationAvailable && !isGeolocationEnabled && !error) {
+            requestPermission().catch(err => {
+                console.error('Error automatically requesting geolocation:', err);
+            });
+        }
+    }, [isGeolocationAvailable, isGeolocationEnabled, error, requestPermission]);
 
     const handleAllow = async () => {
         try {
             setIsAnimating(false);
             await requestPermission();
             localStorage.setItem('geolocationPromptResponded', 'true');
+            localStorage.setItem('geolocationEnabled', 'true');
 
             setTimeout(() => {
                 setIsVisible(false);
             }, 300);
+
+            window.dispatchEvent(new CustomEvent('geolocationPermissionGranted'));
         } catch (error) {
             console.error('Error requesting geolocation permission:', error);
         }
@@ -37,6 +47,7 @@ const GeolocationPrompt: React.FC = () => {
     const handleDismiss = () => {
         setIsAnimating(false);
         localStorage.setItem('geolocationPromptResponded', 'true');
+        localStorage.setItem('geolocationEnabled', 'false');
         setIsDismissed(true);
 
         setTimeout(() => {

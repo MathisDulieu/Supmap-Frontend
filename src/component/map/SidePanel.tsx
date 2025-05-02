@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     MapPinIcon,
     PlusIcon,
@@ -46,7 +46,6 @@ const SidePanel: React.FC<SidePanelProps> = ({
                                                  setTravelMode,
                                                  history,
                                                  historyLoading,
-                                                 historyError,
                                                  handleHistoryClick,
                                                  isAuthenticated
                                              }) => {
@@ -203,6 +202,13 @@ const SidePanel: React.FC<SidePanelProps> = ({
         );
     };
 
+    // If user selects a restricted tab but isn't authenticated, switch back to navigation
+    useEffect(() => {
+        if (!isAuthenticated && (activeTab === 'favorites' || activeTab === 'share')) {
+            setActiveTab('navigation');
+        }
+    }, [isAuthenticated, activeTab]);
+
     return (
         <>
             {!isPanelOpen && (
@@ -251,25 +257,32 @@ const SidePanel: React.FC<SidePanelProps> = ({
                                 </button>
 
                                 <button
-                                    onClick={() => setActiveTab('favorites')}
+                                    onClick={() => isAuthenticated && setActiveTab('favorites')}
                                     className={`flex-1 py-2 text-center ${
                                         activeTab === 'favorites'
                                             ? 'bg-white text-indigo-600 font-medium rounded-t-lg'
-                                            : 'text-white hover:bg-indigo-500'
+                                            : isAuthenticated
+                                                ? 'text-white hover:bg-indigo-500'
+                                                : 'text-white/50 cursor-not-allowed'
                                     }`}
                                     disabled={!isAuthenticated}
+                                    title={!isAuthenticated ? "Sign in to access favorites" : ""}
                                 >
                                     <StarIcon size={18} className="inline-block mr-1" />
                                     Favorites
                                 </button>
 
                                 <button
-                                    onClick={() => setActiveTab('share')}
+                                    onClick={() => isAuthenticated && setActiveTab('share')}
                                     className={`flex-1 py-2 text-center ${
                                         activeTab === 'share'
                                             ? 'bg-white text-indigo-600 font-medium rounded-t-lg'
-                                            : 'text-white hover:bg-indigo-500'
+                                            : isAuthenticated
+                                                ? 'text-white hover:bg-indigo-500'
+                                                : 'text-white/50 cursor-not-allowed'
                                     }`}
+                                    disabled={!isAuthenticated}
+                                    title={!isAuthenticated ? "Sign in to share routes" : ""}
                                 >
                                     <Share2Icon size={18} className="inline-block mr-1" />
                                     Share
@@ -394,68 +407,60 @@ const SidePanel: React.FC<SidePanelProps> = ({
                                         </button>
                                     </div>
 
-                                    <div className="mt-6">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <h3 className="text-lg font-semibold flex items-center">
-                                                <HistoryIcon size={18} className="mr-2 text-indigo-600" />
-                                                History
-                                            </h3>
+                                    {(history.length > 0 || historyLoading) && (
+                                        <div className="mt-6">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-lg font-semibold flex items-center">
+                                                    <HistoryIcon size={18} className="mr-2 text-indigo-600" />
+                                                    History
+                                                </h3>
 
-                                            {!isAuthenticated && (
-                                                <span className="text-xs text-gray-500">
-                                                  Local history only
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {historyLoading && (
-                                            <div className="flex justify-center p-4">
-                                                <div className="animate-spin h-6 w-6 border-2 border-indigo-500 rounded-full border-t-transparent"></div>
+                                                {!isAuthenticated && (
+                                                    <span className="text-xs text-gray-500">
+                                                      Local history only
+                                                    </span>
+                                                )}
                                             </div>
-                                        )}
 
-                                        {historyError && !isAuthenticated && (
-                                            <p className="text-sm text-gray-600 italic">
-                                                Routes will be saved locally
-                                            </p>
-                                        )}
-
-                                        {historyError && isAuthenticated && (
-                                            <p className="text-sm text-red-500">{historyError}</p>
-                                        )}
-
-                                        <div className="space-y-2 max-h-48 overflow-y-auto">
-                                            {history.length === 0 ? (
-                                                <p className="text-sm text-gray-500 italic">
-                                                    No routes in history yet
-                                                </p>
-                                            ) : (
-                                                history.map(historyItem => (
-                                                    <div
-                                                        key={historyItem.id}
-                                                        onClick={() => handleHistoryClick(historyItem)}
-                                                        className="p-2 border rounded-lg cursor-pointer hover:bg-gray-50 transition"
-                                                    >
-                                                        <p className="text-sm font-medium">
-                                                            {historyItem.startAddress.split(',')[0]} → {historyItem.endAddress.split(',')[0]}
-                                                        </p>
-                                                        <div className="flex justify-between items-center text-xs text-gray-500">
-                              <span>
-                                {(historyItem.kilometersDistance).toFixed(1)} km • {Math.round(historyItem.estimatedDurationInSeconds / 60)} min
-                              </span>
-                                                            <span>
-                                {new Date(historyItem.createdAt).toLocaleDateString()}
-                              </span>
-                                                        </div>
-                                                    </div>
-                                                ))
+                                            {historyLoading && (
+                                                <div className="flex justify-center p-4">
+                                                    <div className="animate-spin h-6 w-6 border-2 border-indigo-500 rounded-full border-t-transparent"></div>
+                                                </div>
                                             )}
+
+                                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                                                {history.length === 0 ? (
+                                                    <p className="text-sm text-gray-500 italic">
+                                                        No routes in history yet
+                                                    </p>
+                                                ) : (
+                                                    history.map(historyItem => (
+                                                        <div
+                                                            key={historyItem.id}
+                                                            onClick={() => handleHistoryClick(historyItem)}
+                                                            className="p-2 border rounded-lg cursor-pointer hover:bg-gray-50 transition"
+                                                        >
+                                                            <p className="text-sm font-medium">
+                                                                {historyItem.startAddress.split(',')[0]} → {historyItem.endAddress.split(',')[0]}
+                                                            </p>
+                                                            <div className="flex justify-between items-center text-xs text-gray-500">
+                                  <span>
+                                    {(historyItem.kilometersDistance).toFixed(1)} km • {Math.round(historyItem.estimatedDurationInSeconds / 60)} min
+                                  </span>
+                                                                <span>
+                                    {new Date(historyItem.createdAt).toLocaleDateString()}
+                                  </span>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             )}
 
-                            {activeTab === 'favorites' && (
+                            {activeTab === 'favorites' && isAuthenticated && (
                                 <FavoriteLocations
                                     isAuthenticated={isAuthenticated}
                                     onSelectLocation={(address) => {
@@ -471,7 +476,7 @@ const SidePanel: React.FC<SidePanelProps> = ({
                                 />
                             )}
 
-                            {activeTab === 'share' && (
+                            {activeTab === 'share' && isAuthenticated && (
                                 <ShareOptions
                                     isAuthenticated={isAuthenticated}
                                     userPosition={userPosition}

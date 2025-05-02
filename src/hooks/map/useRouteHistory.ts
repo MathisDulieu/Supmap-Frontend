@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { saveUserRoute, getUserRouteHistory } from './map';
+import { getAuthToken } from './map';
 
 export interface RouteHistoryItem {
     id: string;
@@ -19,6 +20,12 @@ export function useRouteHistory() {
     const [error, setError] = useState<string | null>(null);
 
     const fetchHistory = useCallback(async () => {
+        const authToken = await getAuthToken();
+        if (!authToken) {
+            setHistory([]);
+            return;
+        }
+
         setLoading(true);
         setError(null);
         try {
@@ -29,7 +36,11 @@ export function useRouteHistory() {
             };
             setHistory(data.routes ?? []);
         } catch (e: any) {
-            setError(e.message || 'Impossible de charger l’historique');
+            if (!e.message?.includes('401') && !e.message?.includes('Unauthorized')) {
+                setError(e.message || 'Unable to load history');
+            } else {
+                setHistory([]);
+            }
         } finally {
             setLoading(false);
         }
@@ -37,6 +48,11 @@ export function useRouteHistory() {
 
     const save = useCallback(
         async (item: Omit<RouteHistoryItem, 'id' | 'createdAt' | 'userId'>) => {
+            const authToken = await getAuthToken();
+            if (!authToken) {
+                return;
+            }
+
             setError(null);
             try {
                 await saveUserRoute(
@@ -49,7 +65,9 @@ export function useRouteHistory() {
                 );
                 await fetchHistory();
             } catch (e: any) {
-                setError(e.message || 'Impossible de sauvegarder l’itinéraire');
+                if (!e.message?.includes('401') && !e.message?.includes('Unauthorized')) {
+                    setError(e.message || 'Unable to save the route');
+                }
             }
         },
         [fetchHistory]
