@@ -30,6 +30,16 @@ import RegisterEmail from './pages/auth/RegisterEmail.tsx';
 import Profile from './pages/user/Profile.tsx';
 import ProfileSettings from './pages/user/ProfileSettings.tsx';
 
+const ScrollToTop = () => {
+    const { pathname } = useLocation();
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
+
+    return null;
+};
+
 const AppContent: React.FC = () => {
     const location = useLocation();
     const [showCookiesPopUp, setShowCookiesPopUp] = useState(false);
@@ -59,6 +69,7 @@ const AppContent: React.FC = () => {
 
     return (
         <div className="flex flex-col min-h-screen">
+            <ScrollToTop />
             {showHeader && <Header />}
             <GeolocationPrompt />
             <CookiesPopUp
