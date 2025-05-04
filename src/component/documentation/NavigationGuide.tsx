@@ -2,7 +2,7 @@ import React from "react";
 import {
     Navigation,
     Clock,
-    DollarSign,
+    Route,
     Star,
     Map,
     Sliders,
@@ -10,6 +10,7 @@ import {
     AlertTriangle,
     Smartphone,
     UserIcon,
+    BadgeDollarSign,
 } from "lucide-react";
 
 interface NavigationGuideProps {
@@ -402,27 +403,14 @@ const NavigationGuide: React.FC<NavigationGuideProps> = ({
                     <div className="bg-[rgba(15,18,30,0.6)] rounded-lg border border-indigo-900/30 overflow-hidden">
                         <div className="p-4 bg-indigo-900/20 border-b border-indigo-900/30">
                             <h3 className="font-medium text-white flex items-center">
-                                <DollarSign className="w-5 h-5 mr-2 text-green-400" />
+                                <Sliders className="w-5 h-5 mr-2 text-green-400" />
                                 {highlightSearch("Avoidance Options")}
                             </h3>
                         </div>
                         <div className="p-4">
                             <ul className="text-gray-300 space-y-3">
                                 <li className="flex items-start">
-                                    <svg
-                                        className="w-5 h-5 text-green-400 mr-2 mt-0.5"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M18.364 18.364A9 9 0 100-16 0 9 9 0 010 16zm12.728 4.236A9 9 0 00-16 0 9 9 0 000 16zM7.544 14.556A9 9 0 015.636 16H7.544zM8 14v2H4v-2a1 1 0 002 0h2a1 1 0 002-2v-2a1 1 0 00-2-2H8zM4 18h2a1 1 0 100-2 2v2a1 1 0 002 2h-2a1 1 0 00-2-2v-2zM15.444 4.556A9 9 0 0118.5 6h-2.056A9 9 0 0116 4zM8 4v2H4v-2a3 3 0 006 0h2a3 3 0 006-6v-2a3 3 0 00-6-6H8zM4 6h2a1 1 0 002 0v2a1 1 0 00-2-2H4z"
-                                        ></path>
-                                    </svg>
+                                    <BadgeDollarSign className="w-5 h-5 text-green-400 mr-2 mt-0.5" />
                                     <div>
                                         <span className="font-medium text-white">
                                             {highlightSearch("Avoid Tolls")}
@@ -435,20 +423,7 @@ const NavigationGuide: React.FC<NavigationGuideProps> = ({
                                     </div>
                                 </li>
                                 <li className="flex items-start">
-                                    <svg
-                                        className="w-5 h-5 text-green-400 mr-2 mt-0.5"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M18.364 18.364A9 9 0 100-16 0 9 9 0 010 16zm12.728 4.236A9 9 0 00-16 0 9 9 0 000 16zM7.544 14.556A9 9 0 015.636 16H7.544zM8 14v2H4v-2a1 1 0 002 0h2a1 1 0 002-2v-2a1 1 0 00-2-2H8zM4 18h2a1 1 0 100-2 2v2a1 1 0 002 2h-2a1 1 0 00-2-2v-2zM15.444 4.556A9 9 0 0118.5 6h-2.056A9 9 0 0116 4zM8 4v2H4v-2a3 3 0 006 0h2a3 3 0 006-6v-2a3 3 0 00-6-6H8zM4 6h2a1 1 0 002 0v2a1 1 0 00-2-2H4z"
-                                        ></path>
-                                    </svg>
+                                    <Route className="w-5 h-5 text-green-400 mr-2 mt-0.5" />
                                     <div>
                                         <span className="font-medium text-white">
                                             {highlightSearch("Avoid Highways")}
@@ -479,11 +454,6 @@ const NavigationGuide: React.FC<NavigationGuideProps> = ({
                     <ol className="text-gray-300 space-y-2 list-decimal list-inside ml-1">
                         <li>{highlightSearch("Go to Settings")}</li>
                         <li>{highlightSearch("Select 'Route Preferences'")}</li>
-                        <li>
-                            {highlightSearch(
-                                "Choose your default route type (Shortest, Eco-friendly)"
-                            )}
-                        </li>
                         <li>
                             {highlightSearch(
                                 "Toggle avoidance options (tolls, highways)"
