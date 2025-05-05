@@ -138,8 +138,8 @@ const FavoriteLocations: React.FC<FavoriteLocationsProps> = ({
                                 ...editingLocation,
                                 formattedAddress: place.formatted_address || description,
                                 coordinates: {
-                                    lat: place.geometry?.location?.lat() || 0,
-                                    lng: place.geometry?.location?.lng() || 0
+                                    latitude: place.geometry?.location?.lat() || 0,
+                                    longitude: place.geometry?.location?.lng() || 0
                                 },
                                 street: street.trim(),
                                 city,
@@ -178,8 +178,8 @@ const FavoriteLocations: React.FC<FavoriteLocationsProps> = ({
                         await addLocation({
                             ...newLocation,
                             coordinates: {
-                                lat: location.lat(),
-                                lng: location.lng()
+                                latitude: location.lat(),
+                                longitude: location.lng()
                             }
                         });
 
