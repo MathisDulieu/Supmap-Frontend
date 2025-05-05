@@ -7,8 +7,8 @@ import {
 } from './map.ts';
 
 interface Coordinates {
-    lat: number;
-    lng: number;
+    latitude: number;
+    longitude: number;
 }
 
 export interface FavoriteLocation {
