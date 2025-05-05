@@ -24,6 +24,7 @@ const Navigation: React.FC = () => {
   const [hasCalculatedRoute, setHasCalculatedRoute] = useState<boolean>(false);
   const [routeAlreadySaved, setRouteAlreadySaved] = useState<boolean>(false);
   const [lastSavedIndex, setLastSavedIndex] = useState<number>(-1);
+  const [activeRoute, setActiveRoute] = useState<boolean>(false);
 
   const isMobile = useMediaQuery('(max-width: 768px)');
   const panelWidth = isMobile && isPanelOpen ? '100%' : '320px';
@@ -82,6 +83,23 @@ const Navigation: React.FC = () => {
     } else {
       setCalculateRoute(true);
     }
+  };
+
+  // New function to handle route cancellation
+  const handleCancelRoute = () => {
+    // Clear route-related states
+    setRouteDetails(null);
+    setHasCalculatedRoute(false);
+    setIsRouteInfoVisible(false);
+    setActiveRoute(false);
+    setRouteAlreadySaved(false);
+    setLastSavedIndex(-1);
+
+    // Reset calculation trigger
+    setCalculateRoute(false);
+
+    // Optional: Reset selected route index
+    setSelectedRouteIndex(0);
   };
 
   function getAuthToken(): string | null {
@@ -166,6 +184,7 @@ const Navigation: React.FC = () => {
 
       setRouteDetails(routeData);
       setHasCalculatedRoute(true);
+      setActiveRoute(true);
       setSelectedRouteIndex(0);
       setCalculateRoute(false);
 
@@ -240,6 +259,7 @@ const Navigation: React.FC = () => {
             waypoints={waypoints}
             setWaypoints={setWaypoints}
             handleCalculateRoute={handleCalculateRoute}
+            handleCancelRoute={handleCancelRoute}
             travelMode={travelMode}
             setTravelMode={setTravelMode}
             history={history.slice(0, 5)} // Limitation à 5 entrées dans l'historique
@@ -247,6 +267,7 @@ const Navigation: React.FC = () => {
             historyError={historyError}
             handleHistoryClick={handleHistoryClick}
             isAuthenticated={isAuthenticated}
+            activeRoute={activeRoute}
         />
 
         {isRouteInfoVisible && routeDetails && (

@@ -13,7 +13,8 @@ import {
     StarIcon,
     HistoryIcon,
     Share2Icon,
-    UserCircleIcon
+    UserCircleIcon,
+    XCircleIcon
 } from 'lucide-react';
 import { Waypoint, TravelMode, RouteHistoryItem } from '../../hooks/map/types/map.ts';
 import FavoriteLocations from './FavoriteLocations.tsx';
@@ -26,6 +27,7 @@ interface SidePanelProps {
     waypoints: Waypoint[];
     setWaypoints: React.Dispatch<React.SetStateAction<Waypoint[]>>;
     handleCalculateRoute: () => void;
+    handleCancelRoute: () => void;  // New prop for canceling routes
     travelMode: TravelMode;
     setTravelMode: React.Dispatch<React.SetStateAction<TravelMode>>;
     history: RouteHistoryItem[];
@@ -33,6 +35,7 @@ interface SidePanelProps {
     historyError: string | null;
     handleHistoryClick: (historyItem: RouteHistoryItem) => void;
     isAuthenticated: boolean;
+    activeRoute: boolean;  // New prop to track if a route is currently active
 }
 
 const SidePanel: React.FC<SidePanelProps> = ({
@@ -42,12 +45,14 @@ const SidePanel: React.FC<SidePanelProps> = ({
                                                  waypoints,
                                                  setWaypoints,
                                                  handleCalculateRoute,
+                                                 handleCancelRoute,  // New prop
                                                  travelMode,
                                                  setTravelMode,
                                                  history,
                                                  historyLoading,
                                                  handleHistoryClick,
-                                                 isAuthenticated
+                                                 isAuthenticated,
+                                                 activeRoute  // New prop
                                              }) => {
     const [activeInput, setActiveInput] = useState<string | null>(null);
     const [autocompleteResults, setAutocompleteResults] = useState<Array<{id: string, description: string}>>([]);
@@ -198,7 +203,11 @@ const SidePanel: React.FC<SidePanelProps> = ({
         setWaypoints(prev =>
             prev.map(wp =>
                 wp.id === waypointId
-                    ? { ...wp, value: 'My Location', isUserLocation: true }
+                    ? {
+                        ...wp,
+                        value: 'My Location',
+                        isUserLocation: true
+                    }
                     : wp
             )
         );
@@ -396,17 +405,27 @@ const SidePanel: React.FC<SidePanelProps> = ({
                                     </div>
 
                                     <div className="mt-4">
-                                        <button
-                                            onClick={handleCalculateRoute}
-                                            disabled={
-                                                waypoints[0].value === '' ||
-                                                waypoints[waypoints.length - 1].value === ''
-                                            }
-                                            className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-md transition-colors duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <NavigationIcon size={18} className="mr-2" />
-                                            Calculate Route
-                                        </button>
+                                        {!activeRoute ? (
+                                            <button
+                                                onClick={handleCalculateRoute}
+                                                disabled={
+                                                    waypoints[0].value === '' ||
+                                                    waypoints[waypoints.length - 1].value === ''
+                                                }
+                                                className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-md transition-colors duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <NavigationIcon size={18} className="mr-2" />
+                                                Calculate Route
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={handleCancelRoute}
+                                                className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-md transition-colors duration-300 flex items-center justify-center"
+                                            >
+                                                <XCircleIcon size={18} className="mr-2" />
+                                                Cancel Route
+                                            </button>
+                                        )}
                                     </div>
 
                                     {(limitedHistory.length > 0 || historyLoading) && (
@@ -446,12 +465,12 @@ const SidePanel: React.FC<SidePanelProps> = ({
                                                                 {historyItem.startAddress.split(',')[0]} → {historyItem.endAddress.split(',')[0]}
                                                             </p>
                                                             <div className="flex justify-between items-center text-xs text-gray-500">
-                                  <span>
-                                    {(historyItem.kilometersDistance).toFixed(1)} km • {Math.round(historyItem.estimatedDurationInSeconds / 60)} min
-                                  </span>
                                                                 <span>
-                                    {new Date(historyItem.createdAt).toLocaleDateString()}
-                                  </span>
+                                                                    {(historyItem.kilometersDistance).toFixed(1)} km • {Math.round(historyItem.estimatedDurationInSeconds / 60)} min
+                                                                </span>
+                                                                <span>
+                                                                    {new Date(historyItem.createdAt).toLocaleDateString()}
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     ))
