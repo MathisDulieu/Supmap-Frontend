@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { saveUserRoute, getUserRouteHistory } from './map';
-import { getAuthToken } from './map';
+import Cookies from "js-cookie";
 
 export interface RouteHistoryItem {
     id: string;
@@ -12,6 +12,14 @@ export interface RouteHistoryItem {
     estimatedDurationInSeconds: number;
     createdAt: string;
     userId: string;
+}
+
+function getAuthToken(): string | null {
+    const cookiesAccepted = localStorage.getItem('cookiesAccepted') === 'true';
+    const cookieToken = Cookies.get('authToken');
+    const localToken = localStorage.getItem('authToken');
+
+    return cookiesAccepted ? (cookieToken || null) : localToken;
 }
 
 export function useRouteHistory() {

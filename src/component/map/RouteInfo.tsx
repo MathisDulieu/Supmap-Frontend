@@ -52,14 +52,52 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
     setRouteAlerts(alertsFromWindow);
   }, [routeDetails, selectedRouteIndex]);
 
+  // Vérification de sécurité pour les données de l'itinéraire
   if (!routeDetails?.routes?.length) return null;
 
-  const routes = routeDetails.routes as any[];
-  const currentRoute = routes[selectedRoute];
-  const legs = currentRoute.legs as any[];
+  let routes;
+  let currentRoute;
+  let legs;
+  let totalDistance = 0;
+  let totalDuration = 0;
 
-  const totalDistance = legs.reduce((sum: number, leg: any) => sum + leg.distance.value, 0);
-  const totalDuration = legs.reduce((sum: number, leg: any) => sum + leg.duration.value, 0);
+  try {
+    routes = routeDetails.routes;
+
+    // Vérifier que l'index sélectionné est dans les limites
+    if (selectedRoute >= routes.length) {
+      console.warn(`Selected route index ${selectedRoute} is out of bounds. Setting to 0.`);
+      setSelectedRoute(0);
+    }
+
+    currentRoute = routes[selectedRoute];
+
+    // Vérifier que la route actuelle a des "legs"
+    if (!currentRoute || !currentRoute.legs || !Array.isArray(currentRoute.legs)) {
+      console.error('Invalid route structure: missing legs array');
+      return null;
+    }
+
+    legs = currentRoute.legs;
+
+    // Calculer distance et durée totales en vérifiant chaque leg
+    totalDistance = legs.reduce((sum: number, leg: any) => {
+      if (leg && leg.distance && typeof leg.distance.value === 'number') {
+        return sum + leg.distance.value;
+      }
+      return sum;
+    }, 0);
+
+    totalDuration = legs.reduce((sum: number, leg: any) => {
+      if (leg && leg.duration && typeof leg.duration.value === 'number') {
+        return sum + leg.duration.value;
+      }
+      return sum;
+    }, 0);
+  } catch (error) {
+    console.error('Error processing route data:', error);
+    return null;
+  }
 
   const formatDistance = (m: number) =>
       m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1)} km`;
@@ -87,14 +125,23 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
       }[travelMode]);
 
   const stripHtml = (html: string) => {
+    if (!html) return '';
+
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || '';
   };
 
   const handleSelectRoute = (idx: number) => {
+    if (idx >= routes.length) {
+      console.warn(`Cannot select route ${idx}: index out of bounds`);
+      return;
+    }
+
     setSelectedRoute(idx);
-    onSelectRoute?.(idx);
+    if (onSelectRoute) {
+      onSelectRoute(idx);
+    }
     setShowQr(false);
   };
 
@@ -108,14 +155,31 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
       return;
     }
 
-    const start = legs[0].start_location;
-    const end = legs[legs.length - 1].end_location;
+    try {
+      if (!legs || !legs.length) {
+        console.error('No legs data available for sharing');
+        return;
+      }
 
-    share(start.lat(), start.lng(), end.lat(), end.lng());
-    setShowQr(true);
+      const start = legs[0].start_location;
+      const end = legs[legs.length - 1].end_location;
+
+      if (!start || !end || typeof start.lat !== 'function' || typeof end.lat !== 'function') {
+        console.error('Invalid location data for sharing');
+        return;
+      }
+
+      share(start.lat(), start.lng(), end.lat(), end.lng());
+      setShowQr(true);
+    } catch (error) {
+      console.error('Error sharing route:', error);
+    }
   };
 
+  // Traitement sécurisé des alertes
   const alertCounts = routeAlerts.reduce((counts: {HIGH: number, MEDIUM: number, LOW: number, total: number}, alert) => {
+    if (!alert) return counts;
+
     if (alert.severity) {
       counts[alert.severity]++;
     } else {
@@ -264,10 +328,20 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
           {routes.length > 1 && (
               <div className="mt-3 space-y-2">
                 {routes.map((route: any, idx: number) => {
-                  const dur = route.legs.reduce((s: number, l: any) => s + l.duration.value, 0);
-                  const dist = route.legs.reduce((s: number, l: any) => s + l.distance.value, 0);
-                  const summary = route.summary || `Route ${idx + 1}`;
+                  // Vérifier la validité des données de la route
+                  if (!route || !route.legs || !Array.isArray(route.legs)) {
+                    return null;
+                  }
 
+                  const dur = route.legs.reduce((s: number, l: any) => {
+                    return s + (l && l.duration && typeof l.duration.value === 'number' ? l.duration.value : 0);
+                  }, 0);
+
+                  const dist = route.legs.reduce((s: number, l: any) => {
+                    return s + (l && l.distance && typeof l.distance.value === 'number' ? l.distance.value : 0);
+                  }, 0);
+
+                  const summary = route.summary || `Route ${idx + 1}`;
                   const routeSpecificAlerts = idx === selectedRoute ? alertCounts.total : 0;
 
                   return (
@@ -306,81 +380,100 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
           )}
         </div>
 
-        {isExpanded && (
+        {isExpanded && legs && legs.length > 0 && (
             <div className="overflow-y-auto p-4 pb-16" style={{ maxHeight: 'calc(100% - 180px)' }}>
               <div className="space-y-4">
-                {legs.map((leg: any, legIdx: number) => (
-                    <div key={legIdx} className="border-b border-gray-200 pb-4 last:border-b-0">
-                      {legIdx > 0 && (
-                          <div className="mb-2 py-2 px-3 rounded-lg bg-gray-50 flex items-center">
-                            <MapPin size={16} className="text-indigo-600 mr-2" />
-                            <span className="font-medium">{leg.start_address}</span>
-                          </div>
-                      )}
+                {legs.map((leg: any, legIdx: number) => {
+                  // Vérifications de sécurité
+                  if (!leg) return null;
 
-                      {leg.steps.map((step: any, stepIdx: number) => {
-                        const instruction = stripHtml(step.instructions || '');
-                        const maneuverIcon = () => {
-                          if (step.maneuver?.includes('right'))
-                            return (
-                                <CornerDownRight size={16} className="text-indigo-600 transform rotate-270" />
-                            );
-                          if (step.maneuver?.includes('left'))
-                            return (
-                                <CornerDownRight size={16} className="text-indigo-600 transform rotate-180" />
-                            );
-                          return <ArrowRight size={16} className="text-indigo-600" />;
-                        };
+                  return (
+                      <div key={legIdx} className="border-b border-gray-200 pb-4 last:border-b-0">
+                        {legIdx > 0 && leg.start_address && (
+                            <div className="mb-2 py-2 px-3 rounded-lg bg-gray-50 flex items-center">
+                              <MapPin size={16} className="text-indigo-600 mr-2" />
+                              <span className="font-medium">{leg.start_address}</span>
+                            </div>
+                        )}
 
-                        const transitDetails = () => {
-                          if (travelMode === 'TRANSIT' && step.transit) {
-                            const { line } = step.transit;
-                            return (
-                                <div
-                                    className={`px-2 py-1 rounded-md inline-flex items-center ${
-                                        line.color ? '' : 'bg-blue-100'
-                                    }`}
-                                    style={
-                                      line.color
-                                          ? { backgroundColor: line.color, color: line.text_color || 'white' }
-                                          : {}
-                                    }
-                                >
-                          <span className="font-medium text-sm">
-                            {line.short_name || line.name}
-                          </span>
-                                </div>
-                            );
-                          }
-                          return null;
-                        };
+                        {leg.steps && Array.isArray(leg.steps) && leg.steps.map((step: any, stepIdx: number) => {
+                          // Vérifications de sécurité
+                          if (!step) return null;
 
-                        return (
-                            <div key={stepIdx} className="ml-4 mb-3 last:mb-0">
-                              <div className="flex items-start mb-1">
-                                <div className="flex-shrink-0 mt-1 mr-3">{maneuverIcon()}</div>
-                                <div className="flex-grow">
-                                  <div className="text-sm text-gray-700">{instruction}</div>
-                                  <div className="flex items-center mt-1 text-xs text-gray-500">
-                                    <span>{formatDistance(step.distance.value)}</span>
-                                    <span className="mx-1">•</span>
-                                    <span>{formatDuration(step.duration.value)}</span>
-                                    {transitDetails()}
+                          const instruction = stripHtml(step.instructions || '');
+
+                          // Handler pour les icônes de manœuvre
+                          const maneuverIcon = () => {
+                            if (step.maneuver?.includes('right'))
+                              return (
+                                  <CornerDownRight size={16} className="text-indigo-600 transform rotate-270" />
+                              );
+                            if (step.maneuver?.includes('left'))
+                              return (
+                                  <CornerDownRight size={16} className="text-indigo-600 transform rotate-180" />
+                              );
+                            return <ArrowRight size={16} className="text-indigo-600" />;
+                          };
+
+                          // Détails spécifiques au transit
+                          const transitDetails = () => {
+                            if (travelMode === 'TRANSIT' && step.transit) {
+                              const { line } = step.transit;
+                              if (!line) return null;
+
+                              return (
+                                  <div
+                                      className={`px-2 py-1 rounded-md inline-flex items-center ${
+                                          line.color ? '' : 'bg-blue-100'
+                                      }`}
+                                      style={
+                                        line.color
+                                            ? { backgroundColor: line.color, color: line.text_color || 'white' }
+                                            : {}
+                                      }
+                                  >
+                            <span className="font-medium text-sm">
+                              {line.short_name || line.name || ''}
+                            </span>
+                                  </div>
+                              );
+                            }
+                            return null;
+                          };
+
+                          return (
+                              <div key={stepIdx} className="ml-4 mb-3 last:mb-0">
+                                <div className="flex items-start mb-1">
+                                  <div className="flex-shrink-0 mt-1 mr-3">{maneuverIcon()}</div>
+                                  <div className="flex-grow">
+                                    <div className="text-sm text-gray-700">{instruction}</div>
+                                    <div className="flex items-center mt-1 text-xs text-gray-500">
+                                      {step.distance && step.distance.value && (
+                                          <span>{formatDistance(step.distance.value)}</span>
+                                      )}
+                                      {step.distance && step.duration && (
+                                          <span className="mx-1">•</span>
+                                      )}
+                                      {step.duration && step.duration.value && (
+                                          <span>{formatDuration(step.duration.value)}</span>
+                                      )}
+                                      {transitDetails()}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                        );
-                      })}
+                          );
+                        })}
 
-                      {legIdx === legs.length - 1 && (
-                          <div className="mt-3 py-2 px-3 rounded-lg bg-red-50 flex items-center">
-                            <MapPin size={16} className="text-red-600 mr-2" />
-                            <span className="font-medium">{leg.end_address}</span>
-                          </div>
-                      )}
-                    </div>
-                ))}
+                        {legIdx === legs.length - 1 && leg.end_address && (
+                            <div className="mt-3 py-2 px-3 rounded-lg bg-red-50 flex items-center">
+                              <MapPin size={16} className="text-red-600 mr-2" />
+                              <span className="font-medium">{leg.end_address}</span>
+                            </div>
+                        )}
+                      </div>
+                  );
+                })}
               </div>
             </div>
         )}

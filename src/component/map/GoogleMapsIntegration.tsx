@@ -29,6 +29,19 @@ let mapsLoaded = false;
 let mapsLoading = false;
 const API_KEY = window.env?.GOOGLE_API_KEY ?? '';
 
+// Helper function to debounce function calls
+const debounce = <T extends (...args: any[]) => any>(func: T, wait: number) => {
+    let timeout: number | undefined;
+    return function executedFunction(...args: Parameters<T>) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+};
+
 // Helper function to load Google Maps API
 const loadMapsAPI = (): Promise<void> => {
     return new Promise<void>((resolve, reject) => {
@@ -87,6 +100,9 @@ const GoogleMapsIntegration: React.FC<Props> = ({
     const lastRouteAlertsFetchRef = useRef<number>(0);
     const initialWaypointsSetRef = useRef<boolean>(false);
     const isInitializedRef = useRef<boolean>(false);
+    const lastRouteCalculationRef = useRef<number>(0);
+    const directionChangeTimeoutRef = useRef<number | undefined>(undefined);
+    const routeCalculationPendingRef = useRef<boolean>(false);
 
     // State
     const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -96,18 +112,150 @@ const GoogleMapsIntegration: React.FC<Props> = ({
     const [mapError, setMapError] = useState<string | null>(null);
     const [userMarker, setUserMarker] = useState<google.maps.Marker | null>(null);
     const [currentRouteDetails, setCurrentRouteDetails] = useState<RouteDetails | null>(null);
+    const [isRouteCalculationInProgress, setIsRouteCalculationInProgress] = useState(false);
 
-    // Custom hooks
     const { isGeolocationEnabled, userPosition: contextUserPosition } = useGeolocation();
     const { fetchAlerts, clearMarkers: clearAlertMarkers } = useNearbyAlerts(map);
     const { fetchNearbyUsers, clearMarkers: clearUserMarkers } = useNearbyUsers(map, isAuthenticated);
     const { fetchRouteAlerts, clearAlertMarkers: clearRouteAlertMarkers, extractRoutePoints } = useRouteAlerts(map);
+
+    // Constants for rate limiting
+    const MIN_LOCATION_UPDATE_INTERVAL = 180000; // 3 minutes
+    const MIN_NEARBY_USERS_INTERVAL = 300000; // 5 minutes
+    const MIN_ROUTE_ALERTS_INTERVAL = 60000; // 1 minute
+    const MIN_ROUTE_CALCULATION_INTERVAL = 3000; // 3 seconds
 
     // Convert context userPosition format to Google Maps format
     const userPosition = contextUserPosition ? {
         lat: contextUserPosition.latitude,
         lng: contextUserPosition.longitude
     } : null;
+
+    // Calculate route with rate limiting
+    const calculateRouteWithRateLimit = useCallback(() => {
+        if (!directionsService || !directionsRenderer || !isMapReady || !map) return;
+
+        const now = Date.now();
+        if (isRouteCalculationInProgress ||
+            now - lastRouteCalculationRef.current < MIN_ROUTE_CALCULATION_INTERVAL ||
+            routeCalculationPendingRef.current) {
+            console.log("Throttled route calculation - too soon or already in progress");
+            return;
+        }
+
+        // Filter valid waypoints
+        const validWaypoints = waypoints.filter(w =>
+            typeof w.value === 'string' ? w.value.trim() : true
+        );
+
+        if (validWaypoints.length < 2) {
+            console.log("Not enough valid waypoints");
+            return;
+        }
+
+        console.log("Calculating route...");
+        setIsRouteCalculationInProgress(true);
+        routeCalculationPendingRef.current = true;
+        lastRouteCalculationRef.current = now;
+
+        const origin = validWaypoints[0];
+        const destination = validWaypoints[validWaypoints.length - 1];
+
+        // Handle "My Location" waypoints
+        const originParam = origin.isUserLocation && userPosition ? userPosition : origin.value;
+        const destParam = destination.isUserLocation && userPosition ? userPosition : destination.value;
+
+        // Create waypoints array for intermediate stops
+        const waypointParams = validWaypoints.slice(1, -1).map(w => ({
+            location: w.isUserLocation && userPosition ? userPosition : w.value,
+            stopover: true
+        }));
+
+        // Configure route request
+        const routeConfig: google.maps.DirectionsRequest = {
+            origin: originParam,
+            destination: destParam,
+            waypoints: waypointParams,
+            travelMode: window.google.maps.TravelMode[travelMode],
+            optimizeWaypoints: true,
+            provideRouteAlternatives: true
+        };
+
+        // Add travel mode specific options
+        if (travelMode === 'DRIVING') {
+            routeConfig.drivingOptions = {
+                departureTime: new Date(),
+                trafficModel: window.google.maps.TrafficModel.BEST_GUESS
+            };
+        } else if (travelMode === 'TRANSIT') {
+            routeConfig.transitOptions = {
+                departureTime: new Date(),
+                modes: [window.google.maps.TransitMode.BUS, window.google.maps.TransitMode.RAIL],
+                routingPreference: window.google.maps.TransitRoutePreference.FEWER_TRANSFERS
+            };
+        }
+
+        directionsService.route(routeConfig, (result, status) => {
+            setIsRouteCalculationInProgress(false);
+            routeCalculationPendingRef.current = false;
+
+            if (status === window.google.maps.DirectionsStatus.OK && result) {
+                console.log("Route calculation successful");
+
+                directionsRenderer.setDirections(result);
+                directionsRenderer.setRouteIndex(selectedRouteIndex);
+
+                setCurrentRouteDetails(result as unknown as RouteDetails);
+
+                if (onRouteCalculated) {
+                    onRouteCalculated(result as unknown as RouteDetails);
+                }
+
+                // Schedule route alerts fetch with a longer delay to avoid API rate limits
+                const now = Date.now();
+                if (now - lastRouteAlertsFetchRef.current > MIN_ROUTE_ALERTS_INTERVAL) {
+                    lastRouteAlertsFetchRef.current = now;
+
+                    setTimeout(() => {
+                        if (isInitializedRef.current) {
+                            const routePoints = extractRoutePoints(result);
+                            if (routePoints.length > 0) {
+                                clearRouteAlertMarkers();
+                                fetchRouteAlerts(routePoints);
+                            }
+                        }
+                    }, 5000); // Delay route alerts fetch by 5 seconds
+                } else {
+                    console.log("Throttled fetchRouteAlerts - too soon");
+                }
+            } else {
+                console.error('Route calculation error:', status);
+                setMapError(`Route calculation failed: ${status}`);
+            }
+        });
+    }, [
+        directionsService,
+        directionsRenderer,
+        isMapReady,
+        map,
+        waypoints,
+        travelMode,
+        userPosition,
+        selectedRouteIndex,
+        onRouteCalculated,
+        extractRoutePoints,
+        clearRouteAlertMarkers,
+        fetchRouteAlerts,
+        isRouteCalculationInProgress
+    ]);
+
+    // Debounced version of route calculation
+    const debouncedCalculateRoute = useCallback(
+        debounce(() => {
+            calculateRouteWithRateLimit();
+        }, 500),
+        [calculateRouteWithRateLimit]
+    );
 
     // Initialize map
     useEffect(() => {
@@ -134,6 +282,9 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                     fullscreenControl: true,
                     streetViewControl: true,
                     zoomControl: true,
+                    draggable: true,
+                    clickableIcons: true,
+                    gestureHandling: "greedy",
                     mapTypeControlOptions: {
                         position: window.google.maps.ControlPosition.TOP_RIGHT
                     },
@@ -156,9 +307,10 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                     // Create directions service
                     setDirectionsService(new window.google.maps.DirectionsService());
 
-                    // Create directions renderer
+                    // Create directions renderer with draggable waypoints
                     const renderer = new window.google.maps.DirectionsRenderer({
                         map: mapInstance,
+                        draggable: true,
                         polylineOptions: {
                             strokeColor: '#4F46E5',
                             strokeWeight: 5
@@ -171,9 +323,50 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                                 fillColor: '#4F46E5',
                                 strokeWeight: 2,
                                 strokeColor: '#ffffff'
-                            }
+                            },
+                            draggable: true
                         }
                     });
+
+                    // Add a debounced event listener for directions_changed
+                    renderer.addListener('directions_changed', () => {
+                        if (directionChangeTimeoutRef.current !== undefined) {
+                            clearTimeout(directionChangeTimeoutRef.current);
+                            directionChangeTimeoutRef.current = undefined;
+                        }
+
+                        directionChangeTimeoutRef.current = setTimeout(() => {
+                            const result = renderer.getDirections();
+                            if (result) {
+                                console.log("Route updated via drag-and-drop");
+                                setCurrentRouteDetails(result as unknown as RouteDetails);
+
+                                // Only fetch route alerts if enough time has passed
+                                const now = Date.now();
+                                if (now - lastRouteAlertsFetchRef.current > MIN_ROUTE_ALERTS_INTERVAL) {
+                                    lastRouteAlertsFetchRef.current = now;
+
+                                    setTimeout(() => {
+                                        if (isInitializedRef.current) {
+                                            const routePoints = extractRoutePoints(result);
+                                            if (routePoints.length > 0) {
+                                                clearRouteAlertMarkers();
+                                                fetchRouteAlerts(routePoints);
+                                            }
+                                        }
+                                    }, 5000); // Longer delay to avoid API throttling
+                                } else {
+                                    console.log("Throttled fetchRouteAlerts - too soon");
+                                }
+
+                                // Notify parent component if callback provided
+                                if (onRouteCalculated) {
+                                    onRouteCalculated(result as unknown as RouteDetails);
+                                }
+                            }
+                        }, 1000); // Wait 1 second before processing direction changes
+                    });
+
                     setDirectionsRenderer(renderer);
 
                     // Mark map as ready
@@ -181,13 +374,13 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                     isInitializedRef.current = true;
                     console.log("Map initialized successfully");
 
-                    // Fetch initial alerts for the default center after a short delay
+                    // Fetch initial alerts for the default center after a delay
                     // to avoid immediate API call limitations
                     setTimeout(() => {
                         if (isMounted) {
                             fetchAlerts(defaultCenter.lat, defaultCenter.lng);
                         }
-                    }, 1000);
+                    }, 2000); // Increased delay to 2 seconds
                 }
             } catch (error) {
                 if (isMounted) {
@@ -209,6 +402,11 @@ const GoogleMapsIntegration: React.FC<Props> = ({
             clearUserMarkers();
             clearRouteAlertMarkers();
             if (directionsRenderer) directionsRenderer.setMap(null);
+
+            if (directionChangeTimeoutRef.current !== undefined) {
+                clearTimeout(directionChangeTimeoutRef.current);
+                directionChangeTimeoutRef.current = undefined;
+            }
         };
     }, []); // Empty dependency array to run only once
 
@@ -249,12 +447,11 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                 map.setZoom(15);
             }
 
-            // Mettre à jour les waypoints avec la position actuelle si l'utilisateur est authentifié
-            // et que les waypoints n'ont pas encore été définis
+            // Set initial waypoints if authenticated and not already set
             if (isAuthenticated && setWaypoints && !initialWaypointsSetRef.current && userPosition) {
                 console.log("Setting initial waypoint to user location");
                 setWaypoints(prev => {
-                    // Modifier uniquement le point de départ
+                    // Only modify the start waypoint
                     const updatedWaypoints = [...prev];
                     if (updatedWaypoints[0] && updatedWaypoints[0].id === 'start') {
                         updatedWaypoints[0] = {
@@ -268,34 +465,30 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                 initialWaypointsSetRef.current = true;
             }
 
-            // Fetch alerts only if position changed significantly and enough time has passed
+            // Rate-limited alerts fetching based on significant position changes
             const now = Date.now();
-            const MIN_LOCATION_UPDATE_INTERVAL = 180000; // 3 minutes
-
             if (now - lastLocationUpdateRef.current > MIN_LOCATION_UPDATE_INTERVAL) {
                 lastLocationUpdateRef.current = now;
                 console.log("Fetching alerts based on user position");
 
-                // Ensure enough time between API calls by using a timeout
+                // Stagger API calls with timeouts
                 setTimeout(() => {
                     if (isInitializedRef.current) {
                         fetchAlerts(userPosition.lat, userPosition.lng);
 
-                        // Fetch nearby users if authenticated after a small delay
+                        // Fetch nearby users with an additional delay if authenticated
                         if (isAuthenticated && isGeolocationEnabled) {
-                            const MIN_NEARBY_USERS_INTERVAL = 300000; // 5 minutes
-
                             if (now - lastNearbyUsersFetchRef.current > MIN_NEARBY_USERS_INTERVAL) {
                                 setTimeout(() => {
                                     if (isInitializedRef.current) {
                                         fetchNearbyUsers(userPosition.lat, userPosition.lng);
                                         lastNearbyUsersFetchRef.current = now;
                                     }
-                                }, 2000); // 2 second delay to avoid API throttling
+                                }, 3000); // Increased delay to 3 seconds
                             }
                         }
                     }
-                }, 500);
+                }, 1000); // Initial delay of 1 second
             }
         }
     }, [
@@ -317,106 +510,18 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         }
     }, [showUserMarker, userMarker]);
 
-    // Calculate route when requested
+    // Trigger route calculation when requested with debouncing
     useEffect(() => {
-        if (!calculateRoute || !directionsService || !directionsRenderer || !isMapReady || !map) return;
-
-        console.log("Calculating route...");
-
-        // Filter valid waypoints
-        const validWaypoints = waypoints.filter(w =>
-            typeof w.value === 'string' ? w.value.trim() : true
-        );
-
-        if (validWaypoints.length < 2) {
-            console.log("Not enough valid waypoints");
-            return;
-        }
-
-        const origin = validWaypoints[0];
-        const destination = validWaypoints[validWaypoints.length - 1];
-
-        // Handle "My Location" waypoints
-        const originParam = origin.isUserLocation && userPosition ? userPosition : origin.value;
-        const destParam = destination.isUserLocation && userPosition ? userPosition : destination.value;
-
-        // Create waypoints array for intermediate stops
-        const waypointParams = validWaypoints.slice(1, -1).map(w => ({
-            location: w.isUserLocation && userPosition ? userPosition : w.value,
-            stopover: true
-        }));
-
-        // Configure route request
-        const routeConfig: google.maps.DirectionsRequest = {
-            origin: originParam,
-            destination: destParam,
-            waypoints: waypointParams,
-            travelMode: window.google.maps.TravelMode[travelMode],
-            optimizeWaypoints: true,
-            provideRouteAlternatives: true
-        };
-
-        // Add travel mode specific options
-        if (travelMode === 'DRIVING') {
-            routeConfig.drivingOptions = {
-                departureTime: new Date(),
-                trafficModel: window.google.maps.TrafficModel.BEST_GUESS
-            };
-        } else if (travelMode === 'TRANSIT') {
-            routeConfig.transitOptions = {
-                departureTime: new Date(),
-                modes: [window.google.maps.TransitMode.BUS, window.google.maps.TransitMode.RAIL],
-                routingPreference: window.google.maps.TransitRoutePreference.FEWER_TRANSFERS
-            };
-        }
-
-        // Request route
-        directionsService.route(routeConfig, (result, status) => {
-            if (status === window.google.maps.DirectionsStatus.OK && result) {
-                console.log("Route calculation successful");
-
-                // Display route
-                directionsRenderer.setDirections(result);
-                directionsRenderer.setRouteIndex(selectedRouteIndex);
-
-                // Store route details
-                setCurrentRouteDetails(result as unknown as RouteDetails);
-
-                // Notify parent component
-                if (onRouteCalculated) {
-                    onRouteCalculated(result as unknown as RouteDetails);
-                }
-
-                // Fetch alerts for this route after a short delay
-                setTimeout(() => {
-                    if (isInitializedRef.current) {
-                        const routePoints = extractRoutePoints(result);
-                        if (routePoints.length > 0) {
-                            fetchRouteAlerts(routePoints);
-                        }
-                    }
-                }, 1000);
-            } else {
-                console.error('Route calculation error:', status);
-                setMapError(`Route calculation failed: ${status}`);
-            }
-        });
+        if (!calculateRoute) return;
+        debouncedCalculateRoute();
     }, [
         calculateRoute,
         waypoints,
-        directionsService,
-        directionsRenderer,
-        isMapReady,
-        map,
         travelMode,
-        userPosition,
-        selectedRouteIndex,
-        onRouteCalculated,
-        extractRoutePoints,
-        fetchRouteAlerts
+        debouncedCalculateRoute
     ]);
 
-    // Update selected route
+    // Update selected route with rate limiting
     useEffect(() => {
         if (!directionsRenderer || !currentRouteDetails || !isInitializedRef.current) return;
 
@@ -424,12 +529,9 @@ const GoogleMapsIntegration: React.FC<Props> = ({
             // Update route index
             directionsRenderer.setRouteIndex(selectedRouteIndex);
 
-            // Fetch alerts for selected route with rate limiting
-            const MIN_FETCH_INTERVAL = 30000; // 30 seconds
+            // Only fetch alerts if current route details exist and enough time has passed
             const now = Date.now();
-            const lastFetchTime = lastRouteAlertsFetchRef.current || 0;
-
-            if (now - lastFetchTime > MIN_FETCH_INTERVAL) {
+            if (now - lastRouteAlertsFetchRef.current > MIN_ROUTE_ALERTS_INTERVAL) {
                 lastRouteAlertsFetchRef.current = now;
 
                 setTimeout(() => {
@@ -440,7 +542,9 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                             fetchRouteAlerts(routePoints);
                         }
                     }
-                }, 500);
+                }, 5000); // Longer delay to avoid API throttling
+            } else {
+                console.log("Throttled fetchRouteAlerts - too soon");
             }
         } catch (error) {
             console.error('Error updating route index:', error);
@@ -468,6 +572,7 @@ const GoogleMapsIntegration: React.FC<Props> = ({
             const panel = document.querySelector<HTMLElement>('.route-info-panel');
             const bottomPadding = panel ? panel.clientHeight + 16 : 200;
 
+            // Adjust bounds with margins for easy navigation
             map.fitBounds(route.bounds, {
                 top: 50,
                 bottom: bottomPadding,
@@ -479,12 +584,38 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         }
     }, [selectedRouteIndex, directionsRenderer, map, currentRouteDetails]);
 
+    // Center map on user location
     const centerMapOnUserLocation = useCallback(() => {
         if (map && userPosition) {
             map.setCenter(userPosition);
             map.setZoom(15);
         }
     }, [map, userPosition]);
+
+    // Fit map to route
+    const fitMapToRoute = useCallback(() => {
+        if (!directionsRenderer || !map || !currentRouteDetails) return;
+
+        try {
+            const directions = directionsRenderer.getDirections();
+            if (!directions) return;
+
+            const route = directions.routes[selectedRouteIndex];
+            if (!route || !route.bounds) return;
+
+            const panel = document.querySelector<HTMLElement>('.route-info-panel');
+            const bottomPadding = panel ? panel.clientHeight + 16 : 200;
+
+            map.fitBounds(route.bounds, {
+                top: 50,
+                bottom: bottomPadding,
+                left: 20,
+                right: 20
+            });
+        } catch (error) {
+            console.error('Error fitting map to bounds:', error);
+        }
+    }, [directionsRenderer, map, currentRouteDetails, selectedRouteIndex]);
 
     return (
         <div className="w-full h-full relative">
@@ -509,8 +640,10 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                 </div>
             )}
 
-            {userPosition && (
-                <div className="absolute bottom-24 right-4 z-10">
+            {/* Map control buttons */}
+            <div className="absolute bottom-24 right-4 z-10 space-y-2">
+                {/* Center on user location button */}
+                {userPosition && (
                     <button
                         onClick={centerMapOnUserLocation}
                         className="bg-white hover:bg-gray-100 text-gray-800 p-3 rounded-full shadow-lg transition-colors duration-300"
@@ -532,8 +665,33 @@ const GoogleMapsIntegration: React.FC<Props> = ({
                             />
                         </svg>
                     </button>
-                </div>
-            )}
+                )}
+
+                {/* Fit to route button */}
+                {currentRouteDetails && (
+                    <button
+                        onClick={fitMapToRoute}
+                        className="bg-white hover:bg-gray-100 text-gray-800 p-3 rounded-full shadow-lg transition-colors duration-300"
+                        aria-label="Fit map to route"
+                        title="Fit map to route"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                            />
+                        </svg>
+                    </button>
+                )}
+            </div>
         </div>
     );
 };

@@ -54,6 +54,8 @@ const SidePanel: React.FC<SidePanelProps> = ({
     const [activeTab, setActiveTab] = useState<'navigation' | 'favorites' | 'share'>('navigation');
     const [userPosition, setUserPosition] = useState<{lat: number, lng: number} | null>(null);
 
+    const limitedHistory = history.slice(0, 5);
+
     const getUserLocation = () => {
         if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
@@ -407,7 +409,7 @@ const SidePanel: React.FC<SidePanelProps> = ({
                                         </button>
                                     </div>
 
-                                    {(history.length > 0 || historyLoading) && (
+                                    {(limitedHistory.length > 0 || historyLoading) && (
                                         <div className="mt-6">
                                             <div className="flex items-center justify-between mb-2">
                                                 <h3 className="text-lg font-semibold flex items-center">
@@ -429,12 +431,12 @@ const SidePanel: React.FC<SidePanelProps> = ({
                                             )}
 
                                             <div className="space-y-2 max-h-48 overflow-y-auto">
-                                                {history.length === 0 ? (
+                                                {limitedHistory.length === 0 ? (
                                                     <p className="text-sm text-gray-500 italic">
                                                         No routes in history yet
                                                     </p>
                                                 ) : (
-                                                    history.map(historyItem => (
+                                                    limitedHistory.map(historyItem => (
                                                         <div
                                                             key={historyItem.id}
                                                             onClick={() => handleHistoryClick(historyItem)}

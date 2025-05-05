@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useMediaQuery } from '../../hooks/map/useMediaQuery.ts';
 import SidePanel from '../../component/map/SidePanel';
 import GoogleMapsIntegration from '../../component/map/GoogleMapsIntegration';
@@ -6,7 +6,8 @@ import RouteInfo from '../../component/map/RouteInfo';
 import { useRouteHistory } from '../../hooks/map/useRouteHistory';
 import { useLocalRouteHistory } from '../../hooks/map/useLocalRouteHistory';
 import { TravelMode, Waypoint, RouteDetails } from '../../hooks/map/types/map.ts';
-import { getAuthToken } from '../../hooks/map/map.ts';
+import { RouteIcon } from 'lucide-react';
+import Cookies from "js-cookie";
 
 const Navigation: React.FC = () => {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
@@ -20,6 +21,9 @@ const Navigation: React.FC = () => {
   const [isRouteInfoVisible, setIsRouteInfoVisible] = useState(false);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [hasCalculatedRoute, setHasCalculatedRoute] = useState<boolean>(false);
+  const [routeAlreadySaved, setRouteAlreadySaved] = useState<boolean>(false);
+  const [lastSavedIndex, setLastSavedIndex] = useState<number>(-1);
 
   const isMobile = useMediaQuery('(max-width: 768px)');
   const panelWidth = isMobile && isPanelOpen ? '100%' : '320px';
@@ -67,6 +71,10 @@ const Navigation: React.FC = () => {
   const togglePanel = () => setIsPanelOpen(!isPanelOpen);
 
   const handleCalculateRoute = () => {
+    // Réinitialiser l'état de sauvegarde pour un nouveau calcul d'itinéraire
+    setRouteAlreadySaved(false);
+    setLastSavedIndex(-1);
+
     setIsRouteInfoVisible(true);
     if (calculateRoute) {
       setCalculateRoute(false);
@@ -76,13 +84,39 @@ const Navigation: React.FC = () => {
     }
   };
 
-  const handleRouteCalculated = (routeData: RouteDetails) => {
-    setRouteDetails(routeData);
+  function getAuthToken(): string | null {
+    const cookiesAccepted = localStorage.getItem('cookiesAccepted') === 'true';
+    const cookieToken = Cookies.get('authToken');
+    const localToken = localStorage.getItem('authToken');
 
-    const leg0 = routeData.routes[0].legs[0];
-    const legN = routeData.routes[0].legs[routeData.routes[0].legs.length - 1];
+    return cookiesAccepted ? (cookieToken || null) : localToken;
+  }
 
-    if (legN) {
+  // Fonction sécurisée pour sauvegarder un itinéraire
+  const saveRouteToHistory = useCallback((routeData: RouteDetails, routeIndex: number) => {
+    if (!routeData || !routeData.routes || !routeData.routes[routeIndex]) {
+      console.warn('Invalid route data or index when trying to save to history');
+      return;
+    }
+
+    const route = routeData.routes[routeIndex];
+
+    // Vérifier que les legs existent et ne sont pas vides
+    if (!route.legs || route.legs.length === 0) {
+      console.warn('Route has no legs when trying to save to history');
+      return;
+    }
+
+    try {
+      const leg0 = route.legs[0];
+      const legN = route.legs[route.legs.length - 1];
+
+      if (!leg0 || !legN || !leg0.start_address || !legN.end_address ||
+          !leg0.start_location || !legN.end_location) {
+        console.warn('Invalid leg data when trying to save to history');
+        return;
+      }
+
       const routeHistoryItem = {
         startAddress: leg0.start_address,
         endAddress: legN.end_address,
@@ -95,9 +129,19 @@ const Navigation: React.FC = () => {
           longitude: legN.end_location.lng()
         },
         kilometersDistance:
-            routeData.routes[0].legs.reduce((s: number, l: any) => s + l.distance.value, 0) / 1000,
+            route.legs.reduce((s, l) => {
+              if (l && l.distance) {
+                return s + l.distance.value;
+              }
+              return s;
+            }, 0) / 1000,
         estimatedDurationInSeconds:
-            routeData.routes[0].legs.reduce((s: number, l: any) => s + l.duration.value, 0)
+            route.legs.reduce((s, l) => {
+              if (l && l.duration) {
+                return s + l.duration.value;
+              }
+              return s;
+            }, 0)
       };
 
       if (isAuthenticated) {
@@ -105,10 +149,48 @@ const Navigation: React.FC = () => {
       } else {
         saveLocalHistory(routeHistoryItem);
       }
-    }
 
-    setSelectedRouteIndex(0);
-    setCalculateRoute(false);
+      setRouteAlreadySaved(true);
+      setLastSavedIndex(routeIndex);
+    } catch (error) {
+      console.error('Error saving route to history:', error);
+    }
+  }, [isAuthenticated, saveRemoteHistory, saveLocalHistory]);
+
+  const handleRouteCalculated = (routeData: RouteDetails) => {
+    try {
+      if (!routeData || !routeData.routes || routeData.routes.length === 0) {
+        console.warn('Invalid route data in handleRouteCalculated');
+        return;
+      }
+
+      setRouteDetails(routeData);
+      setHasCalculatedRoute(true);
+      setSelectedRouteIndex(0);
+      setCalculateRoute(false);
+
+      // Sauvegarder l'itinéraire par défaut (index 0) après un court délai
+      setTimeout(() => {
+        if (!routeAlreadySaved && routeData) {
+          saveRouteToHistory(routeData, 0);
+        }
+      }, 2000);
+    } catch (error) {
+      console.error('Error in handleRouteCalculated:', error);
+    }
+  };
+
+  // Gestion du changement d'itinéraire sélectionné
+  const handleSelectRoute = (idx: number) => {
+    if (selectedRouteIndex === idx) return;
+
+    setSelectedRouteIndex(idx);
+
+    // Sauvegarder le nouvel itinéraire sélectionné dans l'historique
+    // seulement s'il est différent de celui déjà sauvegardé
+    if (routeDetails && idx !== lastSavedIndex) {
+      saveRouteToHistory(routeDetails, idx);
+    }
   };
 
   const handleHistoryClick = (historyItem: any) => {
@@ -118,9 +200,22 @@ const Navigation: React.FC = () => {
     ]);
     setSelectedRouteIndex(0);
     setIsRouteInfoVisible(false);
+    // Réinitialiser l'état de sauvegarde
+    setRouteAlreadySaved(false);
+    setLastSavedIndex(-1);
+
     setTimeout(() => {
       setCalculateRoute(true);
     }, 100);
+  };
+
+  // Gérer la fermeture/réouverture du panel d'info route
+  const handleRouteInfoClose = () => {
+    setIsRouteInfoVisible(false);
+  };
+
+  const handleToggleRouteInfo = () => {
+    setIsRouteInfoVisible(!isRouteInfoVisible);
   };
 
   return (
@@ -147,7 +242,7 @@ const Navigation: React.FC = () => {
             handleCalculateRoute={handleCalculateRoute}
             travelMode={travelMode}
             setTravelMode={setTravelMode}
-            history={history}
+            history={history.slice(0, 5)} // Limitation à 5 entrées dans l'historique
             historyLoading={historyLoading}
             historyError={historyError}
             handleHistoryClick={handleHistoryClick}
@@ -157,12 +252,26 @@ const Navigation: React.FC = () => {
         {isRouteInfoVisible && routeDetails && (
             <RouteInfo
                 routeDetails={routeDetails}
-                onClose={() => setIsRouteInfoVisible(false)}
+                onClose={handleRouteInfoClose}
                 travelMode={travelMode}
-                onSelectRoute={setSelectedRouteIndex}
+                onSelectRoute={handleSelectRoute}
                 selectedRouteIndex={selectedRouteIndex}
                 isAuthenticated={isAuthenticated}
             />
+        )}
+
+        {/* Bouton pour afficher/masquer les informations de l'itinéraire */}
+        {hasCalculatedRoute && !isRouteInfoVisible && (
+            <div className="absolute bottom-6 right-4 z-10">
+              <button
+                  onClick={handleToggleRouteInfo}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-full shadow-lg transition-colors duration-300 flex items-center justify-center"
+                  aria-label="Show route information"
+                  title="Show route information"
+              >
+                <RouteIcon size={20} />
+              </button>
+            </div>
         )}
       </div>
   );

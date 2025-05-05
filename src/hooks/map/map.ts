@@ -16,7 +16,7 @@ interface RoutePoint {
 
 const API_BASE_URL = (window as any).env && (window as any).env.API_BASE_URL ? (window as any).env.API_BASE_URL : '';
 
-export async function getAuthToken(): Promise<string | null> {
+function getAuthToken(): string | null {
     const cookiesAccepted = localStorage.getItem('cookiesAccepted') === 'true';
     const cookieToken = Cookies.get('authToken');
     const localToken = localStorage.getItem('authToken');
