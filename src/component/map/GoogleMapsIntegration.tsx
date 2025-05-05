@@ -169,7 +169,6 @@ const GoogleMapsIntegration: React.FC<Props> = ({
             destParam = destination.value;
         }
 
-        // Create waypoints array for intermediate stops
         const waypointParams = validWaypoints.slice(1, -1).map(w => ({
             location: w.isUserLocation && userPosition ? userPosition : w.value,
             stopover: true
