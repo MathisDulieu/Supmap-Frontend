@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useMediaQuery } from '../../hooks/map/useMediaQuery.ts';
 import SidePanel from '../../component/map/SidePanel';
-import GoogleMapsIntegration from '../../component/map/GoogleMapsIntegration';
+import GoogleMapsIntegration, { GoogleMapsRef } from '../../component/map/GoogleMapsIntegration';
 import RouteInfo from '../../component/map/RouteInfo';
 import { useRouteHistory } from '../../hooks/map/useRouteHistory';
 import { useLocalRouteHistory } from '../../hooks/map/useLocalRouteHistory';
@@ -10,6 +10,9 @@ import { RouteIcon } from 'lucide-react';
 import Cookies from "js-cookie";
 
 const Navigation: React.FC = () => {
+  // Ajouter une ref pour accéder aux méthodes de GoogleMapsIntegration
+  const mapRef = useRef<GoogleMapsRef | null>(null);
+
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [waypoints, setWaypoints] = useState<Waypoint[]>([
     { id: 'start', placeholder: 'Starting point', value: '' },
@@ -85,8 +88,13 @@ const Navigation: React.FC = () => {
     }
   };
 
-  // New function to handle route cancellation
-  const handleCancelRoute = () => {
+  // Mettre à jour la fonction handleCancelRoute pour utiliser la ref
+  const handleCancelRoute = useCallback(() => {
+    // Appeler la méthode clearRoute de GoogleMapsIntegration
+    if (mapRef.current) {
+      mapRef.current?.clearRoute();
+    }
+
     // Clear route-related states
     setRouteDetails(null);
     setHasCalculatedRoute(false);
@@ -100,7 +108,7 @@ const Navigation: React.FC = () => {
 
     // Optional: Reset selected route index
     setSelectedRouteIndex(0);
-  };
+  }, []);
 
   function getAuthToken(): string | null {
     const cookiesAccepted = localStorage.getItem('cookiesAccepted') === 'true';
@@ -128,7 +136,6 @@ const Navigation: React.FC = () => {
     try {
       const leg0 = route.legs[0];
       const legN = route.legs[route.legs.length - 1];
-
       if (!leg0 || !legN || !leg0.start_address || !legN.end_address ||
           !leg0.start_location || !legN.end_location) {
         console.warn('Invalid leg data when trying to save to history');
@@ -241,6 +248,7 @@ const Navigation: React.FC = () => {
       <div className="h-screen w-full relative bg-gray-100 overflow-hidden">
         <div className="absolute inset-0">
           <GoogleMapsIntegration
+              ref={mapRef} // Ajouter la ref ici
               waypoints={waypoints}
               calculateRoute={calculateRoute}
               onRouteCalculated={handleRouteCalculated}

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { useNearbyUsers } from '../../hooks/map/useNearbyUsers';
 import { useGeolocation } from '../../services/GeolocationContext';
 import { Waypoint, TravelMode, RouteDetails } from '../../hooks/map/types/map.ts';
@@ -9,6 +9,11 @@ declare global {
         initMap: () => void;
         env?: { API_BASE_URL: string; GOOGLE_API_KEY: string };
     }
+}
+
+// Définition de l'interface pour la ref
+export interface GoogleMapsRef {
+    clearRoute: () => void;
 }
 
 interface Props {
@@ -80,16 +85,19 @@ const loadMapsAPI = (): Promise<void> => {
     });
 };
 
-const GoogleMapsIntegration: React.FC<Props> = ({
-                                                    waypoints,
-                                                    calculateRoute,
-                                                    onRouteCalculated,
-                                                    travelMode,
-                                                    selectedRouteIndex,
-                                                    showUserMarker = true,
-                                                    isAuthenticated,
-                                                    setWaypoints
-                                                }) => {
+// Utilisation de forwardRef pour exposer des méthodes vers le parent
+const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
+    const {
+        waypoints,
+        calculateRoute,
+        onRouteCalculated,
+        travelMode,
+        selectedRouteIndex,
+        showUserMarker = true,
+        isAuthenticated,
+        setWaypoints
+    } = props;
+
     // Refs
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const lastLocationUpdateRef = useRef<number>(0);
@@ -114,6 +122,17 @@ const GoogleMapsIntegration: React.FC<Props> = ({
     const { isGeolocationEnabled, userPosition: contextUserPosition } = useGeolocation();
     const { fetchNearbyUsers, clearMarkers: clearUserMarkers } = useNearbyUsers(map, isAuthenticated);
 
+    // Exposer la méthode clearRoute via useImperativeHandle
+    useImperativeHandle(ref, () => ({
+        clearRoute: () => {
+            if (directionsRenderer) {
+                directionsRenderer.setDirections(null);
+                setCurrentRouteDetails(null);
+                console.log("Route cleared from map");
+            }
+        }
+    }), [directionsRenderer]);
+
     // Constants for rate limiting
     const MIN_LOCATION_UPDATE_INTERVAL = 180000; // 3 minutes
     const MIN_NEARBY_USERS_INTERVAL = 300000; // 5 minutes
@@ -125,6 +144,7 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         lng: contextUserPosition.longitude
     } : null;
 
+    // Calculate route with rate limiting
     const calculateRouteWithRateLimit = useCallback(() => {
         if (!directionsService || !directionsRenderer || !isMapReady || !map) return;
 
@@ -136,17 +156,33 @@ const GoogleMapsIntegration: React.FC<Props> = ({
             return;
         }
 
+        // First check if we actually have user position when needed
+        const hasUserLocation = waypoints.some(wp => wp.isUserLocation || wp.value === 'My Location');
+        if (hasUserLocation && !userPosition) {
+            console.error("Route requires user location but position is not available");
+            setMapError("Unable to use your location. Please make sure location services are enabled.");
+            setIsRouteCalculationInProgress(false);
+            return;
+        }
+
         // Filter valid waypoints
-        const validWaypoints = waypoints.filter(w =>
-            typeof w.value === 'string' ? w.value.trim() || w.isUserLocation : true
-        );
+        const validWaypoints = waypoints.filter(wp => {
+            // If it's marked as user location and we have user position, it's valid
+            if (wp.isUserLocation && userPosition) return true;
+
+            // If the value is "My Location" string and we have user position, treat as user location
+            if (typeof wp.value === 'string' && wp.value === 'My Location' && userPosition) return true;
+
+            // Otherwise check if it has a non-empty string value
+            return typeof wp.value === 'string' ? wp.value.trim() !== '' : true;
+        });
 
         if (validWaypoints.length < 2) {
             console.log("Not enough valid waypoints");
             return;
         }
 
-        console.log("Calculating route...");
+        console.log("Calculating route with waypoints:", validWaypoints);
         setIsRouteCalculationInProgress(true);
         routeCalculationPendingRef.current = true;
         lastRouteCalculationRef.current = now;
@@ -154,25 +190,37 @@ const GoogleMapsIntegration: React.FC<Props> = ({
         const origin = validWaypoints[0];
         const destination = validWaypoints[validWaypoints.length - 1];
 
-        // Handle "My Location" waypoints
+        // Handle origin
         let originParam;
-        if (origin.isUserLocation && userPosition) {
+        if ((origin.isUserLocation || origin.value === 'My Location') && userPosition) {
             originParam = userPosition;
+            console.log("Using user position for origin:", originParam);
         } else {
             originParam = origin.value;
         }
 
+        // Handle destination
         let destParam;
-        if (destination.isUserLocation && userPosition) {
+        if ((destination.isUserLocation || destination.value === 'My Location') && userPosition) {
             destParam = userPosition;
+            console.log("Using user position for destination:", destParam);
         } else {
             destParam = destination.value;
         }
 
-        const waypointParams = validWaypoints.slice(1, -1).map(w => ({
-            location: w.isUserLocation && userPosition ? userPosition : w.value,
-            stopover: true
-        }));
+        // Create waypoints array for intermediate stops
+        const waypointParams = validWaypoints.slice(1, -1).map(wp => {
+            let location;
+            if ((wp.isUserLocation || wp.value === 'My Location') && userPosition) {
+                location = userPosition;
+            } else {
+                location = wp.value;
+            }
+            return {
+                location,
+                stopover: true
+            };
+        });
 
         // Configure route request
         const routeConfig: google.maps.DirectionsRequest = {
@@ -620,6 +668,9 @@ const GoogleMapsIntegration: React.FC<Props> = ({
             </div>
         </div>
     );
-};
+});
+
+// Ajouter un displayName
+GoogleMapsIntegration.displayName = 'GoogleMapsIntegration';
 
 export default GoogleMapsIntegration;

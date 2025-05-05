@@ -205,8 +205,8 @@ const SidePanel: React.FC<SidePanelProps> = ({
                 wp.id === waypointId
                     ? {
                         ...wp,
-                        value: 'My Location',
-                        isUserLocation: true
+                        value: 'My Location', // This is just for display purposes
+                        isUserLocation: true  // This is the critical flag that makes it work
                     }
                     : wp
             )
