@@ -449,7 +449,7 @@ const SidePanel: React.FC<SidePanelProps> = ({
                                                 </div>
                                             )}
 
-                                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                                            <div className="space-y-2">
                                                 {limitedHistory.length === 0 ? (
                                                     <p className="text-sm text-gray-500 italic">
                                                         No routes in history yet
