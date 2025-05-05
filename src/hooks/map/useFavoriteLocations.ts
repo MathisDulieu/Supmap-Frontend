@@ -11,13 +11,6 @@ interface Coordinates {
     longitude: number;
 }
 
-const adaptCoordinates = (coordinates: {latitude: number, longitude: number}): {lat: number, lng: number} => {
-    return {
-        lat: coordinates.latitude,
-        lng: coordinates.longitude
-    };
-};
-
 export interface FavoriteLocation {
     id: string;
     name: string;
@@ -74,7 +67,7 @@ export function useFavoriteLocations(isAuthenticated: boolean) {
                 const response = await saveNewUserFavoriteLocation(
                     name,
                     formattedAddress,
-                    adaptCoordinates(coordinates),
+                    coordinates,
                     street,
                     city,
                     postalCode,
@@ -115,7 +108,7 @@ export function useFavoriteLocations(isAuthenticated: boolean) {
                     id,
                     name,
                     formattedAddress,
-                    adaptCoordinates(coordinates),
+                    coordinates,
                     street,
                     city,
                     postalCode,
