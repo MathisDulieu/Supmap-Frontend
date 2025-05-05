@@ -5,8 +5,8 @@ interface MapResponse {
 }
 
 interface Coordinates {
-    lat: number;
-    lng: number;
+    latitude: number;
+    longitude: number;
 }
 
 interface RoutePoint {
