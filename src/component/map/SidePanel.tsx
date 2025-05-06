@@ -478,6 +478,20 @@ const SidePanel: React.FC<SidePanelProps> = ({
                                             </div>
                                         </div>
                                     )}
+                                    {!isAuthenticated && (
+                                        <div className="mt-6 border-t pt-4">
+                                            <button
+                                                onClick={() => window.location.href = '/login'}
+                                                className="w-full py-3 px-4 bg-white border border-indigo-500 text-indigo-700 hover:bg-indigo-50 font-medium rounded-lg shadow-sm transition-colors duration-300 flex items-center justify-center"
+                                            >
+                                                <UserCircleIcon size={18} className="mr-2" />
+                                                Sign In
+                                            </button>
+                                            <p className="text-xs text-gray-500 text-center mt-2">
+                                                Sign in to access more features
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
