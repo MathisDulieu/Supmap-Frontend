@@ -112,6 +112,21 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
 
     const { isGeolocationEnabled, userPosition: contextUserPosition } = useGeolocation();
     const { fetchNearbyUsers, clearMarkers: clearUserMarkers } = useNearbyUsers(map, isAuthenticated);
+    const [errorTimeout, setErrorTimeout] = useState<number | null>(null);
+
+    const showMapError = (message: string) => {
+        if (errorTimeout) {
+            window.clearTimeout(errorTimeout);
+        }
+
+        setMapError(message);
+
+        const timeout = window.setTimeout(() => {
+            setMapError(null);
+        }, 5000);
+
+        setErrorTimeout(timeout);
+    };
 
     useImperativeHandle(ref, () => ({
         clearRoute: () => {
@@ -189,107 +204,137 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         }
 
         const hasUserLocation = waypoints.some(wp => wp.isUserLocation || wp.value === 'My Location');
-        if (hasUserLocation && !userPosition) {
-            console.error("Route requires user location but position is not available");
-            setMapError("Unable to use your location. Please make sure location services are enabled.");
-            setIsRouteCalculationInProgress(false);
-            return;
-        }
 
-        const validWaypoints = waypoints.filter(wp => {
-            if (wp.isUserLocation && userPosition) return true;
-
-            if (typeof wp.value === 'string' && wp.value === 'My Location' && userPosition) return true;
-
-            return typeof wp.value === 'string' ? wp.value.trim() !== '' : true;
-        });
-
-        if (validWaypoints.length < 2) {
-            console.log("Not enough valid waypoints");
-            return;
-        }
-
-        console.log("Calculating route with waypoints:", validWaypoints);
-        setIsRouteCalculationInProgress(true);
-        routeCalculationPendingRef.current = true;
-        lastRouteCalculationRef.current = now;
-
-        const origin = validWaypoints[0];
-        const destination = validWaypoints[validWaypoints.length - 1];
-
-        let originParam;
-        if ((origin.isUserLocation || origin.value === 'My Location') && userPosition) {
-            originParam = userPosition;
-            console.log("Using user position for origin:", originParam);
-        } else {
-            originParam = origin.value;
-        }
-
-        let destParam;
-        if ((destination.isUserLocation || destination.value === 'My Location') && userPosition) {
-            destParam = userPosition;
-            console.log("Using user position for destination:", destParam);
-        } else {
-            destParam = destination.value;
-        }
-
-        const waypointParams = validWaypoints.slice(1, -1).map(wp => {
-            let location;
-            if ((wp.isUserLocation || wp.value === 'My Location') && userPosition) {
-                location = userPosition;
-            } else {
-                location = wp.value;
+        const continueRouteCalculation = (currentPosition: {lat: number, lng: number} | null) => {
+            if (hasUserLocation && !currentPosition) {
+                console.error("Route requires user location but position is not available");
+                showMapError("Unable to use your location. Please make sure location services are enabled.");
+                setIsRouteCalculationInProgress(false);
+                return;
             }
-            return {
-                location,
-                stopover: true
-            };
-        });
 
-        const routeConfig: google.maps.DirectionsRequest = {
-            origin: originParam,
-            destination: destParam,
-            waypoints: waypointParams,
-            travelMode: window.google.maps.TravelMode[travelMode],
-            optimizeWaypoints: true,
-            provideRouteAlternatives: true
+            const validWaypoints = waypoints.filter(wp => {
+                if (wp.isUserLocation && currentPosition) return true;
+
+                if (typeof wp.value === 'string' && wp.value === 'My Location' && currentPosition) return true;
+
+                return typeof wp.value === 'string' ? wp.value.trim() !== '' : true;
+            });
+
+            if (validWaypoints.length < 2) {
+                console.log("Not enough valid waypoints");
+                return;
+            }
+
+            console.log("Calculating route with waypoints:", validWaypoints);
+            setIsRouteCalculationInProgress(true);
+            routeCalculationPendingRef.current = true;
+            lastRouteCalculationRef.current = now;
+
+            const origin = validWaypoints[0];
+            const destination = validWaypoints[validWaypoints.length - 1];
+
+            let originParam;
+            if ((origin.isUserLocation || origin.value === 'My Location') && currentPosition) {
+                originParam = currentPosition;
+                console.log("Using user position for origin:", originParam);
+            } else {
+                originParam = origin.value;
+            }
+
+            let destParam;
+            if ((destination.isUserLocation || destination.value === 'My Location') && currentPosition) {
+                destParam = currentPosition;
+                console.log("Using user position for destination:", destParam);
+            } else {
+                destParam = destination.value;
+            }
+
+            const waypointParams = validWaypoints.slice(1, -1).map(wp => {
+                let location;
+                if ((wp.isUserLocation || wp.value === 'My Location') && currentPosition) {
+                    location = currentPosition;
+                } else {
+                    location = wp.value;
+                }
+                return {
+                    location,
+                    stopover: true
+                };
+            });
+
+            const routeConfig: google.maps.DirectionsRequest = {
+                origin: originParam,
+                destination: destParam,
+                waypoints: waypointParams,
+                travelMode: window.google.maps.TravelMode[travelMode],
+                optimizeWaypoints: true,
+                provideRouteAlternatives: true
+            };
+
+            if (travelMode === 'DRIVING') {
+                routeConfig.drivingOptions = {
+                    departureTime: new Date(),
+                    trafficModel: window.google.maps.TrafficModel.BEST_GUESS
+                };
+            } else if (travelMode === 'TRANSIT') {
+                routeConfig.transitOptions = {
+                    departureTime: new Date(),
+                    modes: [window.google.maps.TransitMode.BUS, window.google.maps.TransitMode.RAIL],
+                    routingPreference: window.google.maps.TransitRoutePreference.FEWER_TRANSFERS
+                };
+            }
+
+            console.log("Route request config:", routeConfig);
+
+            directionsService.route(routeConfig, (result, status) => {
+                setIsRouteCalculationInProgress(false);
+                routeCalculationPendingRef.current = false;
+
+                if (status === window.google.maps.DirectionsStatus.OK && result) {
+                    console.log("Route calculation successful");
+
+                    directionsRenderer.setDirections(result);
+                    directionsRenderer.setRouteIndex(selectedRouteIndex);
+
+                    setCurrentRouteDetails(result as unknown as RouteDetails);
+
+                    if (onRouteCalculated) {
+                        onRouteCalculated(result as unknown as RouteDetails);
+                    }
+                } else {
+                    console.error('Route calculation error:', status, routeConfig);
+                    showMapError(`Route calculation failed: ${status}`);
+                }
+            });
         };
 
-        if (travelMode === 'DRIVING') {
-            routeConfig.drivingOptions = {
-                departureTime: new Date(),
-                trafficModel: window.google.maps.TrafficModel.BEST_GUESS
-            };
-        } else if (travelMode === 'TRANSIT') {
-            routeConfig.transitOptions = {
-                departureTime: new Date(),
-                modes: [window.google.maps.TransitMode.BUS, window.google.maps.TransitMode.RAIL],
-                routingPreference: window.google.maps.TransitRoutePreference.FEWER_TRANSFERS
-            };
-        }
-
-        console.log("Route request config:", routeConfig);
-
-        directionsService.route(routeConfig, (result, status) => {
-            setIsRouteCalculationInProgress(false);
-            routeCalculationPendingRef.current = false;
-
-            if (status === window.google.maps.DirectionsStatus.OK && result) {
-                console.log("Route calculation successful");
-
-                directionsRenderer.setDirections(result);
-                directionsRenderer.setRouteIndex(selectedRouteIndex);
-
-                setCurrentRouteDetails(result as unknown as RouteDetails);
-
-                if (onRouteCalculated) {
-                    onRouteCalculated(result as unknown as RouteDetails);
-                }
+        if (hasUserLocation && !userPosition) {
+            if ('geolocation' in navigator) {
+                console.log("Requesting user location for route calculation");
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        console.log("User position obtained:", position.coords);
+                        const newUserPosition = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        continueRouteCalculation(newUserPosition);
+                    },
+                    (error) => {
+                        console.error("Failed to get user location:", error);
+                        showMapError("Unable to use your location. Please make sure location services are enabled and refresh the page.");
+                        setIsRouteCalculationInProgress(false);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
             } else {
-                console.error('Route calculation error:', status, routeConfig);
-                setMapError(`Route calculation failed: ${status}`);
+                showMapError("Geolocation is not supported by your browser");
+                setIsRouteCalculationInProgress(false);
             }
-        });
+        } else {
+            continueRouteCalculation(userPosition);
+        }
     }, [
         directionsService,
         directionsRenderer,
@@ -300,7 +345,8 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         userPosition,
         selectedRouteIndex,
         onRouteCalculated,
-        isRouteCalculationInProgress
+        isRouteCalculationInProgress,
+        errorTimeout
     ]);
 
     const debouncedCalculateRoute = useCallback(
@@ -404,7 +450,7 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
             } catch (error) {
                 if (isMounted) {
                     console.error('Maps initialization error:', error);
-                    setMapError('Google Maps initialization error. Please refresh the page.');
+                    showMapError('Google Maps initialization error. Please refresh the page.');
                 }
             }
         };
@@ -422,6 +468,10 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
             if (directionChangeTimeoutRef.current !== undefined) {
                 clearTimeout(directionChangeTimeoutRef.current);
                 directionChangeTimeoutRef.current = undefined;
+            }
+
+            if (errorTimeout) {
+                clearTimeout(errorTimeout);
             }
         };
     }, []);
@@ -600,11 +650,11 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
             )}
 
             {mapError && (
-                <div className="absolute bottom-4 left-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg">
-                    <p className="font-medium">{mapError}</p>
+                <div className="absolute top-4 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg max-w-xs">
+                    <p className="font-medium text-sm">{mapError}</p>
                     <button
                         onClick={() => setMapError(null)}
-                        className="absolute top-2 right-2 text-white"
+                        className="absolute top-1 right-1 text-white"
                         aria-label="Close error message"
                     >
                         ×
