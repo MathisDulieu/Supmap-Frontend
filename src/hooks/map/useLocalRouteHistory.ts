@@ -61,28 +61,10 @@ export function useLocalRouteHistory() {
     }, [saveHistory]);
 
     const syncToRemote = useCallback(async () => {
-        // This function would be implemented to call your API and sync local routes
-        // to the user's account after they log in
-        // For now, we'll just mark it as a placeholder
         console.log('Would sync local history to remote');
-
-        // In a real implementation, you would:
-        // 1. Call your API to save each route
-        // 2. Clear the local history after successful sync
-        // 3. Handle errors appropriately
-
-        // Example placeholder implementation:
         try {
             const localRoutes = [...history];
-
-            // For now we don't do anything with these routes
-            // But in a real implementation you would send them to your server
             console.log('Routes to sync:', localRoutes);
-
-            // After successful sync, you might clear local storage
-            // localStorage.removeItem(LOCAL_HISTORY_KEY);
-            // setHistory([]);
-
             return true;
         } catch (e) {
             console.error('Error syncing routes:', e);

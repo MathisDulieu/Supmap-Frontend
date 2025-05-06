@@ -10,8 +10,8 @@ interface ProfileInfoProps {
         role: string;
         favoriteLocations: any[];
         stats: any;
-        isValidEmail?: boolean; // Peut être isValidEmail
-        validEmail?: boolean;   // Ou validEmail selon l'API
+        isValidEmail?: boolean;
+        validEmail?: boolean;
     };
     onUpdate: () => void;
 }
@@ -29,7 +29,6 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
     const [showOldPassword, setShowOldPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
 
-    // Déterminer si l'email est vérifié - vérifier les deux propriétés possibles
     const isEmailVerified = userData.isValidEmail || userData.validEmail;
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -316,7 +315,6 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
                 )}
             </div>
 
-            {/* User Rank Card */}
             <div className="bg-[rgba(15,18,30,0.95)] border border-indigo-900/30 rounded-xl p-6 shadow-lg shadow-indigo-900/10 backdrop-blur-sm">
                 <div className="flex items-center mb-6">
                     <div className="w-12 h-12 rounded-lg bg-indigo-900/50 flex items-center justify-center mr-4">
@@ -338,7 +336,6 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
                 </div>
             </div>
 
-            {/* Stats Cards */}
             <div className="mb-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Your Stats</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -351,7 +348,6 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ userData, onUpdate }) => {
                 </div>
             </div>
 
-            {/* Favorite Locations */}
             {userData.favoriteLocations.length > 0 && (
                 <div>
                     <h2 className="text-xl font-semibold text-white mb-4">Favorite Locations</h2>

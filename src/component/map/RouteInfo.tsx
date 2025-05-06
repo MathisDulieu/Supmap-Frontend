@@ -25,12 +25,14 @@ interface RouteInfoProps {
   onSelectRoute?: (idx: number) => void;
   selectedRouteIndex?: number;
   isAuthenticated: boolean;
+  currentTravelMode?: TravelMode;
 }
 
 const RouteInfo: React.FC<RouteInfoProps> = ({
                                                routeDetails,
                                                onClose,
                                                travelMode,
+                                               currentTravelMode = travelMode,
                                                onSelectRoute,
                                                selectedRouteIndex = 0,
                                                isAuthenticated
@@ -43,6 +45,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
   const isMobile = useMediaQuery('(max-width: 768px)');
   const directionsRef = useRef<HTMLDivElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const modeHasChanged = currentTravelMode !== travelMode;
 
   useEffect(() => {
     setSelectedRoute(selectedRouteIndex);
@@ -54,14 +57,12 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
     setRouteAlerts(alertsFromWindow);
   }, [routeDetails, selectedRouteIndex]);
 
-  // Scroll to directions when route changes or when expanded
   useEffect(() => {
     if (isExpanded && directionsRef.current) {
       directionsRef.current.scrollTop = 0;
     }
   }, [selectedRoute, isExpanded]);
 
-  // Adjust panel height based on screen size
   useEffect(() => {
     if (panelRef.current) {
       const adjustHeight = () => {
@@ -79,7 +80,6 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
     }
   }, [isExpanded]);
 
-  // Vérification de sécurité pour les données de l'itinéraire
   if (!routeDetails?.routes?.length) return null;
 
   let routes;
@@ -91,7 +91,6 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
   try {
     routes = routeDetails.routes;
 
-    // Vérifier que l'index sélectionné est dans les limites
     if (selectedRoute >= routes.length) {
       console.warn(`Selected route index ${selectedRoute} is out of bounds. Setting to 0.`);
       setSelectedRoute(0);
@@ -99,7 +98,6 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
 
     currentRoute = routes[selectedRoute];
 
-    // Vérifier que la route actuelle a des "legs"
     if (!currentRoute || !currentRoute.legs || !Array.isArray(currentRoute.legs)) {
       console.error('Invalid route structure: missing legs array');
       return null;
@@ -107,7 +105,6 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
 
     legs = currentRoute.legs;
 
-    // Calculer distance et durée totales en vérifiant chaque leg
     totalDistance = legs.reduce((sum: number, leg: any) => {
       if (leg && leg.distance && typeof leg.distance.value === 'number') {
         return sum + leg.distance.value;
@@ -203,7 +200,6 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
     }
   };
 
-  // Traitement sécurisé des alertes
   const alertCounts = routeAlerts.reduce((counts: {HIGH: number, MEDIUM: number, LOW: number, total: number}, alert) => {
     if (!alert) return counts;
 
@@ -229,7 +225,6 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
             flexDirection: 'column'
           }}
       >
-        {/* Header - Fixed at top */}
         <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 bg-white">
           <div className="flex items-center">
             {getTransportIcon()}
@@ -292,11 +287,16 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
           </div>
         </div>
 
-        {/* Scrollable container for content */}
         <div className="flex-grow overflow-y-auto" style={{ maxHeight: isExpanded ? 'calc(80vh - 70px)' : 'auto' }}>
           {error && (
               <div className="p-4 text-center text-red-600 text-sm">
                 {error}
+              </div>
+          )}
+
+          {modeHasChanged && (
+              <div className="p-2 bg-yellow-50 border border-yellow-200 text-yellow-700 text-xs rounded-md mx-4 mt-2">
+                The transport mode has changed. Recalculate the route to see updated results.
               </div>
           )}
 
@@ -365,7 +365,6 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
             {routes.length > 1 && (
                 <div className="mt-3 space-y-2">
                   {routes.map((route: any, idx: number) => {
-                    // Vérifier la validité des données de la route
                     if (!route || !route.legs || !Array.isArray(route.legs)) {
                       return null;
                     }
@@ -425,7 +424,6 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
               >
                 <div className="space-y-4">
                   {legs.map((leg: any, legIdx: number) => {
-                    // Vérifications de sécurité
                     if (!leg) return null;
 
                     return (
@@ -438,12 +436,10 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
                           )}
 
                           {leg.steps && Array.isArray(leg.steps) && leg.steps.map((step: any, stepIdx: number) => {
-                            // Vérifications de sécurité
                             if (!step) return null;
 
                             const instruction = stripHtml(step.instructions || '');
 
-                            // Handler pour les icônes de manœuvre
                             const maneuverIcon = () => {
                               if (step.maneuver?.includes('right'))
                                 return (
@@ -456,7 +452,6 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
                               return <ArrowRight size={16} className="text-indigo-600" />;
                             };
 
-                            // Détails spécifiques au transit
                             const transitDetails = () => {
                               if (travelMode === 'TRANSIT' && step.transit) {
                                 const { line } = step.transit;

@@ -27,7 +27,7 @@ interface SidePanelProps {
     waypoints: Waypoint[];
     setWaypoints: React.Dispatch<React.SetStateAction<Waypoint[]>>;
     handleCalculateRoute: () => void;
-    handleCancelRoute: () => void;  // New prop for canceling routes
+    handleCancelRoute: () => void;
     travelMode: TravelMode;
     setTravelMode: React.Dispatch<React.SetStateAction<TravelMode>>;
     history: RouteHistoryItem[];
@@ -35,7 +35,7 @@ interface SidePanelProps {
     historyError: string | null;
     handleHistoryClick: (historyItem: RouteHistoryItem) => void;
     isAuthenticated: boolean;
-    activeRoute: boolean;  // New prop to track if a route is currently active
+    activeRoute: boolean;
 }
 
 const SidePanel: React.FC<SidePanelProps> = ({
@@ -45,14 +45,14 @@ const SidePanel: React.FC<SidePanelProps> = ({
                                                  waypoints,
                                                  setWaypoints,
                                                  handleCalculateRoute,
-                                                 handleCancelRoute,  // New prop
+                                                 handleCancelRoute,
                                                  travelMode,
                                                  setTravelMode,
                                                  history,
                                                  historyLoading,
                                                  handleHistoryClick,
                                                  isAuthenticated,
-                                                 activeRoute  // New prop
+                                                 activeRoute
                                              }) => {
     const [activeInput, setActiveInput] = useState<string | null>(null);
     const [autocompleteResults, setAutocompleteResults] = useState<Array<{id: string, description: string}>>([]);
@@ -205,15 +205,14 @@ const SidePanel: React.FC<SidePanelProps> = ({
                 wp.id === waypointId
                     ? {
                         ...wp,
-                        value: 'My Location', // This is just for display purposes
-                        isUserLocation: true  // This is the critical flag that makes it work
+                        value: 'My Location',
+                        isUserLocation: true
                     }
                     : wp
             )
         );
     };
 
-    // If user selects a restricted tab but isn't authenticated, switch back to navigation
     useEffect(() => {
         if (!isAuthenticated && (activeTab === 'favorites' || activeTab === 'share')) {
             setActiveTab('navigation');

@@ -143,7 +143,6 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                 </div>
             )}
 
-            {/* Navigation Preferences */}
             <div className="bg-[rgba(15,18,30,0.95)] border border-indigo-900/30 rounded-xl p-6 shadow-lg shadow-indigo-900/10">
                 <div className="flex items-center mb-6">
                     <div className="w-10 h-10 rounded-lg bg-indigo-900/50 flex items-center justify-center mr-3">

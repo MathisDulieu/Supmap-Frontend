@@ -54,7 +54,6 @@ const NewsletterSection: React.FC = () => {
             setUnsubscribeStatus('success');
             setUnsubscribeEmail('');
 
-            // Reset after 3 seconds
             setTimeout(() => {
                 if (unsubscribeStatus === 'success') {
                     setShowUnsubscribe(false);

@@ -494,7 +494,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                     isInitializedRef.current = true;
                     console.log("Map initialized successfully");
 
-                    // Masquer les boutons de contrôle de caméra après l'initialisation de la carte
                     setTimeout(() => {
                         const cameraControls = document.querySelectorAll(".gm-control-active[title*='caméra'], .gm-control-active[title*='camera']");
                         cameraControls.forEach(control => {

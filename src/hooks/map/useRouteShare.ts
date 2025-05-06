@@ -19,7 +19,7 @@ export function useRouteShare() {
                 const url = await shareRoute(startLat, startLng, endLat, endLng);
                 setQrUrl(url);
             } catch (e: any) {
-                setError(e.message || 'Erreur lors de la génération du QR code');
+                setError(e.message || 'Error generating QR code');
             } finally {
                 setIsLoading(false);
             }

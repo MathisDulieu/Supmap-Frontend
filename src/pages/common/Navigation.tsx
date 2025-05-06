@@ -33,6 +33,7 @@ const Navigation: React.FC = () => {
   const [routeAlreadySaved, setRouteAlreadySaved] = useState<boolean>(false);
   const [lastSavedIndex, setLastSavedIndex] = useState<number>(-1);
   const [activeRoute, setActiveRoute] = useState<boolean>(false);
+  const [activeRouteTravelMode, setActiveRouteTravelMode] = useState<TravelMode>('DRIVING');
 
   const isMobile = useMediaQuery('(max-width: 768px)');
   const panelWidth = isMobile && isPanelOpen ? '100%' : '320px';
@@ -176,6 +177,7 @@ const Navigation: React.FC = () => {
   const handleCalculateRoute = () => {
     setRouteAlreadySaved(false);
     setLastSavedIndex(-1);
+    setActiveRouteTravelMode(travelMode);
 
     setIsRouteInfoVisible(true);
     if (calculateRoute) {
@@ -313,7 +315,6 @@ const Navigation: React.FC = () => {
     ]);
     setSelectedRouteIndex(0);
     setIsRouteInfoVisible(false);
-    // Réinitialiser l'état de sauvegarde
     setRouteAlreadySaved(false);
     setLastSavedIndex(-1);
 
@@ -368,7 +369,8 @@ const Navigation: React.FC = () => {
             <RouteInfo
                 routeDetails={routeDetails}
                 onClose={handleRouteInfoClose}
-                travelMode={travelMode}
+                travelMode={activeRouteTravelMode}
+                currentTravelMode={travelMode}
                 onSelectRoute={handleSelectRoute}
                 selectedRouteIndex={selectedRouteIndex}
                 isAuthenticated={isAuthenticated}

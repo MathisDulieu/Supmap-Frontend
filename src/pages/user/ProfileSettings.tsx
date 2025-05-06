@@ -58,7 +58,6 @@ const ProfileSettingsPage: React.FC = () => {
 
     return (
         <div className="pt-20 min-h-screen bg-gradient-to-b from-[rgba(5,7,15,0.98)] to-[rgba(8,10,18,0.95)] text-white">
-            {/* Decorative background elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-0 left-0 w-full h-96 bg-indigo-900/5 blur-3xl transform -translate-y-1/2"></div>
                 <div className="absolute top-[-200px] right-[-100px] w-64 h-64 rounded-full border border-indigo-500/10 animate-[spin_60s_linear_infinite]"></div>
@@ -67,11 +66,9 @@ const ProfileSettingsPage: React.FC = () => {
                 <div className="absolute top-[70%] right-[20%] w-1 h-1 rounded-full bg-indigo-400/50 animate-ping"></div>
                 <div className="absolute top-[30%] right-[40%] w-1 h-1 rounded-full bg-indigo-400/50 animate-pulse"></div>
 
-                {/* Add more visual elements for depth */}
                 <div className="absolute bottom-[20%] left-[30%] w-32 h-32 rounded-full bg-indigo-700/5 blur-xl"></div>
                 <div className="absolute top-[40%] right-[10%] w-48 h-48 rounded-full bg-indigo-600/5 blur-xl"></div>
 
-                {/* Add subtle grid pattern */}
                 <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMxLjIgMCAyLjMuNCAzLjIgMS4yLjkuOCAxLjMgMS44IDEuMyAzIDAgMS4yLS40IDIuMy0xLjMgMy4yLS45LjktMiAxLjMtMy4yIDEuM3MtMi4zLS40LTMuMi0xLjNjLS45LS45LTEuMy0yLTEuMy0zLjIgMC0xLjIuNC0yLjIgMS4zLTMgLjktLjggMi0xLjIgMy4yLTEuMnptMCAzLjZjLS40IDAtLjcuMS0xIC40LS4zLjMtLjQuNi0uNCAxIDAgLjQuMS43LjQuOS4zLjMuNi40IDEgLjRzLjctLjEgMS0uNGMuMy0uMy40LS42LjQtLjkgMC0uNC0uMS0uNy0uNC0xLS4zLS4zLS42LS40LTEtLjR6Ii8+PC9nPjwvc3ZnPg==')] opacity-[0.02]"></div>
             </div>
 

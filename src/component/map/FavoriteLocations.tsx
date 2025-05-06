@@ -8,7 +8,9 @@ import {
     BriefcaseIcon,
     HeartIcon,
     CheckIcon,
-    XIcon
+    XIcon,
+    ClockIcon,
+    SettingsIcon
 } from 'lucide-react';
 import { useFavoriteLocations, FavoriteLocation } from '../../hooks/map/useFavoriteLocations';
 
@@ -17,7 +19,7 @@ interface FavoriteLocationsProps {
     onSelectLocation: (address: string) => void;
 }
 
-type LocationType = 'HOME' | 'WORK' | 'FAVORITE' | 'OTHER';
+type LocationType = 'HOME' | 'WORK' | 'FAVORITE' | 'RECENT' | 'CUSTOM';
 
 const FavoriteLocations: React.FC<FavoriteLocationsProps> = ({
                                                                  isAuthenticated,
@@ -55,6 +57,10 @@ const FavoriteLocations: React.FC<FavoriteLocationsProps> = ({
                 return <BriefcaseIcon size={18} className="text-blue-600" />;
             case 'FAVORITE':
                 return <HeartIcon size={18} className="text-red-600" />;
+            case 'RECENT':
+                return <ClockIcon size={18} className="text-purple-600" />;
+            case 'CUSTOM':
+                return <SettingsIcon size={18} className="text-amber-500" />;
             default:
                 return <StarIcon size={18} className="text-amber-500" />;
         }
@@ -108,7 +114,6 @@ const FavoriteLocations: React.FC<FavoriteLocationsProps> = ({
                 },
                 (place, status) => {
                     if (status === window.google.maps.places.PlacesServiceStatus.OK && place) {
-                        // Extract address components
                         let street = '';
                         let city = '';
                         let postalCode = '';
@@ -328,7 +333,8 @@ const FavoriteLocations: React.FC<FavoriteLocationsProps> = ({
                                 <option value="HOME">Home</option>
                                 <option value="WORK">Work</option>
                                 <option value="FAVORITE">Favorite</option>
-                                <option value="OTHER">Other</option>
+                                <option value="RECENT">Recent</option>
+                                <option value="CUSTOM">Custom</option>
                             </select>
                         </div>
 
@@ -365,7 +371,6 @@ const FavoriteLocations: React.FC<FavoriteLocationsProps> = ({
                 </div>
             )}
 
-            {/* Edit form */}
             {isEditing && editingLocation && (
                 <div className="p-4 border rounded-lg bg-gray-50">
                     <h4 className="font-medium mb-3">Edit Location</h4>
@@ -423,7 +428,8 @@ const FavoriteLocations: React.FC<FavoriteLocationsProps> = ({
                                 <option value="HOME">Home</option>
                                 <option value="WORK">Work</option>
                                 <option value="FAVORITE">Favorite</option>
-                                <option value="OTHER">Other</option>
+                                <option value="RECENT">Recent</option>
+                                <option value="CUSTOM">Custom</option>
                             </select>
                         </div>
 

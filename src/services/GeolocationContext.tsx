@@ -29,14 +29,11 @@ export const GeolocationProvider: React.FC<GeolocationProviderProps> = ({ childr
     const [userPosition, setUserPosition] = useState<{ latitude: number; longitude: number } | null>(null);
 
     useEffect(() => {
-        // Check if geolocation is available in the browser
         if ('geolocation' in navigator) {
             setIsGeolocationAvailable(true);
 
-            // Check if user has previously granted permission
             const geolocationEnabled = localStorage.getItem('geolocationEnabled');
             if (geolocationEnabled === 'true') {
-                // Try to get the current position to see if permission is still granted
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         setIsGeolocationEnabled(true);
@@ -50,7 +47,6 @@ export const GeolocationProvider: React.FC<GeolocationProviderProps> = ({ childr
                         console.error('Geolocation error:', err);
                         setIsGeolocationEnabled(false);
 
-                        // Set appropriate error message
                         switch (err.code) {
                             case err.PERMISSION_DENIED:
                                 setError('User denied the request for geolocation');
@@ -76,7 +72,6 @@ export const GeolocationProvider: React.FC<GeolocationProviderProps> = ({ childr
         }
     }, []);
 
-    // Set up a watcher for position updates when geolocation is enabled
     useEffect(() => {
         if (!isGeolocationEnabled || !isGeolocationAvailable) return;
 
@@ -90,8 +85,6 @@ export const GeolocationProvider: React.FC<GeolocationProviderProps> = ({ childr
             },
             (err) => {
                 console.error('Geolocation watch error:', err);
-                // Only update the error state, don't change enabled status
-                // as this might be a temporary error
                 switch (err.code) {
                     case err.PERMISSION_DENIED:
                         setError('User denied the request for geolocation');
@@ -115,7 +108,6 @@ export const GeolocationProvider: React.FC<GeolocationProviderProps> = ({ childr
             }
         );
 
-        // Clean up the watch when the component unmounts
         return () => {
             navigator.geolocation.clearWatch(watchId);
         };
@@ -139,7 +131,6 @@ export const GeolocationProvider: React.FC<GeolocationProviderProps> = ({ childr
                     localStorage.setItem('geolocationEnabled', 'true');
                     localStorage.setItem('geolocationPromptResponded', 'true');
 
-                    // Notify the application that geolocation permission has been granted
                     window.dispatchEvent(new CustomEvent('geolocationPermissionGranted'));
 
                     resolve(position);

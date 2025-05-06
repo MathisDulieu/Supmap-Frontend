@@ -4,11 +4,6 @@ interface UserResponse {
     [key: string]: any;
 }
 
-interface Location {
-    latitude: number;
-    longitude: number;
-}
-
 const API_BASE_URL = (window as any).env && (window as any).env.API_BASE_URL ? (window as any).env.API_BASE_URL : '';
 
 function getAuthToken(): string | null {
@@ -121,107 +116,6 @@ export async function updateAuthenticatedUserDetails(
     return await response.text();
 }
 
-export async function createAdminAccount(
-    username: string,
-    email: string,
-    password: string,
-    profileImage: string | null,
-    isValidEmail: boolean
-): Promise<string> {
-    const authToken = getAuthToken();
-
-    if (!authToken) {
-        throw new Error('Authentication token not found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/protected/user/create-admin`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-            username,
-            email,
-            password,
-            profileImage,
-            isValidEmail
-        })
-    });
-
-    if (!response.ok) {
-        throw new Error(await response.text());
-    }
-
-    return await response.text();
-}
-
-export async function deleteAdminAccount(id: string): Promise<string> {
-    const authToken = getAuthToken();
-
-    if (!authToken) {
-        throw new Error('Authentication token not found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/protected/user/delete-admin/${id}`, {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(await response.text());
-    }
-
-    return await response.text();
-}
-
-export async function getAllUsers(keyword: string = '', page: number = 0): Promise<UserResponse> {
-    const authToken = getAuthToken();
-
-    if (!authToken) {
-        throw new Error('Authentication token not found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/private/admin/users?keyword=${encodeURIComponent(keyword)}&page=${page}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(await response.text());
-    }
-
-    return await response.json();
-}
-
-export async function getUserAdminDashboardData(): Promise<UserResponse> {
-    const authToken = getAuthToken();
-
-    if (!authToken) {
-        throw new Error('Authentication token not found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/private/admin/user/dashboard-data`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(await response.text());
-    }
-
-    return await response.json();
-}
-
 export async function rateApplication(rate: number): Promise<string> {
     const authToken = getAuthToken();
 
@@ -236,29 +130,6 @@ export async function rateApplication(rate: number): Promise<string> {
             'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({ rate })
-    });
-
-    if (!response.ok) {
-        throw new Error(await response.text());
-    }
-
-    return await response.text();
-}
-
-export async function updateUserLocation(location: Location): Promise<string> {
-    const authToken = getAuthToken();
-
-    if (!authToken) {
-        throw new Error('Authentication token not found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/private/user/location`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify({ location })
     });
 
     if (!response.ok) {
