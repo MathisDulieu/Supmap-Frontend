@@ -85,8 +85,7 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         calculateRoute,
         onRouteCalculated,
         travelMode,
-        selectedRouteIndex,
-        showUserMarker = true,
+        selectedRouteIndex,g
         isAuthenticated,
         setWaypoints
     } = props;
@@ -109,10 +108,10 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
     const [userMarker, setUserMarker] = useState<google.maps.Marker | null>(null);
     const [currentRouteDetails, setCurrentRouteDetails] = useState<RouteDetails | null>(null);
     const [isRouteCalculationInProgress, setIsRouteCalculationInProgress] = useState(false);
+    const [errorTimeout, setErrorTimeout] = useState<number | null>(null);
 
     const { isGeolocationEnabled, userPosition: contextUserPosition } = useGeolocation();
     const { fetchNearbyUsers, clearMarkers: clearUserMarkers } = useNearbyUsers(map, isAuthenticated);
-    const [errorTimeout, setErrorTimeout] = useState<number | null>(null);
 
     const showMapError = (message: string) => {
         if (errorTimeout) {
@@ -192,6 +191,52 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         lng: contextUserPosition.longitude
     } : null;
 
+    useEffect(() => {
+        if ('geolocation' in navigator && !userPosition) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    console.log("Initial user position obtained:", position.coords);
+                    if (map) {
+                        const pos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        map.setCenter(pos);
+                        map.setZoom(15);
+
+                        if (userMarker) {
+                            userMarker.setPosition(pos);
+                        } else if (isInitializedRef.current) {
+                            const marker = new window.google.maps.Marker({
+                                position: pos,
+                                map,
+                                title: 'Your location',
+                                icon: {
+                                    path: window.google.maps.SymbolPath.CIRCLE,
+                                    scale: 10,
+                                    fillOpacity: 1,
+                                    fillColor: '#4F46E5',
+                                    strokeWeight: 2,
+                                    strokeColor: '#ffffff'
+                                },
+                                zIndex: 999
+                            });
+                            setUserMarker(marker);
+                        }
+                    }
+                },
+                (error) => {
+                    console.error("Failed to get initial user location:", error);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+            );
+        }
+    }, [map, userPosition, userMarker]);
+
     const calculateRouteWithRateLimit = useCallback(() => {
         if (!directionsService || !directionsRenderer || !isMapReady || !map) return;
 
@@ -215,9 +260,7 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
 
             const validWaypoints = waypoints.filter(wp => {
                 if (wp.isUserLocation && currentPosition) return true;
-
                 if (typeof wp.value === 'string' && wp.value === 'My Location' && currentPosition) return true;
-
                 return typeof wp.value === 'string' ? wp.value.trim() !== '' : true;
             });
 
@@ -326,7 +369,11 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                         showMapError("Unable to use your location. Please make sure location services are enabled and refresh the page.");
                         setIsRouteCalculationInProgress(false);
                     },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 0
+                    }
                 );
             } else {
                 showMapError("Geolocation is not supported by your browser");
@@ -369,14 +416,18 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                 if (!isMounted || !mapContainerRef.current) return;
 
                 console.log("Creating map instance...");
-                const defaultCenter = { lat: 48.8566, lng: 2.3522 };
+
+                const initialCenter = contextUserPosition ?
+                    { lat: contextUserPosition.latitude, lng: contextUserPosition.longitude } :
+                    { lat: 48.8566, lng: 2.3522 };
 
                 const mapOptions: google.maps.MapOptions = {
-                    center: defaultCenter,
-                    zoom: 12,
+                    center: initialCenter,
+                    zoom: contextUserPosition ? 15 : 12,
                     mapTypeControl: true,
                     fullscreenControl: true,
-                    streetViewControl: true,
+                    streetViewControl: false,
+                    rotateControl: false,
                     zoomControl: true,
                     draggable: true,
                     clickableIcons: true,
@@ -385,9 +436,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                         position: window.google.maps.ControlPosition.TOP_RIGHT
                     },
                     fullscreenControlOptions: {
-                        position: window.google.maps.ControlPosition.RIGHT_TOP
-                    },
-                    streetViewControlOptions: {
                         position: window.google.maps.ControlPosition.RIGHT_TOP
                     },
                     zoomControlOptions: {
@@ -433,7 +481,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                                 console.log("Route updated via drag-and-drop");
                                 setCurrentRouteDetails(result as unknown as RouteDetails);
 
-                                // Notify parent component if callback provided
                                 if (onRouteCalculated) {
                                     onRouteCalculated(result as unknown as RouteDetails);
                                 }
@@ -446,6 +493,16 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                     setIsMapReady(true);
                     isInitializedRef.current = true;
                     console.log("Map initialized successfully");
+
+                    // Masquer les boutons de contrôle de caméra après l'initialisation de la carte
+                    setTimeout(() => {
+                        const cameraControls = document.querySelectorAll(".gm-control-active[title*='caméra'], .gm-control-active[title*='camera']");
+                        cameraControls.forEach(control => {
+                            if (control instanceof HTMLElement) {
+                                control.style.display = 'none';
+                            }
+                        });
+                    }, 1000);
                 }
             } catch (error) {
                 if (isMounted) {
@@ -474,7 +531,7 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                 clearTimeout(errorTimeout);
             }
         };
-    }, []);
+    }, [contextUserPosition]);
 
     useEffect(() => {
         if (!map || !userPosition || !isInitializedRef.current) return;
@@ -488,7 +545,7 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
 
             if (userMarker) {
                 userMarker.setPosition(userPosition);
-            } else if (showUserMarker) {
+            } else {
                 const marker = new window.google.maps.Marker({
                     position: userPosition,
                     map,
@@ -501,7 +558,8 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                         strokeWeight: 2,
                         strokeColor: '#ffffff'
                     },
-                    zIndex: 999
+                    zIndex: 999,
+                    visible: true
                 });
                 setUserMarker(marker);
             }
@@ -546,7 +604,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
     }, [
         map,
         userPosition,
-        showUserMarker,
         userMarker,
         isAuthenticated,
         isGeolocationEnabled,
@@ -556,9 +613,9 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
 
     useEffect(() => {
         if (userMarker) {
-            userMarker.setVisible(showUserMarker);
+            userMarker.setVisible(true);
         }
-    }, [showUserMarker, userMarker]);
+    }, [userMarker]);
 
     useEffect(() => {
         if (!calculateRoute) return;
