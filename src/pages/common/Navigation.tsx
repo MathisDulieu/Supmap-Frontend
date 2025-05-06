@@ -376,7 +376,7 @@ const Navigation: React.FC = () => {
         )}
 
         {hasCalculatedRoute && !isRouteInfoVisible && (
-            <div className="absolute bottom-6 right-4 z-10">
+            <div className="absolute bottom-40 right-4 z-10">
               <button
                   onClick={handleToggleRouteInfo}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-full shadow-lg transition-colors duration-300 flex items-center justify-center"

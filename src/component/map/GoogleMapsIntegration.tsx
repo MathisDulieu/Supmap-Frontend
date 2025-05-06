@@ -11,7 +11,6 @@ declare global {
     }
 }
 
-// Définition de l'interface pour la ref
 export interface GoogleMapsRef {
     clearRoute: () => void;
 }
@@ -27,12 +26,10 @@ interface Props {
     setWaypoints?: React.Dispatch<React.SetStateAction<Waypoint[]>>;
 }
 
-// Google Maps API loading state - shared across component instances
 let mapsLoaded = false;
 let mapsLoading = false;
 const API_KEY = window.env?.GOOGLE_API_KEY ?? '';
 
-// Helper function to debounce function calls
 const debounce = <T extends (...args: any[]) => any>(func: T, wait: number) => {
     let timeout: number | undefined;
     return function executedFunction(...args: Parameters<T>) {
@@ -45,7 +42,6 @@ const debounce = <T extends (...args: any[]) => any>(func: T, wait: number) => {
     };
 };
 
-// Helper function to load Google Maps API
 const loadMapsAPI = (): Promise<void> => {
     return new Promise<void>((resolve, reject) => {
         if (mapsLoaded) return resolve();
@@ -62,7 +58,6 @@ const loadMapsAPI = (): Promise<void> => {
 
         mapsLoading = true;
 
-        // Define callback function for the Google Maps script
         window.initMap = () => {
             mapsLoaded = true;
             mapsLoading = false;
@@ -70,7 +65,6 @@ const loadMapsAPI = (): Promise<void> => {
             resolve();
         };
 
-        // Create script element and append to document
         const script = document.createElement('script');
         script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places&callback=initMap&loading=async`;
         script.async = true;
@@ -85,7 +79,6 @@ const loadMapsAPI = (): Promise<void> => {
     });
 };
 
-// Utilisation de forwardRef pour exposer des méthodes vers le parent
 const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
     const {
         waypoints,
@@ -98,7 +91,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         setWaypoints
     } = props;
 
-    // Refs
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const lastLocationUpdateRef = useRef<number>(0);
     const lastNearbyUsersFetchRef = useRef<number>(0);
@@ -109,7 +101,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
     const directionChangeTimeoutRef = useRef<number | undefined>(undefined);
     const routeCalculationPendingRef = useRef<boolean>(false);
 
-    // State
     const [map, setMap] = useState<google.maps.Map | null>(null);
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
     const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
@@ -148,7 +139,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                         }
                     });
 
-                    // Ajouter l'écouteur d'événements directions_changed au nouveau renderer
                     newRenderer.addListener('directions_changed', () => {
                         if (directionChangeTimeoutRef.current !== undefined) {
                             clearTimeout(directionChangeTimeoutRef.current);
@@ -178,18 +168,15 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         }
     }), [directionsRenderer, map, onRouteCalculated]);
 
-    // Constants for rate limiting
-    const MIN_LOCATION_UPDATE_INTERVAL = 180000; // 3 minutes
-    const MIN_NEARBY_USERS_INTERVAL = 300000; // 5 minutes
-    const MIN_ROUTE_CALCULATION_INTERVAL = 3000; // 3 seconds
+    const MIN_LOCATION_UPDATE_INTERVAL = 180000;
+    const MIN_NEARBY_USERS_INTERVAL = 300000;
+    const MIN_ROUTE_CALCULATION_INTERVAL = 3000;
 
-    // Convert context userPosition format to Google Maps format
     const userPosition = contextUserPosition ? {
         lat: contextUserPosition.latitude,
         lng: contextUserPosition.longitude
     } : null;
 
-    // Calculate route with rate limiting
     const calculateRouteWithRateLimit = useCallback(() => {
         if (!directionsService || !directionsRenderer || !isMapReady || !map) return;
 
@@ -201,7 +188,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
             return;
         }
 
-        // First check if we actually have user position when needed
         const hasUserLocation = waypoints.some(wp => wp.isUserLocation || wp.value === 'My Location');
         if (hasUserLocation && !userPosition) {
             console.error("Route requires user location but position is not available");
@@ -210,15 +196,11 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
             return;
         }
 
-        // Filter valid waypoints
         const validWaypoints = waypoints.filter(wp => {
-            // If it's marked as user location and we have user position, it's valid
             if (wp.isUserLocation && userPosition) return true;
 
-            // If the value is "My Location" string and we have user position, treat as user location
             if (typeof wp.value === 'string' && wp.value === 'My Location' && userPosition) return true;
 
-            // Otherwise check if it has a non-empty string value
             return typeof wp.value === 'string' ? wp.value.trim() !== '' : true;
         });
 
@@ -235,7 +217,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         const origin = validWaypoints[0];
         const destination = validWaypoints[validWaypoints.length - 1];
 
-        // Handle origin
         let originParam;
         if ((origin.isUserLocation || origin.value === 'My Location') && userPosition) {
             originParam = userPosition;
@@ -244,7 +225,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
             originParam = origin.value;
         }
 
-        // Handle destination
         let destParam;
         if ((destination.isUserLocation || destination.value === 'My Location') && userPosition) {
             destParam = userPosition;
@@ -253,7 +233,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
             destParam = destination.value;
         }
 
-        // Create waypoints array for intermediate stops
         const waypointParams = validWaypoints.slice(1, -1).map(wp => {
             let location;
             if ((wp.isUserLocation || wp.value === 'My Location') && userPosition) {
@@ -267,7 +246,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
             };
         });
 
-        // Configure route request
         const routeConfig: google.maps.DirectionsRequest = {
             origin: originParam,
             destination: destParam,
@@ -277,7 +255,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
             provideRouteAlternatives: true
         };
 
-        // Add travel mode specific options
         if (travelMode === 'DRIVING') {
             routeConfig.drivingOptions = {
                 departureTime: new Date(),
@@ -326,7 +303,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         isRouteCalculationInProgress
     ]);
 
-    // Debounced version of route calculation
     const debouncedCalculateRoute = useCallback(
         debounce(() => {
             calculateRouteWithRateLimit();
@@ -334,7 +310,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         [calculateRouteWithRateLimit]
     );
 
-    // Initialize map
     useEffect(() => {
         let isMounted = true;
 
@@ -348,10 +323,8 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                 if (!isMounted || !mapContainerRef.current) return;
 
                 console.log("Creating map instance...");
-                // Default center (Paris)
                 const defaultCenter = { lat: 48.8566, lng: 2.3522 };
 
-                // Map options
                 const mapOptions: google.maps.MapOptions = {
                     center: defaultCenter,
                     zoom: 12,
@@ -377,14 +350,11 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                 };
 
                 if (window.google && window.google.maps) {
-                    // Create map instance
                     const mapInstance = new window.google.maps.Map(mapContainerRef.current, mapOptions);
                     setMap(mapInstance);
 
-                    // Create directions service
                     setDirectionsService(new window.google.maps.DirectionsService());
 
-                    // Create directions renderer with draggable waypoints
                     const renderer = new window.google.maps.DirectionsRenderer({
                         map: mapInstance,
                         draggable: true,
@@ -405,7 +375,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                         }
                     });
 
-                    // Add a debounced event listener for directions_changed
                     renderer.addListener('directions_changed', () => {
                         if (directionChangeTimeoutRef.current !== undefined) {
                             clearTimeout(directionChangeTimeoutRef.current);
@@ -423,12 +392,11 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                                     onRouteCalculated(result as unknown as RouteDetails);
                                 }
                             }
-                        }, 1000); // Wait 1 second before processing direction changes
+                        }, 1000);
                     });
 
                     setDirectionsRenderer(renderer);
 
-                    // Mark map as ready
                     setIsMapReady(true);
                     isInitializedRef.current = true;
                     console.log("Map initialized successfully");
@@ -443,7 +411,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
 
         initializeMap();
 
-        // Cleanup function
         return () => {
             isMounted = false;
             isInitializedRef.current = false;
@@ -457,9 +424,8 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                 directionChangeTimeoutRef.current = undefined;
             }
         };
-    }, []); // Empty dependency array to run only once
+    }, []);
 
-    // Update user marker when position changes
     useEffect(() => {
         if (!map || !userPosition || !isInitializedRef.current) return;
 
@@ -490,17 +456,14 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                 setUserMarker(marker);
             }
 
-            // Center map on first position update
             if (!prevPositionRef.current) {
                 map.setCenter(userPosition);
                 map.setZoom(15);
             }
 
-            // Set initial waypoints if authenticated and not already set
             if (isAuthenticated && setWaypoints && !initialWaypointsSetRef.current && userPosition) {
                 console.log("Setting initial waypoint to user location");
                 setWaypoints(prev => {
-                    // Only modify the start waypoint
                     const updatedWaypoints = [...prev];
                     if (updatedWaypoints[0] && updatedWaypoints[0].id === 'start') {
                         updatedWaypoints[0] = {
@@ -514,12 +477,10 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                 initialWaypointsSetRef.current = true;
             }
 
-            // Rate-limited nearby users fetching based on significant position changes
             const now = Date.now();
             if (now - lastLocationUpdateRef.current > MIN_LOCATION_UPDATE_INTERVAL) {
                 lastLocationUpdateRef.current = now;
 
-                // Fetch nearby users with a delay if authenticated
                 if (isAuthenticated && isGeolocationEnabled) {
                     if (now - lastNearbyUsersFetchRef.current > MIN_NEARBY_USERS_INTERVAL) {
                         setTimeout(() => {
@@ -527,7 +488,7 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                                 fetchNearbyUsers(userPosition.lat, userPosition.lng);
                                 lastNearbyUsersFetchRef.current = now;
                             }
-                        }, 3000); // Delay of 3 seconds
+                        }, 3000);
                     }
                 }
             }
@@ -543,14 +504,12 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         setWaypoints
     ]);
 
-    // Update user marker visibility
     useEffect(() => {
         if (userMarker) {
             userMarker.setVisible(showUserMarker);
         }
     }, [showUserMarker, userMarker]);
 
-    // Trigger route calculation when requested with debouncing
     useEffect(() => {
         if (!calculateRoute) return;
         debouncedCalculateRoute();
@@ -561,12 +520,10 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         debouncedCalculateRoute
     ]);
 
-    // Update selected route
     useEffect(() => {
         if (!directionsRenderer || !currentRouteDetails || !isInitializedRef.current) return;
 
         try {
-            // Update route index
             directionsRenderer.setRouteIndex(selectedRouteIndex);
         } catch (error) {
             console.error('Error updating route index:', error);
@@ -577,7 +534,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         currentRouteDetails
     ]);
 
-    // Adjust map bounds to fit route
     useEffect(() => {
         if (!directionsRenderer || !map || !currentRouteDetails || !isInitializedRef.current) return;
 
@@ -591,7 +547,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
             const panel = document.querySelector<HTMLElement>('.route-info-panel');
             const bottomPadding = panel ? panel.clientHeight + 16 : 200;
 
-            // Adjust bounds with margins for easy navigation
             map.fitBounds(route.bounds, {
                 top: 50,
                 bottom: bottomPadding,
@@ -603,7 +558,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         }
     }, [selectedRouteIndex, directionsRenderer, map, currentRouteDetails]);
 
-    // Center map on user location
     const centerMapOnUserLocation = useCallback(() => {
         if (map && userPosition) {
             map.setCenter(userPosition);
@@ -611,7 +565,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         }
     }, [map, userPosition]);
 
-    // Fit map to route
     const fitMapToRoute = useCallback(() => {
         if (!directionsRenderer || !map || !currentRouteDetails) return;
 
@@ -659,9 +612,7 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                 </div>
             )}
 
-            {/* Map control buttons */}
             <div className="absolute bottom-24 right-4 z-10 space-y-2">
-                {/* Center on user location button */}
                 {userPosition && (
                     <button
                         onClick={centerMapOnUserLocation}
@@ -686,7 +637,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
                     </button>
                 )}
 
-                {/* Fit to route button */}
                 {currentRouteDetails && (
                     <button
                         onClick={fitMapToRoute}
@@ -715,7 +665,6 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
     );
 });
 
-// Ajouter un displayName
 GoogleMapsIntegration.displayName = 'GoogleMapsIntegration';
 
 export default GoogleMapsIntegration;
