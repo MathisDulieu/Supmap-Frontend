@@ -85,7 +85,7 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
         calculateRoute,
         onRouteCalculated,
         travelMode,
-        selectedRouteIndex,g
+        selectedRouteIndex,
         isAuthenticated,
         setWaypoints
     } = props;
