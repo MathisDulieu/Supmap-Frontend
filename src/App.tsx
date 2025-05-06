@@ -8,6 +8,7 @@ import Header from './component/structure/Header.tsx';
 import Footer from './component/structure/Footer.tsx';
 import GeolocationPrompt from './component/notification/GeolocationPrompt.tsx';
 import CookiesPopUp from './component/notification/CookiesPopUp.tsx';
+import SharedLocationHandler from './component/map/SharedLocationHandler.tsx';
 
 import Home from './pages/common/Home.tsx';
 import Navigation from './pages/common/Navigation.tsx';
@@ -30,9 +31,6 @@ import RegisterEmail from './pages/auth/RegisterEmail.tsx';
 import Profile from './pages/user/Profile.tsx';
 import ProfileSettings from './pages/user/ProfileSettings.tsx';
 
-import SharedLocationHandler from './component/map/SharedLocationHandler.tsx';
-
-
 const ScrollToTop = () => {
     const { pathname } = useLocation();
 
@@ -47,7 +45,9 @@ const AppContent: React.FC = () => {
     const location = useLocation();
     const [showCookiesPopUp, setShowCookiesPopUp] = useState(false);
 
-    const showHeader = location.pathname !== '/navigation';
+    const showHeader = location.pathname !== '/navigation' &&
+        location.pathname !== '/location' &&
+        location.pathname !== '/route';
 
     useEffect(() => {
         const cookiesAccepted = localStorage.getItem('cookiesAccepted');
@@ -86,6 +86,7 @@ const AppContent: React.FC = () => {
                     <Route path="/" element={<Home />} />
                     <Route path="/navigation" element={<Navigation />} />
                     <Route path="/location" element={<SharedLocationHandler />} />
+                    <Route path="/route" element={<SharedLocationHandler />} />
                     <Route path="/support" element={<Support />} />
                     <Route path="/mobile/app" element={<MobileApp />} />
                     <Route path="/terms-of-use" element={<TermsOfUse />} />

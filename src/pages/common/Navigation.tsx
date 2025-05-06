@@ -76,10 +76,16 @@ const Navigation: React.FC = () => {
   }, [isAuthenticated, localHistory.length, syncToRemote]);
 
   useEffect(() => {
-    const handleSharedLocation = async () => {
+    const handleSharedLocationOrRoute = async () => {
       const searchParams = new URLSearchParams(location.search);
+
       const sharedLat = searchParams.get('shared_lat');
       const sharedLng = searchParams.get('shared_lng');
+
+      const sharedStartLat = searchParams.get('shared_start_lat');
+      const sharedStartLng = searchParams.get('shared_start_lng');
+      const sharedEndLat = searchParams.get('shared_end_lat');
+      const sharedEndLng = searchParams.get('shared_end_lng');
 
       if (sharedLat && sharedLng) {
         try {
@@ -116,19 +122,51 @@ const Navigation: React.FC = () => {
           setTimeout(() => {
             if (isGeolocationEnabled && contextUserPosition) {
               handleCalculateRoute();
-
-              setIsPanelOpen(true);
             }
+            setIsPanelOpen(true);
           }, 1000);
         } catch (error) {
           console.error("Erreur lors du traitement des coordonnées partagées:", error);
         }
       }
+      else if (sharedStartLat && sharedStartLng && sharedEndLat && sharedEndLng) {
+        try {
+          const startLat = parseFloat(sharedStartLat);
+          const startLng = parseFloat(sharedStartLng);
+          const endLat = parseFloat(sharedEndLat);
+          const endLng = parseFloat(sharedEndLng);
+
+          console.log("Itinéraire partagé détecté:", startLat, startLng, "->", endLat, endLng);
+
+          setWaypoints([
+            {
+              id: 'start',
+              placeholder: 'Starting point',
+              value: `${startLat.toFixed(6)},${startLng.toFixed(6)}`
+            },
+            {
+              id: 'end',
+              placeholder: 'Destination',
+              value: `${endLat.toFixed(6)},${endLng.toFixed(6)}`
+            }
+          ]);
+
+          setTimeout(() => {
+            handleCalculateRoute();
+            setIsPanelOpen(true);
+          }, 1000);
+        } catch (error) {
+          console.error("Erreur lors du traitement de l'itinéraire partagé:", error);
+        }
+      }
     };
 
-    handleSharedLocation();
+    handleSharedLocationOrRoute();
 
-    if (location.search && location.search.includes('shared_lat')) {
+    if (location.search && (
+        location.search.includes('shared_lat') ||
+        location.search.includes('shared_start_lat')
+    )) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [location.search, isGeolocationEnabled, contextUserPosition]);
