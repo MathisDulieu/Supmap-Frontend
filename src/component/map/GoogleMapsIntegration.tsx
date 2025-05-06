@@ -122,16 +122,61 @@ const GoogleMapsIntegration = forwardRef<GoogleMapsRef, Props>((props, ref) => {
     const { isGeolocationEnabled, userPosition: contextUserPosition } = useGeolocation();
     const { fetchNearbyUsers, clearMarkers: clearUserMarkers } = useNearbyUsers(map, isAuthenticated);
 
-    // Exposer la méthode clearRoute via useImperativeHandle
     useImperativeHandle(ref, () => ({
         clearRoute: () => {
             if (directionsRenderer) {
-                directionsRenderer.setDirections(null);
-                setCurrentRouteDetails(null);
-                console.log("Route cleared from map");
+                try {
+                    directionsRenderer.setMap(null);
+
+                    const newRenderer = new window.google.maps.DirectionsRenderer({
+                        map,
+                        draggable: true,
+                        polylineOptions: {
+                            strokeColor: '#4F46E5',
+                            strokeWeight: 5
+                        },
+                        markerOptions: {
+                            icon: {
+                                path: window.google.maps.SymbolPath.CIRCLE,
+                                scale: 7,
+                                fillOpacity: 1,
+                                fillColor: '#4F46E5',
+                                strokeWeight: 2,
+                                strokeColor: '#ffffff'
+                            },
+                            draggable: true
+                        }
+                    });
+
+                    // Ajouter l'écouteur d'événements directions_changed au nouveau renderer
+                    newRenderer.addListener('directions_changed', () => {
+                        if (directionChangeTimeoutRef.current !== undefined) {
+                            clearTimeout(directionChangeTimeoutRef.current);
+                            directionChangeTimeoutRef.current = undefined;
+                        }
+
+                        directionChangeTimeoutRef.current = setTimeout(() => {
+                            const result = newRenderer.getDirections();
+                            if (result) {
+                                console.log("Route updated via drag-and-drop");
+                                setCurrentRouteDetails(result as unknown as RouteDetails);
+
+                                if (onRouteCalculated) {
+                                    onRouteCalculated(result as unknown as RouteDetails);
+                                }
+                            }
+                        }, 1000);
+                    });
+
+                    setDirectionsRenderer(newRenderer);
+                    setCurrentRouteDetails(null);
+                    console.log("Route cleared from map");
+                } catch (error) {
+                    console.error("Error while clearing route:", error);
+                }
             }
         }
-    }), [directionsRenderer]);
+    }), [directionsRenderer, map, onRouteCalculated]);
 
     // Constants for rate limiting
     const MIN_LOCATION_UPDATE_INTERVAL = 180000; // 3 minutes

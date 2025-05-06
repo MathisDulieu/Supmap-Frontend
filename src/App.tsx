@@ -30,6 +30,9 @@ import RegisterEmail from './pages/auth/RegisterEmail.tsx';
 import Profile from './pages/user/Profile.tsx';
 import ProfileSettings from './pages/user/ProfileSettings.tsx';
 
+import SharedLocationHandler from './component/map/SharedLocationHandler.tsx';
+
+
 const ScrollToTop = () => {
     const { pathname } = useLocation();
 
@@ -82,6 +85,7 @@ const AppContent: React.FC = () => {
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/navigation" element={<Navigation />} />
+                    <Route path="/location" element={<SharedLocationHandler />} />
                     <Route path="/support" element={<Support />} />
                     <Route path="/mobile/app" element={<MobileApp />} />
                     <Route path="/terms-of-use" element={<TermsOfUse />} />

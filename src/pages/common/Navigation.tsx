@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useMediaQuery } from '../../hooks/map/useMediaQuery.ts';
+import { useGeolocation } from '../../services/GeolocationContext';
 import SidePanel from '../../component/map/SidePanel';
 import GoogleMapsIntegration, { GoogleMapsRef } from '../../component/map/GoogleMapsIntegration';
 import RouteInfo from '../../component/map/RouteInfo';
@@ -10,8 +12,11 @@ import { RouteIcon } from 'lucide-react';
 import Cookies from "js-cookie";
 
 const Navigation: React.FC = () => {
-  // Ajouter une ref pour accéder aux méthodes de GoogleMapsIntegration
   const mapRef = useRef<GoogleMapsRef | null>(null);
+
+  const { isGeolocationEnabled, userPosition: contextUserPosition } = useGeolocation();
+
+  const location = useLocation();
 
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [waypoints, setWaypoints] = useState<Waypoint[]>([
@@ -47,10 +52,8 @@ const Navigation: React.FC = () => {
     syncToRemote
   } = useLocalRouteHistory();
 
-  // Choisir quel historique utiliser selon le statut d'authentification
   const history = isAuthenticated ? remoteHistory : localHistory;
   const historyLoading = isAuthenticated ? remoteLoading : localLoading;
-  // Pour les erreurs, on ne veut pas afficher les erreurs d'authentification
   const historyError = isAuthenticated ?
       (remoteError && !remoteError.includes('401') && !remoteError.includes('Unauthorized') ? remoteError : null) :
       localError;
@@ -72,10 +75,67 @@ const Navigation: React.FC = () => {
     }
   }, [isAuthenticated, localHistory.length, syncToRemote]);
 
+  useEffect(() => {
+    const handleSharedLocation = async () => {
+      const searchParams = new URLSearchParams(location.search);
+      const sharedLat = searchParams.get('shared_lat');
+      const sharedLng = searchParams.get('shared_lng');
+
+      if (sharedLat && sharedLng) {
+        try {
+          const lat = parseFloat(sharedLat);
+          const lng = parseFloat(sharedLng);
+
+          console.log("Destination partagée détectée:", lat, lng);
+
+          if (isGeolocationEnabled && contextUserPosition) {
+            setWaypoints([
+              {
+                id: 'start',
+                placeholder: 'Starting point',
+                value: 'My Location',
+                isUserLocation: true
+              },
+              {
+                id: 'end',
+                placeholder: 'Destination',
+                value: `${lat.toFixed(6)},${lng.toFixed(6)}`
+              }
+            ]);
+          } else {
+            setWaypoints([
+              { id: 'start', placeholder: 'Starting point', value: '' },
+              {
+                id: 'end',
+                placeholder: 'Destination',
+                value: `${lat.toFixed(6)},${lng.toFixed(6)}`
+              }
+            ]);
+          }
+
+          setTimeout(() => {
+            if (isGeolocationEnabled && contextUserPosition) {
+              handleCalculateRoute();
+
+              setIsPanelOpen(true);
+            }
+          }, 1000);
+        } catch (error) {
+          console.error("Erreur lors du traitement des coordonnées partagées:", error);
+        }
+      }
+    };
+
+    handleSharedLocation();
+
+    if (location.search && location.search.includes('shared_lat')) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [location.search, isGeolocationEnabled, contextUserPosition]);
+
   const togglePanel = () => setIsPanelOpen(!isPanelOpen);
 
   const handleCalculateRoute = () => {
-    // Réinitialiser l'état de sauvegarde pour un nouveau calcul d'itinéraire
     setRouteAlreadySaved(false);
     setLastSavedIndex(-1);
 
@@ -88,14 +148,11 @@ const Navigation: React.FC = () => {
     }
   };
 
-  // Mettre à jour la fonction handleCancelRoute pour utiliser la ref
   const handleCancelRoute = useCallback(() => {
-    // Appeler la méthode clearRoute de GoogleMapsIntegration
     if (mapRef.current) {
       mapRef.current?.clearRoute();
     }
 
-    // Clear route-related states
     setRouteDetails(null);
     setHasCalculatedRoute(false);
     setIsRouteInfoVisible(false);
@@ -103,10 +160,8 @@ const Navigation: React.FC = () => {
     setRouteAlreadySaved(false);
     setLastSavedIndex(-1);
 
-    // Reset calculation trigger
     setCalculateRoute(false);
 
-    // Optional: Reset selected route index
     setSelectedRouteIndex(0);
   }, []);
 
@@ -118,7 +173,6 @@ const Navigation: React.FC = () => {
     return cookiesAccepted ? (cookieToken || null) : localToken;
   }
 
-  // Fonction sécurisée pour sauvegarder un itinéraire
   const saveRouteToHistory = useCallback((routeData: RouteDetails, routeIndex: number) => {
     if (!routeData || !routeData.routes || !routeData.routes[routeIndex]) {
       console.warn('Invalid route data or index when trying to save to history');
@@ -127,7 +181,6 @@ const Navigation: React.FC = () => {
 
     const route = routeData.routes[routeIndex];
 
-    // Vérifier que les legs existent et ne sont pas vides
     if (!route.legs || route.legs.length === 0) {
       console.warn('Route has no legs when trying to save to history');
       return;
@@ -195,7 +248,6 @@ const Navigation: React.FC = () => {
       setSelectedRouteIndex(0);
       setCalculateRoute(false);
 
-      // Sauvegarder l'itinéraire par défaut (index 0) après un court délai
       setTimeout(() => {
         if (!routeAlreadySaved && routeData) {
           saveRouteToHistory(routeData, 0);
@@ -206,14 +258,11 @@ const Navigation: React.FC = () => {
     }
   };
 
-  // Gestion du changement d'itinéraire sélectionné
   const handleSelectRoute = (idx: number) => {
     if (selectedRouteIndex === idx) return;
 
     setSelectedRouteIndex(idx);
 
-    // Sauvegarder le nouvel itinéraire sélectionné dans l'historique
-    // seulement s'il est différent de celui déjà sauvegardé
     if (routeDetails && idx !== lastSavedIndex) {
       saveRouteToHistory(routeDetails, idx);
     }
@@ -235,7 +284,6 @@ const Navigation: React.FC = () => {
     }, 100);
   };
 
-  // Gérer la fermeture/réouverture du panel d'info route
   const handleRouteInfoClose = () => {
     setIsRouteInfoVisible(false);
   };
@@ -248,7 +296,7 @@ const Navigation: React.FC = () => {
       <div className="h-screen w-full relative bg-gray-100 overflow-hidden">
         <div className="absolute inset-0">
           <GoogleMapsIntegration
-              ref={mapRef} // Ajouter la ref ici
+              ref={mapRef}
               waypoints={waypoints}
               calculateRoute={calculateRoute}
               onRouteCalculated={handleRouteCalculated}
@@ -270,7 +318,7 @@ const Navigation: React.FC = () => {
             handleCancelRoute={handleCancelRoute}
             travelMode={travelMode}
             setTravelMode={setTravelMode}
-            history={history.slice(0, 5)} // Limitation à 5 entrées dans l'historique
+            history={history.slice(0, 5)}
             historyLoading={historyLoading}
             historyError={historyError}
             handleHistoryClick={handleHistoryClick}
@@ -289,7 +337,6 @@ const Navigation: React.FC = () => {
             />
         )}
 
-        {/* Bouton pour afficher/masquer les informations de l'itinéraire */}
         {hasCalculatedRoute && !isRouteInfoVisible && (
             <div className="absolute bottom-6 right-4 z-10">
               <button
