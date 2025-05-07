@@ -58,7 +58,7 @@ const NavigationGuide: React.FC<NavigationGuideProps> = ({
 
                 <p className="text-gray-300 mb-6">
                     {highlightSearch(
-                        "Supmap provides intelligent, traffic-aware navigation that adapts to changing road conditions in real-time. Here's how to use the basic navigation features:"
+                        "Supmap provides intelligent, traffic-aware navigation that adapts to changing road conditions in real-time with voice guidance. Here's how to use the basic navigation features:"
                     )}
                 </p>
 

@@ -77,7 +77,6 @@ const AlertsReporting: React.FC<AlertsReportingProps> = ({
                             <li>{highlightSearch("• Accidents")}</li>
                             <li>{highlightSearch("• Traffic jams")}</li>
                             <li>{highlightSearch("• Stalled vehicles")}</li>
-                            <li>{highlightSearch("• Road closures")}</li>
                         </ul>
                     </div>
 
@@ -344,11 +343,6 @@ const AlertsReporting: React.FC<AlertsReportingProps> = ({
                             <li>
                                 {highlightSearch(
                                     "Tap 'Yes' to confirm the incident is still present"
-                                )}
-                            </li>
-                            <li>
-                                {highlightSearch(
-                                    "Optionally add additional details or update the report"
                                 )}
                             </li>
                             <li>
