@@ -437,7 +437,7 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
 
                 <p className="text-gray-300 mb-6">
                     {highlightSearch(
-                        "Supmap gives you control over your data. Learn how to view, export, and delete your information."
+                        "Supmap gives you control over your data. Learn how to view, export and delete your information."
                     )}
                 </p>
 

@@ -89,7 +89,7 @@ const MobileApp: React.FC<MobileAppProps> = ({
                                 </li>
                                 <li>
                                     {highlightSearch(
-                                        "Tap Get or the download icon"
+                                        "Tap the 'Get' button or the download icon"
                                     )}
                                 </li>
                                 <li>
@@ -432,7 +432,7 @@ const MobileApp: React.FC<MobileAppProps> = ({
                         <div className="mt-4 p-3 bg-indigo-900/30 rounded-lg">
                             <p className="text-gray-300 text-sm">
                                 {highlightSearch(
-                                    "QR codes are perfect for sharing routes with friends, family, or colleagues. They can be printed, sent via messaging apps, or shown from one screen to another."
+                                    "QR codes are perfect for sharing routes with friends, family, or colleagues. They can be printed, sent via messaging apps or shown from one screen to another."
                                 )}
                             </p>
                         </div>
@@ -494,7 +494,7 @@ const MobileApp: React.FC<MobileAppProps> = ({
                                         d="M5 13l4 4L19 7"
                                     ></path>
                                 </svg>
-                                {highlightSearch("Turn-by-turn navigation")}
+                                {highlightSearch("Step-by-step navigation")}
                             </li>
                             <li className="flex items-start">
                                 <svg

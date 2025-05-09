@@ -295,7 +295,7 @@ const AlertsReporting: React.FC<AlertsReportingProps> = ({
                     </h4>
                     <p className="text-gray-300 text-sm">
                         {highlightSearch(
-                            "Never use your phone while driving to report incidents. Either have a passenger submit the report, or wait until you are safely parked. Your safety and the safety of others on the road is more important than reporting an incident."
+                            "Never use your phone while driving to report incidents. Either have a passenger submit the report or wait until you are safely parked. Your safety and the safety of others on the road is more important than reporting an incident."
                         )}
                     </p>
                 </div>

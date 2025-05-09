@@ -200,6 +200,7 @@ const Documentation: React.FC = () => {
         const mainSection = section.split("#")[0];
 
         setActiveSection(mainSection);
+        window.scrollTo({ top: 0, behavior: "auto" });
         navigate(`#${section}`);
 
         setTimeout(() => {

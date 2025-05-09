@@ -58,7 +58,7 @@ const NavigationGuide: React.FC<NavigationGuideProps> = ({
 
                 <p className="text-gray-300 mb-6">
                     {highlightSearch(
-                        "Supmap provides intelligent, traffic-aware navigation that adapts to changing road conditions in real-time with voice guidance. Here's how to use the basic navigation features:"
+                        "Supmap provides intelligent traffic-aware navigation that adapts to changing road conditions in real-time with voice guidance. Here's how to use the basic navigation features:"
                     )}
                 </p>
 
@@ -316,7 +316,7 @@ const NavigationGuide: React.FC<NavigationGuideProps> = ({
                         </h4>
                         <p className="text-gray-300 text-sm">
                             {highlightSearch(
-                                "Adding multiple stops will increase your total journey time. Supmap will optimize the route between stops, but will maintain the order you specified."
+                                "Adding multiple stops will increase your total journey time. Supmap will optimize the route between stops but will maintain the order you specified."
                             )}
                         </p>
                     </div>
@@ -365,7 +365,7 @@ const NavigationGuide: React.FC<NavigationGuideProps> = ({
                                         </span>
                                         <p className="text-sm text-gray-400">
                                             {highlightSearch(
-                                                "Minimizes distance, regardless of traffic conditions"
+                                                "Minimizes distance regardless of traffic conditions"
                                             )}
                                         </p>
                                     </div>
@@ -417,7 +417,7 @@ const NavigationGuide: React.FC<NavigationGuideProps> = ({
                                         </span>
                                         <p className="text-sm text-gray-400">
                                             {highlightSearch(
-                                                "Choose toll-free routes, even if longer"
+                                                "Choose toll-free routes even if longer"
                                             )}
                                         </p>
                                     </div>

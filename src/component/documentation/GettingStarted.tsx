@@ -73,7 +73,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                             </h3>
                             <p className="text-gray-400 text-sm">
                                 {highlightSearch(
-                                    "Plan routes, explore traffic patterns, and manage your account"
+                                    "Plan routes, explore traffic patterns and manage your account"
                                 )}
                             </p>
                         </div>
@@ -535,7 +535,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                                 </li>
                                 <li>
                                     {highlightSearch(
-                                        'Tap "Start Navigation" to begin turn-by-turn directions'
+                                        'Tap "Start Navigation" to begin step-by-step directions'
                                     )}
                                 </li>
                             </ol>
@@ -561,7 +561,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                     </h4>
                     <p className="text-gray-300 text-sm">
                         {highlightSearch(
-                            "Enable voice guidance in the settings menu for safer, hands-free navigation."
+                            "Enable voice guidance in the settings menu for safer hands-free navigation."
                         )}
                     </p>
                 </div>
