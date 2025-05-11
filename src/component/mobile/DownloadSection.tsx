@@ -100,7 +100,7 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
                     <div className="flex flex-col sm:flex-row gap-4">
                         {activeTab === 'android' ? (
                             <a
-                                href="https://play.google.com"
+                                href="https://drive.google.com/uc?export=download&id=18RoG-AFaTijAaqAVxlheoRVDdQWOSQnt"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="group relative flex items-center justify-center py-3 px-6
@@ -109,7 +109,7 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
                                          transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
                             >
                                 <ShoppingBag size={20} className="mr-2 relative z-10"/>
-                                <span className="relative z-10">Download on Google Play</span>
+                                <span className="relative z-10">Download Supmap APK</span>
                                 <ArrowRightIcon size={18}
                                                 className="ml-2 group-hover:translate-x-1 transition-transform duration-300 relative z-10"/>
                                 <div className="absolute top-0 left-0 right-0 bottom-0 opacity-0 group-hover:opacity-100 overflow-hidden">

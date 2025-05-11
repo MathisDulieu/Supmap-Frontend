@@ -89,9 +89,8 @@ const DocumentationSection: React.FC = () => {
         }
     };
 
-    const handleLinkClick = (e, link) => {
+    const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, link: string) => {
         e.preventDefault();
-        // Navigate to the documentation page with the appropriate hash
         navigate(`/documentation${link}`);
     };
 
