@@ -2,14 +2,11 @@ import React, { useState, useEffect } from 'react';
 import {
     AppleIcon,
     Smartphone,
-    ShoppingBag,
     CheckCircleIcon,
     ArrowRightIcon,
     DownloadIcon,
     AlertCircle
 } from 'lucide-react';
-
-import apkFile from '../../download/app-release.apk';
 
 interface DownloadSectionProps {
     activeTab: 'ios' | 'android';
@@ -17,60 +14,26 @@ interface DownloadSectionProps {
 }
 
 const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveTab }) => {
-    const APK_DOWNLOAD_URL = apkFile;
+    const APK_DOWNLOAD_URL = '/download/app-release.apk';
 
-    const [isMobile, setIsMobile] = useState(false);
-    const [isAndroid, setIsAndroid] = useState(false);
-    const [, setIsIOS] = useState(false);
-    const [androidVersion, setAndroidVersion] = useState<number | null>(null);
     const [showInstallGuide, setShowInstallGuide] = useState(false);
 
     useEffect(() => {
         const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
 
-        const mobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-        setIsMobile(mobileCheck);
-
-        const androidMatch = userAgent.match(/Android (\d+)\.(\d+)/i);
-        if (androidMatch) {
-            setIsAndroid(true);
-            setActiveTab('android');
-            const majorVersion = parseInt(androidMatch[1]);
-            setAndroidVersion(majorVersion);
-        } else {
-            setIsAndroid(false);
-        }
-
-        const iosCheck = /iPhone|iPad|iPod/i.test(userAgent);
-        if (iosCheck) {
-            setIsIOS(true);
+        if (/iPhone|iPad|iPod/i.test(userAgent)) {
             setActiveTab('ios');
-        } else {
-            setIsIOS(false);
+        } else if (/Android/i.test(userAgent)) {
+            setActiveTab('android');
         }
     }, [setActiveTab]);
 
     const handleAndroidDownload = () => {
-        if (isAndroid) {
-            // Pour Android, ajouter des attributs pour faciliter l'installation
-            const downloadLink = document.createElement('a');
-            downloadLink.href = APK_DOWNLOAD_URL;
-            downloadLink.download = "Supmap.apk";
-            downloadLink.setAttribute('data-downloadtype', 'application/vnd.android.package-archive');
-            downloadLink.setAttribute('target', '_self');
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+        window.location.href = APK_DOWNLOAD_URL;
 
-            setTimeout(() => {
-                setShowInstallGuide(true);
-            }, 2000);
-        } else if (isMobile && !isAndroid) {
-            alert("Cette application n'est pas disponible pour iOS. Veuillez utiliser un appareil Android.");
-        } else {
-            // Pour desktop, télécharger normalement
-            window.location.href = APK_DOWNLOAD_URL;
-        }
+        setTimeout(() => {
+            setShowInstallGuide(true);
+        }, 2000);
     };
 
     const closeInstallGuide = () => {
@@ -222,34 +185,12 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
                                              rounded-lg shadow-lg shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30
                                              transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
                                 >
-                                    {isAndroid ? (
-                                        <>
-                                            <DownloadIcon size={20} className="mr-2 relative z-10"/>
-                                            <span className="relative z-10">Install Now</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <ShoppingBag size={20} className="mr-2 relative z-10"/>
-                                            <span className="relative z-10">Download APK</span>
-                                            <ArrowRightIcon size={18} className="ml-2 group-hover:translate-x-1 transition-transform duration-300 relative z-10"/>
-                                        </>
-                                    )}
+                                    <DownloadIcon size={20} className="mr-2 relative z-10"/>
+                                    <span className="relative z-10">Download APK</span>
                                     <div className="absolute top-0 left-0 right-0 bottom-0 opacity-0 group-hover:opacity-100 overflow-hidden">
                                         <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-500/0 via-indigo-500/30 to-indigo-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                                     </div>
                                 </button>
-
-                                {isMobile && !isAndroid && (
-                                    <div className="text-yellow-400 text-xs mt-1 text-center">
-                                        Cette application n'est pas compatible avec votre appareil iOS.
-                                    </div>
-                                )}
-
-                                {isAndroid && androidVersion && androidVersion < 8 && (
-                                    <div className="text-yellow-400 text-xs mt-1 text-center">
-                                        Cette application nécessite Android 8.0 ou supérieur.
-                                    </div>
-                                )}
 
                                 <a
                                     href="https://play.google.com/store/apps/details?id=com.supmap.navigation"
