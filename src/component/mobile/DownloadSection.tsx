@@ -15,6 +15,9 @@ interface DownloadSectionProps {
 
 const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveTab }) => {
     const [showInstallGuide, setShowInstallGuide] = useState(false);
+    // Convertir l'ID du fichier Google Drive en URL de téléchargement direct
+    const googleDriveFileId = '1ECT6DEqyopFjV47TkV2f6CvOgdmP1u2X';
+    const directDownloadUrl = `https://drive.google.com/uc?export=download&id=${googleDriveFileId}`;
 
     useEffect(() => {
         const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
@@ -175,7 +178,7 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
                         {activeTab === 'android' ? (
                             <>
                                 <a
-                                    href="/src/download/app-release.apk"
+                                    href={directDownloadUrl}
                                     download="Supmap.apk"
                                     target="_blank"
                                     onClick={handleShowGuide}
