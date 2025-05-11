@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     AppleIcon,
     Smartphone,
     ShoppingBag,
     CheckCircleIcon,
-    ArrowRightIcon
+    ArrowRightIcon,
+    DownloadIcon,
+    AlertCircle
 } from 'lucide-react';
 
 interface DownloadSectionProps {
@@ -13,8 +15,110 @@ interface DownloadSectionProps {
 }
 
 const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveTab }) => {
+    const APK_DOWNLOAD_URL = "/api/download/supmap-latest.apk";
+
+    const [isMobile, setIsMobile] = useState(false);
+    const [isAndroid, setIsAndroid] = useState(false);
+    const [setIsIOS] = useState(false);
+    const [androidVersion, setAndroidVersion] = useState<number | null>(null);
+    const [showInstallGuide, setShowInstallGuide] = useState(false);
+
+    useEffect(() => {
+        const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+
+        const mobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+        setIsMobile(mobileCheck);
+
+        const androidMatch = userAgent.match(/Android (\d+)\.(\d+)/i);
+        if (androidMatch) {
+            setIsAndroid(true);
+            setActiveTab('android');
+            const majorVersion = parseInt(androidMatch[1]);
+            setAndroidVersion(majorVersion);
+        } else {
+            setIsAndroid(false);
+        }
+
+        const iosCheck = /iPhone|iPad|iPod/i.test(userAgent);
+        if (iosCheck) {
+            setIsIOS(true);
+            setActiveTab('ios');
+        } else {
+            setIsIOS(false);
+        }
+    }, [setActiveTab]);
+
+    const handleAndroidDownload = () => {
+        if (isAndroid) {
+            window.location.href = APK_DOWNLOAD_URL;
+
+            setTimeout(() => {
+                setShowInstallGuide(true);
+            }, 2000);
+        } else if (isMobile && !isAndroid) {
+            alert("Cette application n'est pas disponible pour iOS. Veuillez utiliser un appareil Android.");
+        } else {
+            window.location.href = APK_DOWNLOAD_URL;
+        }
+    };
+
+    const closeInstallGuide = () => {
+        setShowInstallGuide(false);
+    };
+
     return (
         <div className="flex flex-col justify-center">
+            {showInstallGuide && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                    <div className="bg-[#0f121e] rounded-2xl p-6 max-w-md w-full border border-indigo-900/50">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-bold text-white">Comment installer Supmap</h3>
+                            <button
+                                onClick={closeInstallGuide}
+                                className="text-gray-400 hover:text-white"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="space-y-4 text-gray-300">
+                            <div className="flex items-start space-x-3">
+                                <div className="bg-indigo-900/50 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-indigo-300">1</span>
+                                </div>
+                                <p>Si vous êtes invité à choisir une application, sélectionnez votre navigateur.</p>
+                            </div>
+
+                            <div className="flex items-start space-x-3">
+                                <div className="bg-indigo-900/50 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-indigo-300">2</span>
+                                </div>
+                                <p>Appuyez sur "Oui" ou "Installer" lorsque vous êtes invité à installer l'application.</p>
+                            </div>
+
+                            <div className="flex items-start space-x-3">
+                                <div className="bg-indigo-900/50 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-indigo-300">3</span>
+                                </div>
+                                <p>Si vous recevez un avertissement de sécurité, appuyez sur "Paramètres" puis activez "Autoriser de cette source".</p>
+                            </div>
+
+                            <div className="flex items-start space-x-3">
+                                <AlertCircle size={20} className="text-amber-400 flex-shrink-0 mt-0.5" />
+                                <p className="text-amber-300">Si l'installation ne démarre pas automatiquement, vérifiez vos téléchargements et appuyez sur le fichier APK.</p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={closeInstallGuide}
+                            className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium transition-colors"
+                        >
+                            J'ai compris
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div className="bg-[rgba(15,18,30,0.8)] backdrop-blur-xl shadow-xl border border-indigo-900/30 rounded-2xl p-8">
                 <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
                     Download for your device
@@ -99,54 +203,82 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
 
                     <div className="flex flex-col sm:flex-row gap-4">
                         {activeTab === 'android' ? (
-                            <a
-                                href="https://upnow-prod.ff45e40d1a1c8f7e7de4e976d0c9e555.r2.cloudflarestorage.com/rzbmSNZaUaNetTBFMFNkjhZJYTA2/cd0fe0fd-d97c-4e27-803e-a9ad7c141082?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=cdd12e35bbd220303957dc5603a4cc8e%2F20250511%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20250511T221848Z&X-Amz-Expires=43200&X-Amz-Signature=d91629f390be1fdeb46204610d3070492369736a635d35e6a22be4c404914d0a&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3D%22app-release.apk%22"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="group relative flex items-center justify-center py-3 px-6
-                                         bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-medium
-                                         rounded-lg shadow-lg shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30
-                                         transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
-                            >
-                                <ShoppingBag size={20} className="mr-2 relative z-10"/>
-                                <span className="relative z-10">Download on Google Play</span>
-                                <ArrowRightIcon size={18}
-                                                className="ml-2 group-hover:translate-x-1 transition-transform duration-300 relative z-10"/>
-                                <div className="absolute top-0 left-0 right-0 bottom-0 opacity-0 group-hover:opacity-100 overflow-hidden">
-                                    <div
-                                        className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-500/0 via-indigo-500/30 to-indigo-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                                </div>
-                            </a>
+                            <>
+                                <button
+                                    onClick={handleAndroidDownload}
+                                    className="group relative flex items-center justify-center py-3 px-6
+                                             bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-medium
+                                             rounded-lg shadow-lg shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30
+                                             transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
+                                >
+                                    {isAndroid ? (
+                                        <>
+                                            <DownloadIcon size={20} className="mr-2 relative z-10"/>
+                                            <span className="relative z-10">Install Now</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ShoppingBag size={20} className="mr-2 relative z-10"/>
+                                            <span className="relative z-10">Download APK</span>
+                                            <ArrowRightIcon size={18} className="ml-2 group-hover:translate-x-1 transition-transform duration-300 relative z-10"/>
+                                        </>
+                                    )}
+                                    <div className="absolute top-0 left-0 right-0 bottom-0 opacity-0 group-hover:opacity-100 overflow-hidden">
+                                        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-500/0 via-indigo-500/30 to-indigo-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                                    </div>
+                                </button>
+
+                                {isMobile && !isAndroid && (
+                                    <div className="text-yellow-400 text-xs mt-1 text-center">
+                                        Cette application n'est pas compatible avec votre appareil iOS.
+                                    </div>
+                                )}
+
+                                {isAndroid && androidVersion && androidVersion < 8 && (
+                                    <div className="text-yellow-400 text-xs mt-1 text-center">
+                                        Cette application nécessite Android 8.0 ou supérieur.
+                                    </div>
+                                )}
+
+                                <a
+                                    href="https://play.google.com/store/apps/details?id=com.supmap.navigation"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="group flex items-center justify-center py-3 px-6
+                                            border border-indigo-500/40 text-indigo-300 font-medium rounded-lg
+                                            hover:bg-indigo-900/40 hover:border-indigo-500/60 transition-all duration-300"
+                                >
+                                    <span>Get on Google Play</span>
+                                    <ArrowRightIcon size={18} className="ml-2 group-hover:translate-x-1 transition-transform duration-300"/>
+                                </a>
+                            </>
                         ) : (
                             <a
-                                href="https://apps.apple.com"
+                                href="https://apps.apple.com/app/supmap/id1234567890"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="group relative flex items-center justify-center py-3 px-6
-                                         bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-medium
-                                         rounded-lg shadow-lg shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30
-                                         transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
+                                        bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-medium
+                                        rounded-lg shadow-lg shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30
+                                        transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
                             >
                                 <AppleIcon size={20} className="mr-2 relative z-10"/>
                                 <span className="relative z-10">Download on App Store</span>
-                                <ArrowRightIcon size={18}
-                                                className="ml-2 group-hover:translate-x-1 transition-transform duration-300 relative z-10"/>
+                                <ArrowRightIcon size={18} className="ml-2 group-hover:translate-x-1 transition-transform duration-300 relative z-10"/>
                                 <div className="absolute top-0 left-0 right-0 bottom-0 opacity-0 group-hover:opacity-100 overflow-hidden">
-                                    <div
-                                        className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-500/0 via-indigo-500/30 to-indigo-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                                    <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-500/0 via-indigo-500/30 to-indigo-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                                 </div>
                             </a>
                         )}
 
                         <button
                             className="group flex items-center justify-center py-3 px-6
-                                     border border-indigo-500/40 text-indigo-300 font-medium rounded-lg
-                                     hover:bg-indigo-900/40 hover:border-indigo-500/60 transition-all duration-300"
+                                    border border-indigo-500/40 text-indigo-300 font-medium rounded-lg
+                                    hover:bg-indigo-900/40 hover:border-indigo-500/60 transition-all duration-300"
                             onClick={() => window.location.href = '/support'}
                         >
                             <span>Need Help?</span>
-                            <ArrowRightIcon size={18}
-                                            className="ml-2 group-hover:translate-x-1 transition-transform duration-300"/>
+                            <ArrowRightIcon size={18} className="ml-2 group-hover:translate-x-1 transition-transform duration-300"/>
                         </button>
                     </div>
                 </div>
