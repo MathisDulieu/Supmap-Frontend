@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BookOpenIcon, MapIcon, AlertTriangleIcon, SettingsIcon,
     UserIcon, BellIcon, ChevronRightIcon, ChevronDownIcon } from 'lucide-react';
 
@@ -10,34 +10,57 @@ const documentationTopics = [
         title: 'Getting Started',
         description: 'Learn the basics of Supmap and set up your account',
         subtopics: [
-            { title: 'Creating an account', link: '/documentation/getting-started/create-account' },
-            { title: 'Setting up your profile', link: '/documentation/getting-started/profile-setup' },
-            { title: 'Navigation basics', link: '/documentation/getting-started/navigation-basics' },
-            { title: 'Understanding the interface', link: '/documentation/getting-started/interface' }
+            { title: 'Overview', link: '#getting-started#overview' },
+            { title: 'Installation', link: '#getting-started#installation' },
+            { title: 'Creating an account', link: '#getting-started#account-creation' },
+            { title: 'First Steps', link: '#getting-started#first-steps' }
         ]
     },
     {
-        id: 'navigation',
+        id: 'navigation-guide',
         icon: <MapIcon size={20} className="text-green-400" />,
-        title: 'Navigation Features',
+        title: 'Navigation Guide',
         description: 'Discover all navigation capabilities and route options',
         subtopics: [
-            { title: 'Planning a route', link: '/documentation/navigation/planning' },
-            { title: 'Route preferences', link: '/documentation/navigation/preferences' },
-            { title: 'Saving favorite locations', link: '/documentation/navigation/favorites' },
-            { title: 'Voice navigation', link: '/documentation/navigation/voice' }
+            { title: 'Navigation Basics', link: '#navigation-guide#basics' },
+            { title: 'Planning Routes', link: '#navigation-guide#planning-routes' },
+            { title: 'Route Preferences', link: '#navigation-guide#preferences' },
+            { title: 'Saving Favorites', link: '#navigation-guide#favorites' }
         ]
     },
     {
-        id: 'alerts',
+        id: 'alerts-reporting',
         icon: <AlertTriangleIcon size={20} className="text-yellow-400" />,
         title: 'Alerts & Reporting',
         description: 'How to receive, report and verify traffic incidents',
         subtopics: [
-            { title: 'Reporting incidents', link: '/documentation/alerts/reporting' },
-            { title: 'Verifying community alerts', link: '/documentation/alerts/verification' },
-            { title: 'Alert types explained', link: '/documentation/alerts/types' },
-            { title: 'Alert notifications settings', link: '/documentation/alerts/notifications' }
+            { title: 'Receiving Alerts', link: '#alerts-reporting#receiving' },
+            { title: 'Creating Reports', link: '#alerts-reporting#creating' },
+            { title: 'Verifying Reports', link: '#alerts-reporting#verifying' },
+            { title: 'Alert Types', link: '#alerts-reporting#types' }
+        ]
+    },
+    {
+        id: 'account-management',
+        icon: <UserIcon size={20} className="text-purple-400" />,
+        title: 'Account Management',
+        description: 'Manage your profile, privacy, and subscription',
+        subtopics: [
+            { title: 'Profile Settings', link: '#account-management#profile' },
+            { title: 'Privacy Controls', link: '#account-management#privacy' },
+            { title: 'Data Management', link: '#account-management#data' }
+        ]
+    },
+    {
+        id: 'mobile-app',
+        icon: <BellIcon size={20} className="text-blue-400" />,
+        title: 'Mobile App',
+        description: 'Configure your mobile experience and settings',
+        subtopics: [
+            { title: 'Installation', link: '#mobile-app#installation' },
+            { title: 'Syncing with Web', link: '#mobile-app#sync' },
+            { title: 'Offline Usage', link: '#mobile-app#offline' },
+            { title: 'Battery Optimization', link: '#mobile-app#battery' }
         ]
     },
     {
@@ -46,40 +69,17 @@ const documentationTopics = [
         title: 'Settings & Preferences',
         description: 'Customize Supmap to match your needs',
         subtopics: [
-            { title: 'App settings', link: '/documentation/settings/app' },
-            { title: 'Map appearance', link: '/documentation/settings/map' },
-            { title: 'Navigation preferences', link: '/documentation/settings/navigation' },
-            { title: 'Privacy settings', link: '/documentation/settings/privacy' }
-        ]
-    },
-    {
-        id: 'account',
-        icon: <UserIcon size={20} className="text-purple-400" />,
-        title: 'Account Management',
-        description: 'Manage your profile, privacy, and subscription',
-        subtopics: [
-            { title: 'Profile management', link: '/documentation/account/profile' },
-            { title: 'Privacy controls', link: '/documentation/account/privacy' },
-            { title: 'Subscription options', link: '/documentation/account/subscription' },
-            { title: 'Data export & deletion', link: '/documentation/account/data' }
-        ]
-    },
-    {
-        id: 'notifications',
-        icon: <BellIcon size={20} className="text-blue-400" />,
-        title: 'Notifications',
-        description: 'Configure how and when you receive alerts',
-        subtopics: [
-            { title: 'Notification types', link: '/documentation/notifications/types' },
-            { title: 'Setting up alerts', link: '/documentation/notifications/setup' },
-            { title: 'Custom alert areas', link: '/documentation/notifications/custom-areas' },
-            { title: 'Silent hours', link: '/documentation/notifications/silent-hours' }
+            { title: 'Navigation Preferences', link: '#navigation-guide#preferences' },
+            { title: 'Privacy Settings', link: '#account-management#privacy' },
+            { title: 'App Settings', link: '#mobile-app#sync' },
+            { title: 'Profile Settings', link: '#account-management#profile' }
         ]
     }
 ];
 
 const DocumentationSection: React.FC = () => {
     const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
+    const navigate = useNavigate();
 
     const toggleTopic = (topicId: string) => {
         if (expandedTopic === topicId) {
@@ -87,6 +87,12 @@ const DocumentationSection: React.FC = () => {
         } else {
             setExpandedTopic(topicId);
         }
+    };
+
+    const handleLinkClick = (e, link) => {
+        e.preventDefault();
+        // Navigate to the documentation page with the appropriate hash
+        navigate(`/documentation${link}`);
     };
 
     return (
@@ -148,24 +154,26 @@ const DocumentationSection: React.FC = () => {
                                     <ul className="border-t border-indigo-900/30 pt-4 space-y-2">
                                         {topic.subtopics.map((subtopic, index) => (
                                             <li key={index}>
-                                                <Link
-                                                    to={subtopic.link}
+                                                <a
+                                                    href={subtopic.link}
+                                                    onClick={(e) => handleLinkClick(e, subtopic.link)}
                                                     className="flex items-center text-gray-300 hover:text-indigo-300 transition-colors duration-300"
                                                 >
                                                     <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full mr-2"></span>
                                                     <span>{subtopic.title}</span>
-                                                </Link>
+                                                </a>
                                             </li>
                                         ))}
                                     </ul>
 
-                                    <Link
-                                        to={`/documentation/${topic.id}`}
+                                    <a
+                                        href={`#${topic.id}`}
+                                        onClick={(e) => handleLinkClick(e, `#${topic.id}`)}
                                         className="mt-4 inline-flex items-center text-indigo-400 hover:text-indigo-300 transition-colors duration-300 group"
                                     >
                                         <span className="text-sm">View all {topic.title.toLowerCase()} docs</span>
                                         <ChevronRightIcon size={16} className="ml-1 group-hover:translate-x-1 transition-transform duration-300" />
-                                    </Link>
+                                    </a>
                                 </div>
                             </div>
                         </div>
