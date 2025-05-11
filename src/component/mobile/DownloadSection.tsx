@@ -9,17 +9,19 @@ import {
     AlertCircle
 } from 'lucide-react';
 
+import apkFile from '../../download/app-release.apk';
+
 interface DownloadSectionProps {
     activeTab: 'ios' | 'android';
     setActiveTab: React.Dispatch<React.SetStateAction<'ios' | 'android'>>;
 }
 
 const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveTab }) => {
-    const APK_DOWNLOAD_URL = "/api/download/supmap-latest.apk";
+    const APK_DOWNLOAD_URL = apkFile;
 
     const [isMobile, setIsMobile] = useState(false);
     const [isAndroid, setIsAndroid] = useState(false);
-    const [setIsIOS] = useState(false);
+    const [, setIsIOS] = useState(false);
     const [androidVersion, setAndroidVersion] = useState<number | null>(null);
     const [showInstallGuide, setShowInstallGuide] = useState(false);
 
@@ -50,7 +52,15 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
 
     const handleAndroidDownload = () => {
         if (isAndroid) {
-            window.location.href = APK_DOWNLOAD_URL;
+            // Pour Android, ajouter des attributs pour faciliter l'installation
+            const downloadLink = document.createElement('a');
+            downloadLink.href = APK_DOWNLOAD_URL;
+            downloadLink.download = "Supmap.apk";
+            downloadLink.setAttribute('data-downloadtype', 'application/vnd.android.package-archive');
+            downloadLink.setAttribute('target', '_self');
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
 
             setTimeout(() => {
                 setShowInstallGuide(true);
@@ -58,6 +68,7 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
         } else if (isMobile && !isAndroid) {
             alert("Cette application n'est pas disponible pour iOS. Veuillez utiliser un appareil Android.");
         } else {
+            // Pour desktop, télécharger normalement
             window.location.href = APK_DOWNLOAD_URL;
         }
     };
