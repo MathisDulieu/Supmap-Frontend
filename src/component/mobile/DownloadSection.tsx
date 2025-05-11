@@ -100,15 +100,16 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
                     <div className="flex flex-col sm:flex-row gap-4">
                         {activeTab === 'android' ? (
                             <a
-                                href="../../../public/download/app-release.apk"
-                                download
+                                href="https://upnow-prod.ff45e40d1a1c8f7e7de4e976d0c9e555.r2.cloudflarestorage.com/rzbmSNZaUaNetTBFMFNkjhZJYTA2/cd0fe0fd-d97c-4e27-803e-a9ad7c141082?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=cdd12e35bbd220303957dc5603a4cc8e%2F20250511%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20250511T221848Z&X-Amz-Expires=43200&X-Amz-Signature=d91629f390be1fdeb46204610d3070492369736a635d35e6a22be4c404914d0a&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3D%22app-release.apk%22"
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="group relative flex items-center justify-center py-3 px-6
                                          bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-medium
                                          rounded-lg shadow-lg shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30
                                          transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
                             >
                                 <ShoppingBag size={20} className="mr-2 relative z-10"/>
-                                <span className="relative z-10">Download Supmap APK</span>
+                                <span className="relative z-10">Download on Google Play</span>
                                 <ArrowRightIcon size={18}
                                                 className="ml-2 group-hover:translate-x-1 transition-transform duration-300 relative z-10"/>
                                 <div className="absolute top-0 left-0 right-0 bottom-0 opacity-0 group-hover:opacity-100 overflow-hidden">
