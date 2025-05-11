@@ -14,6 +14,7 @@ interface DownloadSectionProps {
 }
 
 const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveTab }) => {
+    // URL statique directe vers le fichier APK dans le dossier public
     const APK_DOWNLOAD_URL = '/download/app-release.apk';
 
     const [showInstallGuide, setShowInstallGuide] = useState(false);
