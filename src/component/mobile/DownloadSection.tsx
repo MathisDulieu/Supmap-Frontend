@@ -100,9 +100,8 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
                     <div className="flex flex-col sm:flex-row gap-4">
                         {activeTab === 'android' ? (
                             <a
-                                href="https://drive.google.com/uc?export=download&id=18RoG-AFaTijAaqAVxlheoRVDdQWOSQnt"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                href="../../../public/download/app-release.apk"
+                                download
                                 className="group relative flex items-center justify-center py-3 px-6
                                          bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-medium
                                          rounded-lg shadow-lg shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30
