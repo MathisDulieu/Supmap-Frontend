@@ -14,9 +14,6 @@ interface DownloadSectionProps {
 }
 
 const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveTab }) => {
-    // URL statique directe vers le fichier APK dans le dossier public
-    const APK_DOWNLOAD_URL = '/download/app-release.apk';
-
     const [showInstallGuide, setShowInstallGuide] = useState(false);
 
     useEffect(() => {
@@ -29,12 +26,10 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
         }
     }, [setActiveTab]);
 
-    const handleAndroidDownload = () => {
-        window.location.href = APK_DOWNLOAD_URL;
-
+    const handleShowGuide = () => {
         setTimeout(() => {
             setShowInstallGuide(true);
-        }, 2000);
+        }, 1000);
     };
 
     const closeInstallGuide = () => {
@@ -179,8 +174,11 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
                     <div className="flex flex-col sm:flex-row gap-4">
                         {activeTab === 'android' ? (
                             <>
-                                <button
-                                    onClick={handleAndroidDownload}
+                                <a
+                                    href="/src/download/app-release.apk"
+                                    download="Supmap.apk"
+                                    target="_blank"
+                                    onClick={handleShowGuide}
                                     className="group relative flex items-center justify-center py-3 px-6
                                              bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-medium
                                              rounded-lg shadow-lg shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30
@@ -191,7 +189,7 @@ const DownloadSection: React.FC<DownloadSectionProps> = ({ activeTab, setActiveT
                                     <div className="absolute top-0 left-0 right-0 bottom-0 opacity-0 group-hover:opacity-100 overflow-hidden">
                                         <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-500/0 via-indigo-500/30 to-indigo-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                                     </div>
-                                </button>
+                                </a>
 
                                 <a
                                     href="https://play.google.com/store/apps/details?id=com.supmap.navigation"
